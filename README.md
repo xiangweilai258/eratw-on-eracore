@@ -1,7 +1,7 @@
 # EraRelay
 
-> **eraTW on EraCore** —— 把 **eraTW（画蛇添足版）** 移植到
-> **[LaoBro/era-core](https://github.com/LaoBro/era-core)** 引擎上运行，
+> **eraTW on EraCore** —— 把 **eraTW（画蛇添足版）** 移植到  
+> **[LaoBro/era-core](https://github.com/LaoBro/era-core)** 引擎上运行，  
 > 并针对 Android 真机做了打包与内存验证。
 
 **名字的意思**：eraTW 从旧引擎（Emuera）接力到新引擎（EraCore）—— 我们只做接力的那一棒。
@@ -30,7 +30,7 @@ EEv56 扩展指令集，而 `era-core` 的 `main` 分支只实现了基础指令
 | 启动     | `Process.Initialize OK` → `state=WaitInput`；热 IR 缓存后 **约 6 秒** |
 | 真机     | 荣耀平板 ROD-W09 / Android 14 / 8 GB —— **完整可玩**                   |
 | 内存     | 标题画面 **PSS 747 MB**，游玩 27+ 分钟未被系统回收                            |
-| APK    | **255 MB**（arm64 + x86_64 双架构，见 Releases）                     |
+| APK    | **255 MB**（arm64 + x86_64 双架构，见 Releases）                      |
 
 ### 内存对照
 
@@ -49,7 +49,7 @@ EEv56 扩展指令集，而 `era-core` 的 `main` 分支只实现了基础指令
 
 ### ★ AI 参与游玩（本项目的独特之处）
 
-EraCore 的引擎内核是**完全无头**的，游戏会话跑在一个本地 HTTP + WebSocket 服务上，
+EraCore 的引擎内核是**完全无头**的，游戏会话跑在一个本地 HTTP + WebSocket 服务上，  
 WebView 只是其中一个「客户端」。这意味着 —— **AI agent 可以像另一个玩家一样接进同一个会话**：
 
 - 读画面：agent 订阅 turn 流，拿到与玩家屏幕上一致的文本 diff
@@ -57,7 +57,7 @@ WebView 只是其中一个「客户端」。这意味着 —— **AI agent 可�
 
 这不是设想，是**已经跑通的架构**（`EraCore.Core/Agent/` 下的 JSONL 协议 + `EraCore.Maui/BridgeHost.cs` 编排）。
 
-> 这也是本仓库不同于社区其他 era 模拟器的地方：那些实现把「引擎 + 界面」焊死在一起，
+> 这也是本仓库不同于社区其他 era 模拟器的地方：那些实现把「引擎 + 界面」焊死在一起，  
 > 而这里界面是可拆换的，AI 只是换了一种接入方式。
 
 ---
@@ -104,7 +104,9 @@ dotnet publish EraCore.Maui/EraCore.Maui.csproj -f net10.0-android -c Release -r
 port/
   eratw-EE56-compat.patch    ★ 核心补丁（+999/-10，9 文件）
   make-patch.py                补丁生成脚本（可复现）
+  make-nf-patch.py             NF 指令族补丁生成脚本（可复现）
 patches/
+  nf-input-family.patch         ★ NF 指令族补丁（+108/-4，5 文件，见下）
   als-VarKeyAreadyDefined-fix.patch   一个独立的小修（上游 main 分支可用）
   pluginsAware-soft-warning.md        插件门禁改软警告的逐处改动说明（见下）
 tools/
@@ -119,34 +121,50 @@ tools/
   playthrough.py          自动通关驱动（跑 EEv56 路径）
 ```
 
-> **关于 `pluginsAware`**：`era-core` 的 `main` 分支还留着**旧版硬门禁**——游戏目录带了 DLL 插件
-> 却没有 `pluginsAware.txt` 时，会**直接拒绝启动**。上游 Emuera 已于 2026-05-26 废弃该设计
-> （改为软警告），本仓库已对齐该行为，逐处改动见
-> [`patches/pluginsAware-soft-warning.md`](patches/pluginsAware-soft-warning.md)。
-> 用本仓库编译的 APK 无需关心这个文件；如需 `pluginsAware.txt` 模板，见
+> **关于 `pluginsAware`**：`era-core` 的 `main` 分支还留着**旧版硬门禁**——游戏目录带了 DLL 插件  
+> 却没有 `pluginsAware.txt` 时，会**直接拒绝启动**。上游 Emuera 已于 2026-05-26 废弃该设计  
+> （改为软警告），本仓库已对齐该行为，逐处改动见  
+> [`patches/pluginsAware-soft-warning.md`](patches/pluginsAware-soft-warning.md)。  
+> 用本仓库编译的 APK 无需关心这个文件；如需 `pluginsAware.txt` 模板，见  
 > [`docs/pluginsAware.txt.template`](docs/pluginsAware.txt.template)。
 
 ---
 
 ## 补丁做了什么
 
-改动集中在 `EraCore.Core`，可归纳为四类：
+改动集中在 `EraCore.Core`，可归纳为五类：
 
 1. **EEv56 兼容层** —— 新增 `Creator.Method.EE56.cs`，补齐 eraTW 依赖的扩展指令实现  
    （`GRAPH_DISTANCE` / `SQL_IMPORT_MAP_XML` / `TEXT_BGC` / `HTML_PRINTC` / `UNCHECKED_*` 等）
 2. **指令注册** —— 在 `BuiltInFunctionCode.cs` / `FunctionIdentifier.cs` / `Instraction.Child.cs` 登记新指令
 3. **SQL 运行时** —— 新增 `EESqlRuntime.cs`，提供 eraTW 需要的 SQL 层
 4. **插件加载容错** —— `PluginManager.cs`：程序集重定向、`GetTypes` 容错、目录大小写
+5. **NF 指令族** —— `TINPUTNF` / `TINPUTSNF` / `TONEINPUTNF` / `TONEINPUTSNF`（见下）
 
-### 已知未实现
+### ★ NF 指令族（`patches/nf-input-family.patch`）
 
-- **NF 指令族**（`TINPUTNF` / `TINPUTSNF` / `TONEINPUTNF` / `TONEINPUTSNF`）—— eraTW 的动态地图动画依赖它。  
-  未实现时地图**不显示动画**；把地图类型切到「[2] 颜色地图」或「[3] 经典」可绕过（功能正常，仅无动画）。
+eraTW 的动态地图动画依赖一组「不夺窗口焦点」的输入指令 —— **NF（NoFocus）族**，
+由 eraTW 汉化整合版自行 fork 的解释器 v9 私有扩展，上游 `era-core` 没有。
+
+本仓库已补齐（**+108 / -4，5 文件**）：
+
+| 文件 | 改动 |
+| --- | --- |
+| `EraCore.Core.csproj` | 显式定义引擎版本号 `1.0.1`（作废旧 IR 缓存，见下） |
+| `BuiltInFunctionCode.cs` | 新增 4 个枚举成员 |
+| `InputRequest.cs` | 新增 `NoFocus` 字段 |
+| `Instraction.Child.cs` | `TINPUT` / `TINPUTS` 两个构造加可选参 |
+| `FunctionIdentifier.cs` | 登记 4 个新指令 |
+
+> **为什么动版本号**：`EraCore.Core` 原本走 SDK 默认版本 `1.0.0.0`；新增指令后，
+> 已缓存过的 `era_ir.dat`（IR 缓存）可能用旧指令集合，需判废重建。引擎用
+> `Fnv1a64(AssemblyData.EmueraVersionText)` 作为 IR 缓存键 —— 版本号 +1 即可让老缓存自动失效，
+> 用户无需手动删 `_IRCache`。**注意：版本号只能增不能减。**
 
 ### 相对上游的行为调整
 
-- **插件门禁改为软警告** —— 上游 `main` 分支在游戏自带 DLL 插件但缺 `pluginsAware.txt` 时**拒绝启动**；
-  本仓库对齐上游 Emuera 2026-05 的方案，改为**启动时提示一条，不拦截**。
+- **插件门禁改为软警告** —— 上游 `main` 分支在游戏自带 DLL 插件但缺 `pluginsAware.txt` 时**拒绝启动**；  
+  本仓库对齐上游 Emuera 2026-05 的方案，改为**启动时提示一条，不拦截**。  
   详见 [`patches/pluginsAware-soft-warning.md`](patches/pluginsAware-soft-warning.md)。
 
 ---
