@@ -1,0 +1,1121 @@
+--- a/EraCore.Core/EraCore.Core.csproj
++++ b/EraCore.Core/EraCore.Core.csproj
+@@ -44,4 +44,10 @@
+     <EmbeddedResource Include="Shared\Properties\lang\emuera-zhs.xml" LinkBase="Properties\lang" />
+   </ItemGroup>
+ 
++  <!-- ===== EE v56 兼容层（eraTW 画蛇添足版）：qol 数据库依赖 ===== -->
++  <!-- SQL_CONNECT / SQL_EXECUTE_* / SQL_READER_* / SQL_IMPORT_MAP_XML 由 EESqlRuntime 实现 -->
++  <ItemGroup>
++    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.10" />
++  </ItemGroup>
++
+ </Project>
+--- a/EraCore.Core/Shared/Runtime/Script/Statements/BuiltInFunctionCode.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Statements/BuiltInFunctionCode.cs
+@@ -402,4 +402,9 @@
+ 	PRINTFORMSN,
+ 	#endregion
+ 
++	#region EE v56 追加（eraTW 画蛇添足版兼容）
++	HTML_PRINTC,
++	HTML_PRINTLC,
++	#endregion
++
+ }
+--- a/EraCore.Core/Shared/Runtime/Script/Statements/FunctionIdentifier.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Statements/FunctionIdentifier.cs
+@@ -385,6 +385,9 @@
+ 		addFunction(FunctionCode.REFBYNAME, new REF_Instruction(true));
+ 		addFunction(FunctionCode.HTML_PRINT, new HTML_PRINT_Instruction());
+ 		addFunction(FunctionCode.HTML_TAGSPLIT, new HTML_TAGSPLIT_Instruction());
++		// EE v56 追加（eraTW 画蛇添足版兼容）：HTML_PRINTC / HTML_PRINTLC
++		addFunction(FunctionCode.HTML_PRINTC, new HTML_PRINTC_Instruction());
++		addFunction(FunctionCode.HTML_PRINTLC, new HTML_PRINTLC_Instruction());
+ 		addFunction(FunctionCode.PRINT_IMG, new PRINT_IMG_Instruction());
+ 		addFunction(FunctionCode.PRINT_RECT, new PRINT_RECT_Instruction());
+ 		addFunction(FunctionCode.PRINT_SPACE, new PRINT_SPACE_Instruction());
+--- a/EraCore.Core/Shared/Runtime/Script/Statements/Instraction.Child.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Statements/Instraction.Child.cs
+@@ -336,6 +336,50 @@
+ 			//else
+ 			//	str = ((ExpressionArgument)func.Argument).Term.GetStrValue(exm);
+ 			#endregion
++		}
++	}
++
++	/// <summary>
++	/// EE v56 追加：HTML_PRINTC（HTML 居中打印变体）。
++	/// eraTW 画蛇添足版 HTML_PRINT_Components.ERB 使用；无头模式 HTML 对齐无渲染差异 → 与 HTML_PRINT 同行为。
++	/// </summary>
++	private sealed class HTML_PRINTC_Instruction : AInstruction
++	{
++		public HTML_PRINTC_Instruction()
++		{
++			flag = EXTENDED | METHOD_SAFE;
++			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_HTML_PRINT);
++		}
++
++		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
++		{
++			if (GlobalStatic.Process.SkipPrint)
++				return;
++			var arg = (SpHtmlPrint)func.Argument;
++			if (arg.IsConst) exm.Console.PrintHtml(arg.ConstStr, arg.ConstInt != 0);
++			else exm.Console.PrintHtml(arg.Str.GetStrValue(exm), arg.Opt == null ? false : arg.Opt.GetIntValue(exm) != 0);
++		}
++	}
++
++	/// <summary>
++	/// EE v56 追加：HTML_PRINTLC（HTML 左对齐行打印变体）。
++	/// eraTW 画蛇添足版 HTML_PRINT_Components.ERB 使用；无头模式 HTML 对齐无渲染差异 → 与 HTML_PRINT 同行为。
++	/// </summary>
++	private sealed class HTML_PRINTLC_Instruction : AInstruction
++	{
++		public HTML_PRINTLC_Instruction()
++		{
++			flag = EXTENDED | METHOD_SAFE;
++			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_HTML_PRINT);
++		}
++
++		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
++		{
++			if (GlobalStatic.Process.SkipPrint)
++				return;
++			var arg = (SpHtmlPrint)func.Argument;
++			if (arg.IsConst) exm.Console.PrintHtml(arg.ConstStr, arg.ConstInt != 0);
++			else exm.Console.PrintHtml(arg.Str.GetStrValue(exm), arg.Opt == null ? false : arg.Opt.GetIntValue(exm) != 0);
+ 		}
+ 	}
+ 
+--- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.cs
+@@ -198,6 +198,48 @@
+ 			["CBGSETBMAPG"] = new CBGSetBMapGMethod(),
+ 			["CBGSETBUTTONSPRITE"] = new CBGSETButtonSpriteMethod(),
+ 
++			// EE v56 追加：TEXT_BGC_ON / TEXT_BGC_OFF（文字背景色块模式）
++			// eraTW 画蛇添足版 的 QOL_IMAGE 使用；无头模式 no-op（不渲染）
++			["TEXT_BGC_OFF"] = new TextBackgroundColorOffMethod(),
++			["TEXT_BGC_ON"] = new TextBackgroundColorOnMethod(),
++
++			// EE v56 追加：SQL 数据库指令族（qol 系统）— 真实现（SQLite）
++			["SQL_CONNECT"] = new SqlConnectMethod(),
++			["SQL_EXECUTE_NONQUERY"] = new SqlExecuteNonQueryMethod(),
++			["SQL_IMPORT_MAP_XML"] = new SqlImportMapXmlMethod(),
++			["SQL_P_EXECUTE_NONQUERY"] = new SqlPExecuteNonQueryMethod(),
++			["SQL_READER_CLOSE"] = new SqlReaderCloseMethod(),
++
++			// SQL 表达式函数（整型返回）— SQLite 真实现
++			["SQL_EXECUTE_READER"] = new SqlExecuteReaderMethod(),
++			["SQL_P_EXECUTE_READER"] = new SqlPExecuteReaderMethod(),
++			["SQL_EXECUTE_SCALAR_LONG"] = new SqlExecuteScalarLongMethod(),
++			["SQL_P_EXECUTE_SCALAR_LONG"] = new SqlPExecuteScalarLongMethod(),
++			["SQL_READER_READ"] = new SqlReaderReadMethod(),
++			["SQL_READER_GET_LONG"] = new SqlReaderGetLongMethod(),
++			["SQL_READER_ISNULL"] = new SqlReaderIsNullMethod(),
++
++			// SQL 表达式函数（字符串返回）— SQLite 真实现
++			["SQL_EXECUTE_SCALAR_STRING"] = new SqlExecuteScalarStrMethod(),
++			["SQL_P_EXECUTE_SCALAR_STRING"] = new SqlPExecuteScalarStrMethod(),
++			["SQL_READER_GET_STRING"] = new SqlReaderGetStrMethod(),
++
++			// EE v56 追加：GETPLATFORM() — 平台检测（0=移动端自动DEMO，非0=PC正常INPUT）
++			// eraTW 画蛇添足版 TITLE.ERB 使用；无头视为 PC → 返回 1
++			["GETPLATFORM"] = new GetPlatformMethod(),
++
++			// EE v56 追加：GETANIMETIMER() — sprite 动画计时器状态（角色数据/动画用）
++			// 无头无动画渲染 → no-op 返回 0
++			["GETANIMETIMER"] = new GetAnimeTimerMethod(),
++
++			// EE v56 追加：STRFORMCHECK(str) — 字符串格式检查（测试脚本用）→ no-op 返回 0
++			["STRFORMCHECK"] = new StrFormCheckMethod(),
++
++			// EE v56 追加：UNCHECKED_MUL(a,b) / UNCHECKED_ADD(a,b) — 溢出回绕数学（COMMON.ERB 哈希用）
++			// 必须真实现（no-op 会破坏哈希/随机逻辑）
++			["UNCHECKED_MUL"] = new UncheckedArithMethod(true),
++			["UNCHECKED_ADD"] = new UncheckedArithMethod(false),
++
+ 			["GSAVE"] = new GraphicsSaveMethod(),
+ 			["GLOAD"] = new GraphicsLoadMethod(),
+ 
+--- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.General.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.General.cs
+@@ -84,7 +84,11 @@
+ 		public ExistVarMethod()
+ 		{
+ 			ReturnType = typeof(long);
+-			argumentTypeArrayEx = [new ArgTypeList{ ArgTypes = { ArgType.String | ArgType.DisallowVoid } }];
++			// EE v56 扩展：EXISTVAR(name) → 位掩码；EXISTVAR(name, bit) → 取指定位值
++			argumentTypeArrayEx = [
++					new ArgTypeList{ ArgTypes = { ArgType.String } },
++					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.Int } },
++				];
+ 			CanRestructure = true;
+ 		}
+ 
+@@ -99,6 +103,9 @@
+ 				if (token.IsConst) res |= 4;
+ 				if (token.IsArray2D) res |= 8;
+ 				if (token.IsArray3D) res |= 16;
++				// 2 参：返回第 bit 位的值（EEv56 语义）
++				if (arguments.Count > 1)
++					return (res >> (int)arguments[1].GetIntValue(exm)) & 1;
+ 				return res;
+ 			}
+ 			return 0;
+--- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.EE56.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.EE56.cs
+@@ -0,0 +1,428 @@
++using MinorShift.Emuera.GameData.Variable;
++using MinorShift.Emuera.Runtime.Config;
++using MinorShift.Emuera.Runtime.Script.Data;
++using MinorShift.Emuera.Runtime.Script.Parser;
++using MinorShift.Emuera.Runtime.Script.Statements;
++using MinorShift.Emuera.Runtime.Script.Statements.Expression;
++using MinorShift.Emuera.Runtime.Script.Statements.Function;
++using MinorShift.Emuera.Runtime.Script.Statements.Variable;
++using MinorShift.Emuera.Runtime.Utils;
++using MinorShift.Emuera.Runtime.Utils.EvilMask;
++using MinorShift.Emuera.Primitives;
++using MinorShift.Emuera.UI.Game;
++using MinorShift.Emuera.UI.Game.Image;
++using System;
++using System.Collections.Generic;
++
++namespace MinorShift.Emuera.GameData.Function;
++
++/// <summary>
++/// EE v56 兼容层（eraTW 画蛇添足版等重度中文魔改游戏）。
++/// 本文件为移植新增，不改动任何既有共享源码；仅由 Creator.cs 的注册表引用。
++/// </summary>
++internal static partial class FunctionMethodCreator
++{
++	/// <summary>
++	/// EE v56 追加：TEXT_BGC_OFF（文字背景色块模式关闭）。
++	/// eraTW 画蛇添足版 QOL_IMAGE.ERB 使用；无头模式无需渲染 → no-op。
++	/// </summary>
++	public sealed class TextBackgroundColorOffMethod : FunctionMethod
++	{
++		public TextBackgroundColorOffMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [new ArgTypeList()];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			return 1;
++		}
++	}
++
++	/// <summary>
++	/// EE v56 追加：TEXT_BGC_ON(color, alpha)（文字背景色块模式开启）。
++	/// eraTW 画蛇添足版 QOL_IMAGE.ERB 使用；无头模式无需渲染 → no-op。
++	/// </summary>
++	public sealed class TextBackgroundColorOnMethod : FunctionMethod
++	{
++		public TextBackgroundColorOnMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int } }];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			return 1;
++		}
++	}
++
++	/// <summary>
++	/// EE v56 追加：SQL_CONNECT(dbName[, connStr]) — 建立/复用命名 SQLite 连接。
++	/// 无 connStr → 内存库（TR_DB 翻译库）；connStr 相对游戏目录解析（plugins/qol_data.db）。
++	/// </summary>
++	public sealed class SqlConnectMethod : FunctionMethod
++	{
++		public SqlConnectMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [
++					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.VariadicString }, MatchVariadicGroup = true, OmitStart = 1 },
++				];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			string name = arguments[0].GetStrValue(exm);
++			string? connStr = arguments.Count > 1 ? arguments[1].GetStrValue(exm) : null;
++			return EESqlRuntime.Connect(name, connStr);
++		}
++	}
++
++	/// <summary>
++	/// EE v56 追加：SQL_EXECUTE_NONQUERY(dbName, sql) — 执行写操作（建表/INSERT/UPDATE）。
++	/// </summary>
++	public sealed class SqlExecuteNonQueryMethod : FunctionMethod
++	{
++		public SqlExecuteNonQueryMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [
++					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicAny }, MatchVariadicGroup = true, OmitStart = 2 },
++				];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			string db = arguments[0].GetStrValue(exm);
++			string sql = arguments[1].GetStrValue(exm);
++			return EESqlRuntime.ExecNonQuery(db, sql, SqlParams(exm, arguments, 2));
++		}
++	}
++
++	/// <summary>
++	/// EE v56 追加：SQL_IMPORT_MAP_XML(dbName, tableName, xmlPath) — 从 XML 导入 k/v 到表。
++	/// </summary>
++	public sealed class SqlImportMapXmlMethod : FunctionMethod
++	{
++		public SqlImportMapXmlMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.String } }];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			string db = arguments[0].GetStrValue(exm);
++			string table = arguments[1].GetStrValue(exm);
++			string path = arguments[2].GetStrValue(exm);
++			return EESqlRuntime.ImportMapXml(db, table, path);
++		}
++	}
++
++	/// <summary>
++	/// EE v56 追加：SQL_P_EXECUTE_NONQUERY(dbName, sql[, params...]) — 参数化写操作（@0 @1...）。
++	/// </summary>
++	public sealed class SqlPExecuteNonQueryMethod : FunctionMethod
++	{
++		public SqlPExecuteNonQueryMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [
++					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicAny }, MatchVariadicGroup = true, OmitStart = 2 },
++				];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			string db = arguments[0].GetStrValue(exm);
++			string sql = arguments[1].GetStrValue(exm);
++			return EESqlRuntime.ExecNonQuery(db, sql, SqlParams(exm, arguments, 2));
++		}
++	}
++
++	/// <summary>
++	/// EE v56 追加：SQL_READER_CLOSE(reader) — 关闭查询结果集。
++	/// </summary>
++	public sealed class SqlReaderCloseMethod : FunctionMethod
++	{
++		public SqlReaderCloseMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [new ArgTypeList{ ArgTypes = { ArgType.Int } }];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			EESqlRuntime.ReaderClose(arguments[0].GetIntValue(exm));
++			return 0;
++		}
++	}
++
++	/// <summary>SQL 参数求值：从 start 起的变参 → object[]（字符串/整数按操作数类型）</summary>
++	private static object[]? SqlParams(ExpressionMediator exm, List<AExpression> arguments, int start)
++	{
++		if (arguments.Count <= start)
++			return null;
++		var ps = new object[arguments.Count - start];
++		for (int i = start; i < arguments.Count; i++)
++		{
++			var a = arguments[i];
++			ps[i - start] = a.GetOperandType() == typeof(string)
++				? (object)a.GetStrValue(exm)
++				: a.GetIntValue(exm);
++		}
++		return ps;
++	}
++
++	/// <summary>
++	/// EE v56 追加：SQL_EXECUTE_READER(dbName, sql) → reader id。
++	/// </summary>
++	public sealed class SqlExecuteReaderMethod : FunctionMethod
++	{
++		public SqlExecuteReaderMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [
++					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicAny }, MatchVariadicGroup = true, OmitStart = 2 },
++				];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			string db = arguments[0].GetStrValue(exm);
++			string sql = arguments[1].GetStrValue(exm);
++			return EESqlRuntime.OpenReader(db, sql, SqlParams(exm, arguments, 2));
++		}
++	}
++
++	/// <summary>SQL_P_EXECUTE_READER（参数化）</summary>
++	public sealed class SqlPExecuteReaderMethod : FunctionMethod
++	{
++		public SqlPExecuteReaderMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [
++					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicAny }, MatchVariadicGroup = true, OmitStart = 2 },
++				];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			string db = arguments[0].GetStrValue(exm);
++			string sql = arguments[1].GetStrValue(exm);
++			return EESqlRuntime.OpenReader(db, sql, SqlParams(exm, arguments, 2));
++		}
++	}
++
++	/// <summary>SQL_EXECUTE_SCALAR_LONG(db, sql) — 标量查询（整型）</summary>
++	public sealed class SqlExecuteScalarLongMethod : FunctionMethod
++	{
++		public SqlExecuteScalarLongMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [
++					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicAny }, MatchVariadicGroup = true, OmitStart = 2 },
++				];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			return EESqlRuntime.ExecScalarLong(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), SqlParams(exm, arguments, 2));
++		}
++	}
++
++	/// <summary>SQL_P_EXECUTE_SCALAR_LONG（参数化）</summary>
++	public sealed class SqlPExecuteScalarLongMethod : FunctionMethod
++	{
++		public SqlPExecuteScalarLongMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [
++					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicAny }, MatchVariadicGroup = true, OmitStart = 2 },
++				];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			return EESqlRuntime.ExecScalarLong(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), SqlParams(exm, arguments, 2));
++		}
++	}
++
++	/// <summary>SQL_READER_READ(reader) — 推进一行，返回是否有下一行</summary>
++	public sealed class SqlReaderReadMethod : FunctionMethod
++	{
++		public SqlReaderReadMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [new ArgTypeList{ ArgTypes = { ArgType.Int } }];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			return EESqlRuntime.ReaderRead(arguments[0].GetIntValue(exm)) ? 1 : 0;
++		}
++	}
++
++	/// <summary>SQL_READER_GET_LONG(reader, col) — 读整型列</summary>
++	public sealed class SqlReaderGetLongMethod : FunctionMethod
++	{
++		public SqlReaderGetLongMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int } }];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			return EESqlRuntime.ReaderGetLong(arguments[0].GetIntValue(exm), (int)arguments[1].GetIntValue(exm));
++		}
++	}
++
++	/// <summary>SQL_READER_ISNULL(reader, col)</summary>
++	public sealed class SqlReaderIsNullMethod : FunctionMethod
++	{
++		public SqlReaderIsNullMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int } }];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			return EESqlRuntime.ReaderIsNull(arguments[0].GetIntValue(exm), (int)arguments[1].GetIntValue(exm)) ? 1 : 0;
++		}
++	}
++
++	/// <summary>SQL_EXECUTE_SCALAR_STRING(db, sql) — 标量查询（字符串）</summary>
++	public sealed class SqlExecuteScalarStrMethod : FunctionMethod
++	{
++		public SqlExecuteScalarStrMethod()
++		{
++			ReturnType = typeof(string);
++			argumentTypeArrayEx = [
++					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicAny }, MatchVariadicGroup = true, OmitStart = 2 },
++				];
++			CanRestructure = false;
++		}
++		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			return EESqlRuntime.ExecScalarString(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), SqlParams(exm, arguments, 2));
++		}
++	}
++
++	/// <summary>SQL_P_EXECUTE_SCALAR_STRING（参数化）</summary>
++	public sealed class SqlPExecuteScalarStrMethod : FunctionMethod
++	{
++		public SqlPExecuteScalarStrMethod()
++		{
++			ReturnType = typeof(string);
++			argumentTypeArrayEx = [
++					new ArgTypeList{ ArgTypes = { ArgType.String, ArgType.String, ArgType.VariadicAny }, MatchVariadicGroup = true, OmitStart = 2 },
++				];
++			CanRestructure = false;
++		}
++		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			return EESqlRuntime.ExecScalarString(arguments[0].GetStrValue(exm), arguments[1].GetStrValue(exm), SqlParams(exm, arguments, 2));
++		}
++	}
++
++	/// <summary>SQL_READER_GET_STRING(reader, col) — 读字符串列</summary>
++	public sealed class SqlReaderGetStrMethod : FunctionMethod
++	{
++		public SqlReaderGetStrMethod()
++		{
++			ReturnType = typeof(string);
++			argumentTypeArrayEx = [new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int } }];
++			CanRestructure = false;
++		}
++		public override string GetStrValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			return EESqlRuntime.ReaderGetString(arguments[0].GetIntValue(exm), (int)arguments[1].GetIntValue(exm));
++		}
++	}
++
++	/// <summary>
++	/// EE v56 追加：GETPLATFORM() — 平台检测。
++	/// eraTW 画蛇添足版 TITLE.ERB 使用（0=移动端自动 DEMO；非0=PC 正常 INPUT）。
++	/// 无头/桌面视为 PC → 返回 1。
++	/// </summary>
++	public sealed class GetPlatformMethod : FunctionMethod
++	{
++		public GetPlatformMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [new ArgTypeList()];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			return 1;
++		}
++	}
++
++	/// <summary>
++	/// EE v56 追加：GETANIMETIMER() — sprite 动画计时器（角色数据/动画帧用）。
++	/// 无头无动画渲染 → no-op 返回 0。
++	/// </summary>
++	public sealed class GetAnimeTimerMethod : FunctionMethod
++	{
++		public GetAnimeTimerMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [new ArgTypeList()];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			return 0;
++		}
++	}
++
++	/// <summary>
++	/// EE v56 追加：STRFORMCHECK(str) — 字符串格式检查。
++	/// eraTW 测试脚本（SHOP関連\TEST.ERB）使用 → no-op 返回 0。
++	/// </summary>
++	public sealed class StrFormCheckMethod : FunctionMethod
++	{
++		public StrFormCheckMethod()
++		{
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [
++					new ArgTypeList{ ArgTypes = { ArgType.VariadicAny }, MatchVariadicGroup = true, OmitStart = 1 },
++				];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			return 0;
++		}
++	}
++
++	/// <summary>
++	/// EE v56 追加：UNCHECKED_MUL(a,b) / UNCHECKED_ADD(a,b) — 溢出回绕数学（64位）。
++	/// eraTW COMMON.ERB 哈希函数使用，必须真实现（no-op 会破坏哈希）。
++	/// </summary>
++	public sealed class UncheckedArithMethod : FunctionMethod
++	{
++		private readonly bool _mul;
++		public UncheckedArithMethod(bool mul)
++		{
++			_mul = mul;
++			ReturnType = typeof(long);
++			argumentTypeArrayEx = [new ArgTypeList{ ArgTypes = { ArgType.Int, ArgType.Int } }];
++			CanRestructure = false;
++		}
++		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
++		{
++			long a = arguments[0].GetIntValue(exm);
++			long b = arguments[1].GetIntValue(exm);
++			unchecked
++			{
++				return _mul ? a * b : a + b;
++			}
++		}
++	}
++}
+--- a/EraCore.Core/Shared/Runtime/Utils/EESqlRuntime.cs
++++ b/EraCore.Core/Shared/Runtime/Utils/EESqlRuntime.cs
+@@ -0,0 +1,347 @@
++using System;
++using System.Collections.Generic;
++using System.IO;
++using System.Xml;
++using Microsoft.Data.Sqlite;
++
++namespace MinorShift.Emuera.GameData.Function;
++
++/// <summary>
++/// EE v56 SQL 运行时（eraTW 画蛇添足版 qol 数据库支持）。
++/// SQL_CONNECT / SQL_EXECUTE_* / SQL_READER_* / SQL_IMPORT_MAP_XML 的真实现。
++/// - 命名连接池（QOL_DISH_DB / TR_DB / GRAPH_DB ...）
++/// - reader 用独立连接（避免同连接多活动 reader 冲突）；内存库 reader 走主连接
++/// - 相对 Data Source 相对游戏目录（Program.ExeDir）解析
++/// </summary>
++internal static class EESqlRuntime
++{
++    private sealed class ReaderEntry
++    {
++        public SqliteConnection Conn = null!;
++        public SqliteCommand Cmd = null!;
++        public SqliteDataReader Reader = null!;
++    }
++
++    private static readonly Dictionary<string, SqliteConnection> _conns = new(StringComparer.OrdinalIgnoreCase);
++    private static readonly Dictionary<long, ReaderEntry> _readers = new();
++    private static long _nextRid = 1;
++
++    private static string NormalizeDataSource(string? connStr)
++    {
++        if (string.IsNullOrWhiteSpace(connStr))
++            return ":memory:";
++        string? ds;
++        try
++        {
++            var b = new SqliteConnectionStringBuilder(connStr);
++            ds = b.DataSource;
++        }
++        catch
++        {
++            // 直接给路径/相对路径时
++            ds = connStr.Trim();
++            int eq = ds.IndexOf('=');
++            if (eq > 0 && ds.Substring(0, eq).Trim().Equals("Data Source", StringComparison.OrdinalIgnoreCase))
++                ds = ds.Substring(eq + 1).Trim();
++        }
++        if (string.IsNullOrWhiteSpace(ds) || ds.StartsWith(":memory:", StringComparison.OrdinalIgnoreCase))
++            return ds;
++        ds = ds.Replace('\\', '/');
++        if (!Path.IsPathRooted(ds))
++        {
++            string exe = string.IsNullOrEmpty(Program.ExeDir) ? Directory.GetCurrentDirectory() : Program.ExeDir;
++            ds = Path.Combine(exe, ds);
++        }
++        string? dir = Path.GetDirectoryName(ds);
++        if (!string.IsNullOrEmpty(dir))
++        {
++            try { Directory.CreateDirectory(dir); } catch { }
++        }
++        return ds;
++    }
++
++    private static SqliteConnection GetConn(string name, string? connStr)
++    {
++        if (_conns.TryGetValue(name, out var exist))
++            return exist;
++        string? ds = NormalizeDataSource(connStr);
++        string full = ds.StartsWith(":memory:", StringComparison.OrdinalIgnoreCase)
++            ? "Data Source=:memory:"
++            : "Data Source=" + ds;
++        var conn = new SqliteConnection(full);
++        conn.Open();
++        _conns[name] = conn;
++        return conn;
++    }
++
++    /// <summary>SQL_CONNECT name[, connStr]</summary>
++    public static long Connect(string name, string? connStr)
++    {
++        var conn = GetConn(name, connStr);
++        LogConnect(name, connStr, conn.DataSource);
++        return 0;
++    }
++
++    /// <summary>
++    /// 诊断探针：记录每个命名连接的解析结果到 sql-connect.log。
++    /// 用途：确认 eraTW 的 qol 数据库（plugins/qol_data.db）是否真的被连上。
++    /// </summary>
++    private static void LogConnect(string name, string? connStr, string dataSource)
++    {
++        try
++        {
++            System.IO.File.AppendAllText(
++                System.IO.Path.Combine(AppContext.BaseDirectory, "sql-connect.log"),
++                $"[connect] name={name}  connStr={connStr ?? "(null)"}  → DataSource={dataSource}\n");
++        }
++        catch { }
++    }
++
++    private static SqliteCommand Build(SqliteConnection conn, string sql, object[]? ps)
++    {
++        var cmd = conn.CreateCommand();
++        cmd.CommandText = sql;
++        if (ps != null)
++        {
++            for (int i = 0; i < ps.Length; i++)
++            {
++                if (ps[i] == null) continue;
++                cmd.Parameters.AddWithValue("@" + i, ps[i]);
++            }
++        }
++        return cmd;
++    }
++
++    /// <summary>SQL_(P_)EXECUTE_NONQUERY(db, sql[, p...])</summary>
++    public static long ExecNonQuery(string db, string sql, object[]? ps)
++    {
++        try
++        {
++            var conn = GetConn(db, null);
++            using var cmd = Build(conn, sql, ps);
++            return cmd.ExecuteNonQuery();
++        }
++        catch (Exception ex)
++        {
++            TryDebug("NONQUERY", db, sql, ex);
++            return 0;
++        }
++    }
++
++    public static long ExecScalarLong(string db, string sql, object[]? ps)
++    {
++        try
++        {
++            var conn = GetConn(db, null);
++            using var cmd = Build(conn, sql, ps);
++            object? r = cmd.ExecuteScalar();
++            return r == null || r is DBNull ? 0 : Convert.ToInt64(r);
++        }
++        catch (Exception ex)
++        {
++            TryDebug("SCALAR_LONG", db, sql, ex);
++            return 0;
++        }
++    }
++
++    public static string ExecScalarString(string db, string sql, object[]? ps)
++    {
++        try
++        {
++            var conn = GetConn(db, null);
++            using var cmd = Build(conn, sql, ps);
++            object? r = cmd.ExecuteScalar();
++            return r == null || r is DBNull ? "" : (Convert.ToString(r) ?? "");
++        }
++        catch (Exception ex)
++        {
++            TryDebug("SCALAR_STR", db, sql, ex);
++            return "";
++        }
++    }
++
++    /// <summary>SQL_(P_)EXECUTE_READER → reader id（走主连接：能看到事务内未提交数据）</summary>
++    public static long OpenReader(string db, string sql, object[]? ps)
++    {
++        try
++        {
++            var conn = GetConn(db, null); // 主连接：GRAPH_DB_REBUILD 事务内可见
++            var cmd = Build(conn, sql, ps);
++            var reader = cmd.ExecuteReader();
++            long id = _nextRid++;
++            _readers[id] = new ReaderEntry { Conn = conn, Cmd = cmd, Reader = reader };
++            return id;
++        }
++        catch (Exception ex)
++        {
++            TryDebug("OPEN_READER", db, sql, ex);
++            return 0;
++        }
++    }
++
++    public static bool ReaderRead(long id)
++    {
++        try
++        {
++            if (!_readers.TryGetValue(id, out var e)) return false;
++            return e.Reader.Read();
++        }
++        catch { return false; }
++    }
++
++    public static long ReaderGetLong(long id, int col)
++    {
++        try
++        {
++            if (!_readers.TryGetValue(id, out var e)) return 0;
++            object v = e.Reader.GetValue(col);
++            return v == null || v is DBNull ? 0 : Convert.ToInt64(v);
++        }
++        catch { return 0; }
++    }
++
++    public static string ReaderGetString(long id, int col)
++    {
++        try
++        {
++            if (!_readers.TryGetValue(id, out var e)) return "";
++            object v = e.Reader.GetValue(col);
++            return v == null || v is DBNull ? "" : (Convert.ToString(v) ?? "");
++        }
++        catch { return ""; }
++    }
++
++    public static bool ReaderIsNull(long id, int col)
++    {
++        try
++        {
++            if (!_readers.TryGetValue(id, out var e)) return true;
++            return e.Reader.IsDBNull(col);
++        }
++        catch { return true; }
++    }
++
++    public static void ReaderClose(long id)
++    {
++        try
++        {
++            if (!_readers.TryGetValue(id, out var e)) return;
++            _readers.Remove(id);
++            e.Reader.Dispose();
++            e.Cmd.Dispose();
++            // 主连接复用，不在此关闭
++        }
++        catch { }
++    }
++
++    /// <summary>
++    /// SQL_IMPORT_MAP_XML(db, table, xmlPath)：从 &lt;map&gt;&lt;p&gt;&lt;k&gt;..&lt;/k&gt;&lt;v&gt;..&lt;/v&gt;&lt;/p&gt; 导入 k/v 到表。
++    /// </summary>
++    public static long ImportMapXml(string db, string table, string xmlPath)
++    {
++        try
++        {
++            string full = xmlPath;
++            if (!Path.IsPathRooted(full))
++            {
++                string exe = string.IsNullOrEmpty(Program.ExeDir) ? Directory.GetCurrentDirectory() : Program.ExeDir;
++                full = Path.Combine(exe, full);
++            }
++            if (!File.Exists(full))
++            {
++                TryDebug("IMPORT_XML", db, xmlPath, new FileNotFoundException(full));
++                return 0;
++            }
++            var conn = GetConn(db, null);
++            using (var cmd = conn.CreateCommand())
++            {
++                cmd.CommandText = "CREATE TABLE IF NOT EXISTS [" + table + "] (k TEXT PRIMARY KEY, v TEXT)";
++                cmd.ExecuteNonQuery();
++            }
++            using (var tx = conn.BeginTransaction())
++            {
++                using var ins = conn.CreateCommand();
++                ins.Transaction = tx;
++                ins.CommandText = "INSERT OR REPLACE INTO [" + table + "] (k, v) VALUES (@k, @v)";
++                var pk = ins.CreateParameter(); pk.ParameterName = "@k";
++                var pv = ins.CreateParameter(); pv.ParameterName = "@v";
++                ins.Parameters.Add(pk); ins.Parameters.Add(pv);
++
++                using var xr = XmlReader.Create(full, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore });
++                string? k = null, v = null;
++                bool inK = false, inV = false;
++                while (xr.Read())
++                {
++                    if (xr.NodeType != XmlNodeType.Element && xr.NodeType != XmlNodeType.Text && xr.NodeType != XmlNodeType.EndElement)
++                        continue;
++                    if (xr.NodeType == XmlNodeType.Element)
++                    {
++                        if (xr.Name == "k") inK = true;
++                        else if (xr.Name == "v") inV = true;
++                        continue;
++                    }
++                    if (xr.NodeType == XmlNodeType.Text)
++                    {
++                        if (inK) k = (k ?? "") + xr.Value;
++                        else if (inV) v = (v ?? "") + xr.Value;
++                        continue;
++                    }
++                    if (xr.NodeType == XmlNodeType.EndElement)
++                    {
++                        if (xr.Name == "k") inK = false;
++                        else if (xr.Name == "v") inV = false;
++                        else if (xr.Name == "p")
++                        {
++                            if (k != null)
++                            {
++                                pk.Value = k;
++                                pv.Value = v ?? "";
++                                ins.ExecuteNonQuery();
++                            }
++                            k = null; v = null;
++                        }
++                    }
++                }
++                tx.Commit();
++            }
++            return 1;
++        }
++        catch (Exception ex)
++        {
++            TryDebug("IMPORT_XML", db, xmlPath, ex);
++            return 0;
++        }
++    }
++
++    /// <summary>重置（换游戏/重启会话时调用）</summary>
++    public static void Reset()
++    {
++        foreach (var r in _readers.Values)
++        {
++            try { r.Reader.Dispose(); } catch { }
++            try { r.Cmd.Dispose(); } catch { }
++            if (r.Conn.DataSource != ":memory:")
++            {
++                try { r.Conn.Dispose(); } catch { }
++            }
++        }
++        _readers.Clear();
++        foreach (var c in _conns.Values)
++        {
++            try { c.Dispose(); } catch { }
++        }
++        _conns.Clear();
++        _nextRid = 1;
++    }
++
++    private static void TryDebug(string op, string db, string sql, Exception ex)
++    {
++        try
++        {
++            System.IO.File.AppendAllText(
++                System.IO.Path.Combine(AppContext.BaseDirectory, "sql-debug.log"),
++                $"[{op}] db={db}\n  sql: {sql}\n  {ex.Message}\n\n");
++        }
++        catch { }
++    }
++}
+--- a/EraCore.Core/Shared/Runtime/Utils/PluginSystem/PluginManager.cs
++++ b/EraCore.Core/Shared/Runtime/Utils/PluginSystem/PluginManager.cs
+@@ -1,5 +1,6 @@
+ using MinorShift.Emuera.GameProc;
+ using MinorShift.Emuera.GameProc.Function;
++using MinorShift.Emuera.GameView;
+ using MinorShift.Emuera.Primitives;
+ using MinorShift.Emuera.Runtime.Script;
+ using MinorShift.Emuera.Runtime.Script.Parser;
+@@ -265,6 +266,64 @@
+ 		}
+ 
+ 		/// <summary>
++		/// 兼容 EE/EM 时代插件的程序集标识（跨平台修复）。
++		/// 这类插件编译时引用的是程序集 "Emuera"（Emuera.EM 的工程名），
++		/// 而本引擎的程序集名为 "EraCore.Core"。二者的类型全名与命名空间完全一致
++		/// （<c>MinorShift.Emuera.Runtime.Utils.PluginSystem.*</c>），仅程序集标识不同，
++		/// 因此把旧程序集名重定向到本程序集，即可让插件真正加载并工作，
++		/// 而不是因为一个名字对不上就把引擎初始化整个拖垮。
++		/// </summary>
++		private static readonly string[] LegacyEmueraAssemblyNames = ["Emuera", "Emuera.EM", "EraCore"];
++
++		private static bool legacyAssemblyResolverRegistered;
++
++		private static Assembly? ResolveLegacyEmueraAssembly(object? sender, ResolveEventArgs args)
++		{
++			string? requested;
++			try
++			{
++				requested = new AssemblyName(args.Name).Name;
++			}
++			catch
++			{
++				return null;
++			}
++			if (requested == null)
++				return null;
++
++			foreach (var legacy in LegacyEmueraAssemblyNames)
++			{
++				if (string.Equals(legacy, requested, StringComparison.OrdinalIgnoreCase))
++				{
++					EmueraLog.Info("plugins", $"旧程序集引用 \"{requested}\" → 重定向到 {typeof(PluginManager).Assembly.GetName().Name}");
++					return typeof(PluginManager).Assembly;
++				}
++			}
++			return null;
++		}
++
++		/// <summary>
++		/// 插件目录名大小写容错（跨平台修复）。
++		/// Windows 惯用 "Plugins"，而 eraTW 等游戏的目录名是**小写** "plugins"。
++		/// 在大小写敏感的文件系统（Linux / HarmonyOS / Android）上，写死大小写会让插件被静默跳过；
++		/// macOS 的 APFS 默认大小写不敏感，所以本机测试掩盖了这个问题。
++		/// </summary>
++		/// <returns>实际存在的插件目录绝对路径；不存在返回 null。</returns>
++		private static string? ResolvePluginDir(string exeDir)
++		{
++			if (!Directory.Exists(exeDir))
++				return null;
++			var separators = new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
++			foreach (var dir in Directory.EnumerateDirectories(exeDir))
++			{
++				var name = Path.GetFileName(dir.TrimEnd(separators));
++				if (string.Equals(name, "plugins", StringComparison.OrdinalIgnoreCase))
++					return dir;
++			}
++			return null;
++		}
++
++		/// <summary>
+ 		/// Load all DLL plugins from Plugins directory of the game
+ 		/// </summary>
+ 		// NativeAOT 豁免（已登记：nativeaot-verify-report.md §5.2）：插件加载依赖
+@@ -285,22 +344,62 @@
+ 					throw new ExeEE("Android/SAF does not support loading game DLL plugins. Remove the Plugins/*.dll files or run this game on Windows.");
+ 				return;
+ 			}
+-			if (!Directory.Exists(Path.Combine(Program.ExeDir, "Plugins")))
++			// 注册一次即可（LoadPlugins 可能每个会话调用一次）
++			if (!legacyAssemblyResolverRegistered)
++			{
++				AppDomain.CurrentDomain.AssemblyResolve += ResolveLegacyEmueraAssembly;
++				legacyAssemblyResolverRegistered = true;
++			}
++
++			// 大小写容错：Windows 惯用 "Plugins"，eraTW 等游戏的目录名是小写 "plugins"
++			var pluginRoot = ResolvePluginDir(Program.ExeDir);
++			if (pluginRoot == null)
+ 			{
+ 				//フォルダを作らないようにする
+ 				return;
+ 				//Directory.CreateDirectory("Plugins");
+ 			}
+-			string[] plugins = Directory.GetFiles(Path.Combine(Program.ExeDir, "Plugins"), "*.dll");
++			string[] plugins = Directory.GetFiles(pluginRoot, "*.dll");
+ 			bool pluginsAware = File.Exists(Program.ExeDir + "pluginsAware.txt");
+ 			ClearMethods();
+ 			foreach (var pluginPath in plugins)
+ 			{
+-				Assembly DLL = Assembly.LoadFrom(pluginPath);
+-				var manifestType = DLL.GetTypes().Where((v) => v.Name == "PluginManifest").FirstOrDefault();
++				Assembly DLL;
++				try
++				{
++					DLL = Assembly.LoadFrom(pluginPath);
++				}
++				catch (Exception ex)
++				{
++					// 单个插件加载失败不应中断整个引擎
++					EmueraLog.Warn("plugins", $"跳过无法加载的插件 {Path.GetFileName(pluginPath)}：{ex.Message}");
++					continue;
++				}
++
++				Type[] dllTypes;
++				try
++				{
++					dllTypes = DLL.GetTypes();
++				}
++				catch (ReflectionTypeLoadException ex)
++				{
++					// 插件中若有类型依赖本引擎不存在的类型，GetTypes() 会整体抛出。
++					// 取回已成功加载的那部分继续尝试（ex.Types 里失败项为 null），
++					// 而不是让一个不兼容的插件把引擎初始化整个拖垮。
++					dllTypes = ex.Types.Where(t => t != null).Select(t => t!).ToArray();
++					var reasons = ex.LoaderExceptions
++						.Where(e => e != null)
++						.Select(e => e!.Message)
++						.Distinct()
++						.Take(3);
++					EmueraLog.Warn("plugins", $"插件 {Path.GetFileName(pluginPath)} 有 {ex.Types.Length - dllTypes.Length} 个类型无法加载，已跳过：{string.Join(" ／ ", reasons)}");
++				}
++
++				var manifestType = dllTypes.Where((v) => v.Name == "PluginManifest").FirstOrDefault();
+ 				if (manifestType == null)
+ 				{
+-					//TODO: throw warning
++					// 不是 EE/EM 插件（例如纯辅助类库），跳过
++					EmueraLog.Debug("plugins", $"非插件程序集，跳过：{Path.GetFileName(pluginPath)}");
+ 					continue;
+ 				}
+ 				if (!pluginsAware)
+@@ -308,12 +407,19 @@
+ 					throw new ExeEE("This game comes prepackaged with plugins. This is a security check to make sure you're aware of that: Never run your EE under Administrator rights, Always get your games and Plugins from verified sources and If you're maintainer of the build and it should NOT come with plugins, Investigate immediately. If everything is okay, create file pluginsAware.txt at the root of the game distributive and restart");
+ 				}
+ 
+-#pragma warning disable CS8600
+-				PluginManifestAbstract? manifest = (PluginManifestAbstract)Activator.CreateInstance(manifestType);
+-#pragma warning restore CS8600
++				PluginManifestAbstract? manifest;
++				try
++				{
++					manifest = Activator.CreateInstance(manifestType) as PluginManifestAbstract;
++				}
++				catch (Exception ex)
++				{
++					EmueraLog.Warn("plugins", $"插件 {Path.GetFileName(pluginPath)} 的 PluginManifest 实例化失败：{ex.Message}");
++					continue;
++				}
+ 				if (manifest == null)
+ 				{
+-					//TODO: throw warning
++					EmueraLog.Warn("plugins", $"插件 {Path.GetFileName(pluginPath)} 的 PluginManifest 未继承 PluginManifestAbstract，已跳过");
+ 					continue;
+ 				}
+ 
+@@ -322,6 +428,7 @@
+ 				{
+ 					AddMethod(method);
+ 				}
++				EmueraLog.Info("plugins", $"已加载插件 {manifest.PluginName} v{manifest.PluginVersion}（{methods.Count} 个方法）");
+ 			}
+ 		}
+ 

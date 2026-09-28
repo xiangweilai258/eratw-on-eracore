@@ -1,0 +1,20 @@
+--- a/era-core-main/EraCore.Core/Shared/Runtime/Script/Data/ConstantData.cs
++++ b/era-core-main/EraCore.Core/Shared/Runtime/Script/Data/ConstantData.cs
+@@ -1770,7 +1770,7 @@
+ 					continue;
+ 				}
+ 				if (!defined.Add(index))
+-					ParserMediator.Warn(string.Format(trerror.VarKeyAreadyDefined.Text, index.ToString()), position, 1);
++					ParserMediator.Warn(string.Format(trerror.VarKeyAreadyDefined.Text, ros[dest[1]].ToString(), index.ToString()), position, 1);
+ 				target[index] = ros[dest[1]].ToString();
+ 				if (targetI != null && length >= 3)
+ 				{
+@@ -1846,7 +1846,7 @@
+ 					continue;
+ 				}
+ 				if (!defined.Add(index))
+-					ParserMediator.Warn(string.Format(trerror.VarKeyAreadyDefined.Text, index.ToString()), position, 1);
++					ParserMediator.Warn(string.Format(trerror.VarKeyAreadyDefined.Text, tokens[1], index.ToString()), position, 1);
+ 				target.Add(tokens[1], index);
+ 			}
+ 		}

@@ -1,0 +1,22 @@
+# 换行符统一 —— 防止 Windows 上提交时把 LF 转成 CRLF
+# （.sh 脚本若被转成 CRLF，在 Linux/macOS 上会因 "\r" 报错无法执行）
+
+* text=auto eol=lf
+
+# Shell / Python 脚本：强制 LF
+*.sh    text eol=lf
+*.py    text eol=lf
+*.patch text eol=lf
+
+# Markdown / 文本
+*.md    text eol=lf
+*.txt   text eol=lf
+.gitignore text eol=lf
+
+# 二进制（明确标记，避免任何转换）
+*.apk   binary
+*.zip   binary
+*.png   binary
+*.jpg   binary
+*.so    binary
+*.dll   binary
