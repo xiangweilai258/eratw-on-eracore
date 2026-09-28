@@ -106,6 +106,7 @@ port/
   make-patch.py                补丁生成脚本（可复现）
 patches/
   als-VarKeyAreadyDefined-fix.patch   一个独立的小修（上游 main 分支可用）
+  pluginsAware-soft-warning.md        插件门禁改软警告的逐处改动说明（见下）
 tools/
   build-android.sh        Android 打包（含 Debug 打包的 .so 压缩坑的修复）
   deploy-android.sh       部署到真机 + 启动自检 + 内存采样
@@ -117,6 +118,13 @@ tools/
   snapshot-dump.py        从 /snapshot 提取屏幕文本
   playthrough.py          自动通关驱动（跑 EEv56 路径）
 ```
+
+> **关于 `pluginsAware`**：`era-core` 的 `main` 分支还留着**旧版硬门禁**——游戏目录带了 DLL 插件
+> 却没有 `pluginsAware.txt` 时，会**直接拒绝启动**。上游 Emuera 已于 2026-05-26 废弃该设计
+> （改为软警告），本仓库已对齐该行为，逐处改动见
+> [`patches/pluginsAware-soft-warning.md`](patches/pluginsAware-soft-warning.md)。
+> 用本仓库编译的 APK 无需关心这个文件；如需 `pluginsAware.txt` 模板，见
+> [`docs/pluginsAware.txt.template`](docs/pluginsAware.txt.template)。
 
 ---
 
@@ -134,6 +142,12 @@ tools/
 
 - **NF 指令族**（`TINPUTNF` / `TINPUTSNF` / `TONEINPUTNF` / `TONEINPUTSNF`）—— eraTW 的动态地图动画依赖它。  
   未实现时地图**不显示动画**；把地图类型切到「[2] 颜色地图」或「[3] 经典」可绕过（功能正常，仅无动画）。
+
+### 相对上游的行为调整
+
+- **插件门禁改为软警告** —— 上游 `main` 分支在游戏自带 DLL 插件但缺 `pluginsAware.txt` 时**拒绝启动**；
+  本仓库对齐上游 Emuera 2026-05 的方案，改为**启动时提示一条，不拦截**。
+  详见 [`patches/pluginsAware-soft-warning.md`](patches/pluginsAware-soft-warning.md)。
 
 ---
 
