@@ -1,0 +1,31 @@
+本文件为 Emuera 插件知情标记（pluginsAware.txt）—— 模板
+
+【EraRelay 用户可读】
+EraRelay 不依赖本文件，有没有它都能正常启动。
+- 如果你的游戏目录里已经有这个文件，放着不动即可。
+- 如果没有，也不需要为了跑 EraRelay 特意创建它。
+- 只有在使用【原版 Emuera / Emuera.EM】时，本文件才有实际作用。
+
+【这个文件是干什么的】
+旧版 Emuera 要求：如果游戏目录的 plugins/ 里带了 DLL 插件，
+玩家必须显式创建本文件，表示「我知道这游戏带了第三方插件」。
+不创建的话，旧版 Emuera 会直接拒绝启动并报错。
+
+上游 Emuera 已于 2026-05 改为「软警告」方案（不再拒绝启动），
+EraRelay 沿用该方案：检测到插件时在画面提示一条，不拦截。
+
+【什么时候需要它】
+只有你在用【旧版 Emuera / Emuera.EM】、且游戏自带 plugins/ 时，
+才需要在同目录放一份本文件（把本模板去掉这两段说明、只保留下面几行也可）。
+
+【创建者应确认】
+- 绝不以管理员权限运行 Emuera
+- 游戏与插件只从可信来源获取
+- 若你是构建维护者且本发行包不该含插件，请立即排查
+
+【本文件随 EraRelay 分发时对应的插件】
+eraTW【画蛇添足版】为免费同人作品，plugins/ 下通常为：
+  ClassLibrary1.dll（数学计算插件，提供 CALCULATE / DIFFERENTIATE / INTEGRAL）
+  MathParser.org-mXparser.dll（其依赖）
+
+确认无误，故创建本文件。
