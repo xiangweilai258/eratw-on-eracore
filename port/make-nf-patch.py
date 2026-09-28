@@ -2,21 +2,50 @@
 # -*- coding: utf-8 -*-
 """生成 NF（NoFocus）指令族的独立补丁。
 
-对比基准：上游 main 分支归档（/tmp/era-core-latest.zip）
+对比基准：上游 main 分支归档 zip
 产出：patches/nf-input-family.patch
 
 ★ 与 port/make-patch.py 的区别：
   那个产出「eraTW 兼容 + 插件修复」的全量移植补丁；
   这个只产出「NF 指令族」这一件事的增量补丁 —— 干净、可单独 apply / 单独评审。
+
+用法：
+    python3 make-nf-patch.py --zip /path/to/era-core-latest.zip --src /path/to/era-core-src
 """
+import argparse
 import difflib
 import os
 import zipfile
 
-ZIP = os.environ.get("ERA_ZIP", r"C:\Users\14718\AppData\Local\Temp\era-core-latest.zip")
-ROOT = "era-core-main/"
-SRC = "C:/Users/14718/Desktop/eratw/era-core-src/"
-OUT = "C:/Users/14718/Desktop/eratw/patches/nf-input-family.patch"
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.dirname(HERE)
+
+
+def resolve_paths():
+    ap = argparse.ArgumentParser(description="生成 NF（NoFocus）指令族的独立补丁")
+    ap.add_argument(
+        "--zip",
+        default=os.environ.get("ERA_ZIP", os.path.join(REPO, "era-core-latest.zip")),
+        help="上游 main 分支原版 zip（用于取「修改前」的基线）",
+    )
+    ap.add_argument(
+        "--src",
+        default=os.path.join(REPO, "era-core-src"),
+        help="已打补丁的上游源码目录（用于取「修改后」的内容）",
+    )
+    ap.add_argument(
+        "--out",
+        default=os.path.join(REPO, "patches", "nf-input-family.patch"),
+        help="补丁输出路径",
+    )
+    return ap.parse_args()
+
+
+_ARGS = resolve_paths()
+ZIP = _ARGS.zip
+SRC = _ARGS.src
+OUT = _ARGS.out
+ROOT = "era-core-main/"   # 上游 zip 内的根目录名
 
 # NF 指令族涉及的文件（相对 era-core-src 的路径 = 相对 zip 的路径）
 TARGETS = [
