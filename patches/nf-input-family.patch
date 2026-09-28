@@ -1,0 +1,214 @@
+--- a/EraCore.Core/EraCore.Core.csproj
++++ b/EraCore.Core/EraCore.Core.csproj
+@@ -6,6 +6,18 @@
+     <RootNamespace>MinorShift.Emuera</RootNamespace>
+     <AssemblyName>EraCore.Core</AssemblyName>
+     <DefineConstants>HEADLESS</DefineConstants>
++    <!-- ★ EE_NF_INPUT（eraTW 汉化整合版 NF 指令族）：引擎版本号显式定义。
++         原为 SDK 默认 1.0.0.0；本次 NF 指令族新增了 4 个指令登记项，
++         而 ErbIrCache 的引擎版本键 = Fnv1a64(AssemblyData.EmueraVersionText)
++         （见 Shared/Runtime/Script/Loader/ErbIrCache.cs:59-60），
++         该键是 IR 缓存的失效判据之一。此处把补丁位 +1 → 版本文本变化 →
++         所有用旧指令集合校验过的 era_ir.dat 自动判废重建，用户无需手动删 _IRCache。
++         注意：必须只增不减。GameBase.cs:155 会读取游戏声明的
++         「動作に必要なEmueraのバージョン」（四位 x.y.z.w）并与 AssemblyData.emueraVer
++         比较，当前版本 < 声明值时会警告。 -->
++    <Version>1.0.1</Version>
++    <AssemblyVersion>1.0.1.0</AssemblyVersion>
++    <FileVersion>1.0.1.0</FileVersion>
+     <Nullable>enable</Nullable>
+     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+@@ -44,4 +56,10 @@
+     <EmbeddedResource Include="Shared\Properties\lang\emuera-zhs.xml" LinkBase="Properties\lang" />
+   </ItemGroup>
+ 
++  <!-- ===== EE v56 兼容层（eraTW 画蛇添足版）：qol 数据库依赖 ===== -->
++  <!-- SQL_CONNECT / SQL_EXECUTE_* / SQL_READER_* / SQL_IMPORT_MAP_XML 由 EESqlRuntime 实现 -->
++  <ItemGroup>
++    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.10" />
++  </ItemGroup>
++
+ </Project>
+--- a/EraCore.Core/Shared/Runtime/InputRequest.cs
++++ b/EraCore.Core/Shared/Runtime/InputRequest.cs
+@@ -47,6 +47,16 @@
+ 	#region EM_私家版_INPUT系機能拡張
+ 	public bool MouseInput;
+ 	#endregion
++	#region EE_NF_INPUT
++	/// <summary>
++	/// INPUT 系 NF（NoFocus）后缀变体使用。
++	/// 语义：输入等待期间「不夺取 / 不要求窗口焦点」——移动端无物理焦点概念时，
++	/// 让输入循环可被定时器推进（动画帧循环）。UI 层可读取本字段决定焦点行为；
++	/// ★ 即使 UI 层不读，TINPUT* 本身已具备「Timelimit 超时返回」能力，
++	/// 故功能可用不依赖 UI 层改动（见 research/20 §5.6）。
++	/// </summary>
++	public bool NoFocus;
++	#endregion
+ 	public bool OneInput;
+ 	public bool StopMesskip;
+ 	public bool IsSystemInput;
+--- a/EraCore.Core/Shared/Runtime/Script/Statements/BuiltInFunctionCode.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Statements/BuiltInFunctionCode.cs
+@@ -51,6 +51,15 @@
+ 	ONEINPUTS,
+ 	TONEINPUT,
+ 	TONEINPUTS,
++	// ★ EE_NF_INPUT：INPUT 系 NF（NoFocus）后缀变体。
++	// 来源：eraTW 汉化整合版 fork 的解释器 v9 新增的私有扩展（非上游 emuera.em 特性）。
++	// 语义：输入等待期间「不夺取 / 不要求窗口焦点」，用于移动端动画帧循环
++	//（定时超时返回 → RESULTS=="UPDATE" → 推进一帧）。参数语义完全继承 TINPUT* 家族。
++	// 指令名由 FunctionIdentifier 以 code.ToString() 自动登记，无需名字表。
++	TINPUTNF,
++	TINPUTSNF,
++	TONEINPUTNF,
++	TONEINPUTSNF,
+ 	AWAIT,//入力不可 DoEvents
+ 
+ 	DRAWLINE,//画面の左端から右端まで----と線を引く。
+@@ -402,4 +411,9 @@
+ 	PRINTFORMSN,
+ 	#endregion
+ 
++	#region EE v56 追加（eraTW 画蛇添足版兼容）
++	HTML_PRINTC,
++	HTML_PRINTLC,
++	#endregion
++
+ }
+--- a/EraCore.Core/Shared/Runtime/Script/Statements/FunctionIdentifier.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Statements/FunctionIdentifier.cs
+@@ -197,6 +197,13 @@
+ 		addFunction(FunctionCode.TINPUTS, new TINPUTS_Instruction(false));
+ 		addFunction(FunctionCode.TONEINPUT, new TINPUT_Instruction(true));
+ 		addFunction(FunctionCode.TONEINPUTS, new TINPUTS_Instruction(true));
++		// ★ EE_NF_INPUT：INPUT 系 NF（NoFocus）后缀变体 —— eraTW 汉化整合版
++		// fork 的解释器 v9 私有扩展（动态地图动画帧循环用）。参数解析器
++		// (SP_TINPUT/SP_TINPUTS) 原样复用，零改动。
++		addFunction(FunctionCode.TINPUTNF, new TINPUT_Instruction(false, true));
++		addFunction(FunctionCode.TINPUTSNF, new TINPUTS_Instruction(false, true));
++		addFunction(FunctionCode.TONEINPUTNF, new TINPUT_Instruction(true, true));
++		addFunction(FunctionCode.TONEINPUTSNF, new TINPUTS_Instruction(true, true));
+ 		addFunction(FunctionCode.TWAIT, new TWAIT_Instruction());
+ 		addFunction(FunctionCode.WAITANYKEY, new WAITANYKEY_Instruction());
+ 		addFunction(FunctionCode.FORCEWAIT, new WAIT_Instruction(true));
+@@ -385,6 +392,9 @@
+ 		addFunction(FunctionCode.REFBYNAME, new REF_Instruction(true));
+ 		addFunction(FunctionCode.HTML_PRINT, new HTML_PRINT_Instruction());
+ 		addFunction(FunctionCode.HTML_TAGSPLIT, new HTML_TAGSPLIT_Instruction());
++		// EE v56 追加（eraTW 画蛇添足版兼容）：HTML_PRINTC / HTML_PRINTLC
++		addFunction(FunctionCode.HTML_PRINTC, new HTML_PRINTC_Instruction());
++		addFunction(FunctionCode.HTML_PRINTLC, new HTML_PRINTLC_Instruction());
+ 		addFunction(FunctionCode.PRINT_IMG, new PRINT_IMG_Instruction());
+ 		addFunction(FunctionCode.PRINT_RECT, new PRINT_RECT_Instruction());
+ 		addFunction(FunctionCode.PRINT_SPACE, new PRINT_SPACE_Instruction());
+--- a/EraCore.Core/Shared/Runtime/Script/Statements/Instraction.Child.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Statements/Instraction.Child.cs
+@@ -339,6 +339,50 @@
+ 		}
+ 	}
+ 
++	/// <summary>
++	/// EE v56 追加：HTML_PRINTC（HTML 居中打印变体）。
++	/// eraTW 画蛇添足版 HTML_PRINT_Components.ERB 使用；无头模式 HTML 对齐无渲染差异 → 与 HTML_PRINT 同行为。
++	/// </summary>
++	private sealed class HTML_PRINTC_Instruction : AInstruction
++	{
++		public HTML_PRINTC_Instruction()
++		{
++			flag = EXTENDED | METHOD_SAFE;
++			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_HTML_PRINT);
++		}
++
++		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
++		{
++			if (GlobalStatic.Process.SkipPrint)
++				return;
++			var arg = (SpHtmlPrint)func.Argument;
++			if (arg.IsConst) exm.Console.PrintHtml(arg.ConstStr, arg.ConstInt != 0);
++			else exm.Console.PrintHtml(arg.Str.GetStrValue(exm), arg.Opt == null ? false : arg.Opt.GetIntValue(exm) != 0);
++		}
++	}
++
++	/// <summary>
++	/// EE v56 追加：HTML_PRINTLC（HTML 左对齐行打印变体）。
++	/// eraTW 画蛇添足版 HTML_PRINT_Components.ERB 使用；无头模式 HTML 对齐无渲染差异 → 与 HTML_PRINT 同行为。
++	/// </summary>
++	private sealed class HTML_PRINTLC_Instruction : AInstruction
++	{
++		public HTML_PRINTLC_Instruction()
++		{
++			flag = EXTENDED | METHOD_SAFE;
++			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_HTML_PRINT);
++		}
++
++		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
++		{
++			if (GlobalStatic.Process.SkipPrint)
++				return;
++			var arg = (SpHtmlPrint)func.Argument;
++			if (arg.IsConst) exm.Console.PrintHtml(arg.ConstStr, arg.ConstInt != 0);
++			else exm.Console.PrintHtml(arg.Str.GetStrValue(exm), arg.Opt == null ? false : arg.Opt.GetIntValue(exm) != 0);
++		}
++	}
++
+ 	private sealed class HTML_TAGSPLIT_Instruction : AInstruction
+ 	{
+ 		public HTML_TAGSPLIT_Instruction()
+@@ -1048,13 +1092,16 @@
+ 
+ 	private sealed class TINPUT_Instruction : AInstruction
+ 	{
+-		public TINPUT_Instruction(bool oneInput)
++		// ★ EE_NF_INPUT：noFocus 为可选参数（默认 false）→ 现有 TINPUT/TONEINPUT 调用零改动。
++		public TINPUT_Instruction(bool oneInput, bool noFocus = false)
+ 		{
+ 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_TINPUT);
+ 			flag = IS_PRINT | IS_INPUT | EXTENDED;
+ 			isOne = oneInput;
++			isNoFocus = noFocus;
+ 		}
+ 		bool isOne;
++		bool isNoFocus;
+ 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+ 		{
+ 			SpTInputsArgument tinputarg = (SpTInputsArgument)func.Argument;
+@@ -1063,7 +1110,8 @@
+ 			{
+ 				InputType = InputType.IntValue,
+ 				HasDefValue = true,
+-				OneInput = isOne
++				OneInput = isOne,
++				NoFocus = isNoFocus
+ 			};
+ 			long x = tinputarg.Time.GetIntValue(exm);
+ 			long y = tinputarg.Def.GetIntValue(exm);
+@@ -1105,13 +1153,16 @@
+ 
+ 	private sealed class TINPUTS_Instruction : AInstruction
+ 	{
+-		public TINPUTS_Instruction(bool oneInput)
++		// ★ EE_NF_INPUT：noFocus 为可选参数（默认 false）→ 现有 TINPUTS/TONEINPUTS 调用零改动。
++		public TINPUTS_Instruction(bool oneInput, bool noFocus = false)
+ 		{
+ 			ArgBuilder = ArgumentParser.GetArgumentBuilder(FunctionArgType.SP_TINPUTS);
+ 			flag = IS_PRINT | IS_INPUT | EXTENDED;
+ 			isOne = oneInput;
++			isNoFocus = noFocus;
+ 		}
+ 		bool isOne;
++		bool isNoFocus;
+ 		public override void DoInstruction(ExpressionMediator exm, InstructionLine func, ProcessState state)
+ 		{
+ 			SpTInputsArgument tinputarg = (SpTInputsArgument)func.Argument;
+@@ -1119,7 +1170,8 @@
+ 			{
+ 				InputType = InputType.StrValue,
+ 				HasDefValue = true,
+-				OneInput = isOne
++				OneInput = isOne,
++				NoFocus = isNoFocus
+ 			};
+ 			long x = tinputarg.Time.GetIntValue(exm);
+ 			string strs = tinputarg.Def.GetStrValue(exm);
