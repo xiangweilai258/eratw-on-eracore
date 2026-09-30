@@ -143,22 +143,22 @@ tools/
 
 ### ★ NF 指令族（`patches/nf-input-family.patch`）
 
-eraTW 的动态地图动画依赖一组「不夺窗口焦点」的输入指令 —— **NF（NoFocus）族**，
+eraTW 的动态地图动画依赖一组「不夺窗口焦点」的输入指令 —— **NF（NoFocus）族**，  
 由 eraTW 汉化整合版自行 fork 的解释器 v9 私有扩展，上游 `era-core` 没有。
 
 本仓库已补齐（**+108 / -4，5 文件**）：
 
-| 文件 | 改动 |
-| --- | --- |
-| `EraCore.Core.csproj` | 显式定义引擎版本号 `1.0.1`（作废旧 IR 缓存，见下） |
-| `BuiltInFunctionCode.cs` | 新增 4 个枚举成员 |
-| `InputRequest.cs` | 新增 `NoFocus` 字段 |
-| `Instraction.Child.cs` | `TINPUT` / `TINPUTS` 两个构造加可选参 |
-| `FunctionIdentifier.cs` | 登记 4 个新指令 |
+| 文件                       | 改动                              |
+| ------------------------ | ------------------------------- |
+| `EraCore.Core.csproj`    | 显式定义引擎版本号 `1.0.1`（作废旧 IR 缓存，见下） |
+| `BuiltInFunctionCode.cs` | 新增 4 个枚举成员                      |
+| `InputRequest.cs`        | 新增 `NoFocus` 字段                 |
+| `Instraction.Child.cs`   | `TINPUT` / `TINPUTS` 两个构造加可选参   |
+| `FunctionIdentifier.cs`  | 登记 4 个新指令                       |
 
-> **为什么动版本号**：`EraCore.Core` 原本走 SDK 默认版本 `1.0.0.0`；新增指令后，
-> 已缓存过的 `era_ir.dat`（IR 缓存）可能用旧指令集合，需判废重建。引擎用
-> `Fnv1a64(AssemblyData.EmueraVersionText)` 作为 IR 缓存键 —— 版本号 +1 即可让老缓存自动失效，
+> **为什么动版本号**：`EraCore.Core` 原本走 SDK 默认版本 `1.0.0.0`；新增指令后，  
+> 已缓存过的 `era_ir.dat`（IR 缓存）可能用旧指令集合，需判废重建。引擎用  
+> `Fnv1a64(AssemblyData.EmueraVersionText)` 作为 IR 缓存键 —— 版本号 +1 即可让老缓存自动失效，  
 > 用户无需手动删 `_IRCache`。**注意：版本号只能增不能减。**
 
 ### 相对上游的行为调整
