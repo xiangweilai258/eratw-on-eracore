@@ -12,7 +12,9 @@ PKG="com.eracore.maui"
 ACTIVITY="$PKG/crc64a4e4bc3d698d8bd7.MainActivity"
 GAME_DIR="/sdcard/emuera/eraTW"
 
-APK="${1:-$REPO_ROOT/era-core-src/EraCore.Maui/bin/Debug/net10.0-android/$PKG-Signed.apk}"
+# ★ 2026-10-07：引擎已独立 fork 成 eracore-engine（可用 ERACORE_ENGINE 覆盖）
+ENGINE_ROOT="${ERACORE_ENGINE:-$REPO_ROOT/../eracore-engine}"
+APK="${1:-$ENGINE_ROOT/EraCore.Maui/bin/Debug/net10.0-android/$PKG-Signed.apk}"
 
 echo "=== 设备 ==="
 "$ADB" devices -l | tail -n +2
