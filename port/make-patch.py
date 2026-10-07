@@ -1,51 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-生成 EraRelay（eraTW-on-EraCore）的完整移植补丁。
+生成 eraTW-on-EraCore 的完整移植补丁。
 
-对比基准：上游 main 分支原版 zip（默认 <仓库同级>/era-core-latest.zip）
-产出：<本脚本所在目录>/eratw-EE56-compat.patch
-
-用法：
-    # 用默认路径（脚本同级目录下的 era-core-latest.zip 与 era-core-src/）
-    python3 make-patch.py
-
-    # 显式指定
-    python3 make-patch.py --zip /path/to/era-core-latest.zip --src /path/to/era-core-src
-
-    # 也可以走环境变量
-    ERACORE_ZIP=/path/to/era-core-latest.zip ERACORE_SRC=/path/to/era-core-src python3 make-patch.py
+对比基准：上游 main 分支原版 zip（/tmp/era-core-latest.zip）
+产出：port/eratw-EE56-compat.patch
 """
-import argparse
 import difflib
 import os
-import sys
 import zipfile
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+ZIP = "/tmp/era-core-latest.zip"
+ROOT = "era-core-main/"
+# ★ 2026-10-07：原为硬编码绝对路径（含 Windows 用户名），外发即泄露个人标识。
+# 改为按本文件位置推导仓库根 —— 本文件位于 port/ 下，其上一层即仓库根。
+_HERE = os.path.dirname(os.path.abspath(__file__))
+# ★ 2026-10-07：引擎已独立 fork 成 eracore-engine（可用 ERACORE_ENGINE 覆盖）。
+ENGINE = os.environ.get("ERACORE_ENGINE") or os.path.abspath(
+    os.path.join(os.path.dirname(_HERE), "..", "eracore-engine"))
+SRC = ENGINE + os.sep
 
-
-def resolve_paths():
-    ap = argparse.ArgumentParser(description="生成 EraRelay（eraTW-on-EraCore）移植补丁")
-    ap.add_argument(
-        "--zip",
-        default=os.environ.get("ERACORE_ZIP", os.path.join(HERE, "era-core-latest.zip")),
-        help="上游 main 分支原版 zip（用于取「修改前」的基线）",
-    )
-    ap.add_argument(
-        "--src",
-        default=os.environ.get("ERACORE_SRC", os.path.join(os.path.dirname(HERE), "era-core-src")),
-        help="已打补丁的上游源码目录（用于取「修改后」的内容）",
-    )
-    ap.add_argument(
-        "--out",
-        default=os.path.join(HERE, "eratw-EE56-compat.patch"),
-        help="补丁输出路径",
-    )
-    return ap.parse_args()
-
-
-# 相对源码根的路径 → zip 内路径（None = 新增文件）
+# 相对 EraCore.Core 的路径 → zip 内路径（None = 新文件）
 TARGETS = {
     # ---- EEv56 兼容层 ----
     "EraCore.Core/EraCore.Core.csproj":
@@ -67,70 +42,41 @@ TARGETS = {
         "EraCore.Core/Shared/Runtime/Utils/PluginSystem/PluginManager.cs",
 }
 
+z = zipfile.ZipFile(ZIP)
+out, stats = [], []
+tot_a = tot_d = 0
 
-def main():
-    args = resolve_paths()
+for rel, zpath in TARGETS.items():
+    disk = os.path.join(SRC, rel)
+    if not os.path.exists(disk):
+        print("  ! 缺文件", rel)
+        continue
+    new = open(disk, encoding="utf-8").read().splitlines(keepends=True)
+    if zpath is None:
+        old, tag = [], "A"
+    else:
+        old, tag = z.read(ROOT + zpath).decode("utf-8").splitlines(keepends=True), "M"
 
-    zip_path = os.path.abspath(args.zip).replace("\\", "/")
-    src_root = os.path.abspath(args.src).replace("\\", "/")
-    out_path = os.path.abspath(args.out)
+    a = d = 0
+    buf = []
+    for line in difflib.unified_diff(old, new, fromfile="a/" + rel, tofile="b/" + rel, lineterm="\n"):
+        buf.append(line)
+        if line.startswith("+") and not line.startswith("+++"):
+            a += 1
+        elif line.startswith("-") and not line.startswith("---"):
+            d += 1
+    out.append("".join(buf))
+    stats.append((tag, rel, a, d))
+    tot_a += a
+    tot_d += d
 
-    for label, p in (("zip", zip_path), ("src", src_root)):
-        if not os.path.exists(p):
-            print(f"[错误] {label} 路径不存在：{p}")
-            print("       用 --zip / --src 显式指定，或设置 ERACORE_ZIP / ERACORE_SRC 环境变量。")
-            return 1
+p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "eratw-EE56-compat.patch")
+open(p, "w", encoding="utf-8").write("".join(out))
 
-    # zip 内根目录名（如 era-core-main/）——从第一个文件自动推导，避免硬编码
-    with zipfile.ZipFile(zip_path) as z:
-        names = z.namelist()
-        if not names:
-            print("[错误] zip 为空")
-            return 1
-        first = names[0]
-        root = first if first.endswith("/") else first.split("/")[0] + "/"
-
-        out, stats = [], []
-        tot_a = tot_d = 0
-
-        for rel, zpath in TARGETS.items():
-            disk = os.path.join(src_root, rel.replace("/", os.sep))
-            if not os.path.exists(disk):
-                print("  ! 缺文件", rel)
-                continue
-            new = open(disk, encoding="utf-8").read().splitlines(keepends=True)
-            if zpath is None:
-                old, tag = [], "A"
-            else:
-                old = z.read(root + zpath).decode("utf-8").splitlines(keepends=True)
-                tag = "M"
-
-            a = d = 0
-            buf = []
-            for line in difflib.unified_diff(
-                old, new, fromfile="a/" + rel, tofile="b/" + rel, lineterm="\n"
-            ):
-                buf.append(line)
-                if line.startswith("+") and not line.startswith("+++"):
-                    a += 1
-                elif line.startswith("-") and not line.startswith("---"):
-                    d += 1
-            out.append("".join(buf))
-            stats.append((tag, rel, a, d))
-            tot_a += a
-            tot_d += d
-
-    open(out_path, "w", encoding="utf-8").write("".join(out))
-
-    print("=== 补丁内容 ===")
-    for tag, rel, a, d in stats:
-        print(f"  [{tag}] {rel:74s} +{a:<4d}-{d}")
-    print("  " + "-" * 76)
-    print(f"  合计: +{tot_a} / -{tot_d}   （{len(stats)} 个文件）")
-    print()
-    print("写入:", out_path, f"({os.path.getsize(out_path)/1024:.1f} KB)")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+print("=== 补丁内容 ===")
+for tag, rel, a, d in stats:
+    print(f"  [{tag}] {rel:74s} +{a:<4d}-{d}")
+print("  " + "-" * 76)
+print(f"  合计: +{tot_a} / -{tot_d}   （{len(stats)} 个文件）")
+print()
+print("写入:", p, f"({os.path.getsize(p)/1024:.1f} KB)")
