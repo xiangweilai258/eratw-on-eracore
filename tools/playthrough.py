@@ -6,37 +6,25 @@ EraCore eraTW 自动通关驱动（看屏幕做决策）。
 用途：真正玩进游戏内，把「注册了但从未执行过」的 EEv56 路径跑一遍
 （GRAPH_DISTANCE 寻路 / SQL_IMPORT_MAP_XML / TEXT_BGC / HTML_PRINTC / UNCHECKED_* …）。
 
-用法：
-    python3 playthrough.py [最大步数] [--base http://127.0.0.1:8099] [--bin <CLI 产物目录>]
+用法：  python3 playthrough.py [最大步数]
 前置： 引擎已以 --server 启动并已 POST /load-game
-
---bin 用于定位 sql-connect.log（EESqlRuntime 的 SQL 探针输出目录）。
-不传时取 <仓库根>/era-core-src/EraCore.Cli/bin-aot/Release/net10.0，
-也可用环境变量 ERACORE_BIN 指定。
 """
-import argparse
 import json
 import os
 import sys
 import time
 import urllib.request
 
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-_ap = argparse.ArgumentParser(description="EraCore eraTW 自动通关驱动")
-_ap.add_argument("steps", nargs="?", type=int, default=28, help="最大步数（默认 28）")
-_ap.add_argument("--base", default=os.environ.get("ERACORE_BASE", "http://127.0.0.1:8099"),
-                 help="引擎 server 地址")
-_ap.add_argument("--bin", default=os.environ.get(
-                     "ERACORE_BIN",
-                     os.path.join(REPO_ROOT, "era-core-src", "EraCore.Cli", "bin-aot", "Release", "net10.0")),
-                 help="CLI 产物目录（用于定位 sql-connect.log）")
-_args = _ap.parse_args()
-
-BASE = _args.base.rstrip("/")
-BIN = _args.bin
+BASE = "http://127.0.0.1:8099"
+# ★ 2026-10-03 改：原为**硬编码的本机绝对路径**（含 Windows 用户名）—— 既把它带进了公开仓库（隐私），
+#   也让别人 clone 后必然踩空。现改为由脚本自身位置推出项目根（与 tools/start-web.sh 的 ROOT 写法一致）。
+#   ★ 旧值**不在注释里回抄**，避免用户名再次落盘（见 research/30 的 2026-10-03 更正）。
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# ★ 2026-10-07：引擎已独立 fork 成 eracore-engine（可用 ERACORE_ENGINE 覆盖）。
+ENGINE = os.environ.get("ERACORE_ENGINE") or os.path.join(os.path.dirname(ROOT), "eracore-engine")
+BIN = os.path.join(ENGINE, "EraCore.Cli", "bin-aot", "Release", "net10.0")
 SQL_LOG = os.path.join(BIN, "sql-connect.log")
-MAX_STEPS = _args.steps
+MAX_STEPS = int(sys.argv[1]) if len(sys.argv) > 1 else 28
 
 
 def http_get(path):
