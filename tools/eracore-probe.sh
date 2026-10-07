@@ -15,7 +15,8 @@
 set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SRC="$ROOT/era-core-src"
+# ★ 2026-10-07：引擎已独立 fork 成 eracore-engine（可用 ERACORE_ENGINE 覆盖）
+SRC="${ERACORE_ENGINE:-$ROOT/../eracore-engine}"
 BIN="$SRC/EraCore.Cli/bin-aot/Release/net10.0"
 GAME="${ERATW_DIR:-$ROOT/eraTW}"
 PORT="${PORT:-8099}"
@@ -34,7 +35,7 @@ PY="$(command -v python3 || command -v python)"
 MODE="${1:-screen}"
 shift || true
 
-[ -f "$BIN/EraCore.Cli.dll" ] || { echo "✗ 未找到产物，先编译：cd era-core-src && dotnet build EraCore.Cli/EraCore.Cli.csproj -c Release"; exit 1; }
+[ -f "$BIN/EraCore.Cli.dll" ] || { echo "✗ 未找到产物，先编译：cd eracore-engine && dotnet build EraCore.Cli/EraCore.Cli.csproj -c Release"; exit 1; }
 [ -d "$GAME" ] || { echo "✗ 游戏目录不存在：$GAME（可用 ERATW_DIR=... 覆盖）"; exit 1; }
 
 rm -f "$BIN/sql-debug.log" "$BIN/als-debug.log"
