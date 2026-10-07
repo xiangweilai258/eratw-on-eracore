@@ -10,7 +10,7 @@
   这个只产出「NF 指令族」这一件事的增量补丁 —— 干净、可单独 apply / 单独评审。
 
 用法：
-    python3 make-nf-patch.py --zip /path/to/era-core-latest.zip --src /path/to/era-core-src
+    python3 make-nf-patch.py --zip /path/to/era-core-latest.zip --src /path/to/eracore-engine
 """
 import argparse
 import difflib
@@ -30,7 +30,7 @@ def resolve_paths():
     )
     ap.add_argument(
         "--src",
-        default=os.path.join(REPO, "era-core-src"),
+        default=os.environ.get("ERACORE_ENGINE") or os.path.abspath(os.path.join(REPO, "..", "eracore-engine")),
         help="已打补丁的上游源码目录（用于取「修改后」的内容）",
     )
     ap.add_argument(
@@ -47,7 +47,7 @@ SRC = _ARGS.src
 OUT = _ARGS.out
 ROOT = "era-core-main/"   # 上游 zip 内的根目录名
 
-# NF 指令族涉及的文件（相对 era-core-src 的路径 = 相对 zip 的路径）
+# NF 指令族涉及的文件（相对 eracore-engine 的路径 = 相对 zip 的路径）
 TARGETS = [
     "EraCore.Core/EraCore.Core.csproj",                                     # 版本号 +1（作废 IR 缓存）
     "EraCore.Core/Shared/Runtime/InputRequest.cs",                          # 加 NoFocus 字段
