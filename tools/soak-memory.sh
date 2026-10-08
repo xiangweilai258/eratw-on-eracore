@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 长时内存采样：验证 EraCore 在真实游玩中是否稳定，对照 XEmuera 的 5.3 GB 失控增长。
+# 长时内存采样：验证 EraCore 在真实游玩中内存是否稳定、有没有持续增长。
 #
 # 用法:
 #   ./soak-memory.sh [分钟数] [采样间隔秒]
