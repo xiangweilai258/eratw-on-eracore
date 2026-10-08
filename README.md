@@ -31,7 +31,7 @@ EEv56 扩展指令集，而 `era-core` 的 `main` 分支只实现了基础指令
 
 | 项目     | 结果                                                                                                                            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| 补丁规模   | `+999 / -10`，9 个文件，40.6 KB                                                                                                    |
+| 补丁规模   | `+946 / -10`，9 个文件，40.6 KB                                                                                                    |
 | ERB 加载 | 3931 个 ERB 全通过（`labels=112727`）                                                                                               |
 | 启动     | `Process.Initialize OK` → `state=WaitInput`；热 IR 缓存后 **约 6 秒**                                                                |
 | 真机     | 荣耀平板 ROD-W09 / Android 14 / 8 GB —— **完整可玩**<br />ALLDOCUBE 掌玩 mini / Android 13 —— **可玩**（★ 该机需先关掉多进程 WebView，见「快速开始」里的白屏说明） |
@@ -110,11 +110,12 @@ dotnet publish EraCore.Maui/EraCore.Maui.csproj -f net10.0-android -c Release -r
 
 ```
 port/
-  eratw-EE56-compat.patch    ★ 核心补丁（+999/-10，9 文件）
+  eratw-EE56-compat.patch    ★ 核心补丁（+946/-10，9 文件）
   make-patch.py                补丁生成脚本（可复现）
   make-nf-patch.py             NF 指令族补丁生成脚本（可复现）
+  make-pluginaware-patch.py    pluginsAware 软警告改动的补丁生成脚本（可复现）
 patches/
-  nf-input-family.patch         ★ NF 指令族补丁（+108/-4，5 文件，见下）
+  nf-input-family.patch         ★ NF 指令族补丁（+89/-4，5 文件，见下）
   als-VarKeyAreadyDefined-fix.patch   一个独立的小修（上游 main 分支可用）
   pluginsAware-soft-warning.md        插件门禁改软警告的逐处改动说明（见下）
 tools/
@@ -158,7 +159,7 @@ tools/
 eraTW 的动态地图动画依赖一组「不夺窗口焦点」的输入指令 —— **NF（NoFocus）族**，  
 由 eraTW 汉化整合版自行 fork 的解释器 v9 私有扩展，上游 `era-core` 没有。
 
-本仓库已补齐（**+108 / -4，5 文件**）：
+本仓库已补齐（**+89 / -4，5 文件**）：
 
 | 文件                       | 改动                              |
 | ------------------------ | ------------------------------- |

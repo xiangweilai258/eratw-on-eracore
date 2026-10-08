@@ -27,7 +27,7 @@ eratw-on-eracore       （本仓库 / EraRelay：EEv56 兼容层补丁 + 构建/
 
 依来源许可第 2 条「修改源码必须明示」，此处列出全部改动。改动以补丁形式提供，**不重分发完整源码**：
 
-### `port/eratw-EE56-compat.patch`（+999 / -10，9 个文件）
+### `port/eratw-EE56-compat.patch`（+946 / -10，9 个文件）
 
 | 文件                                                                                 | 类型 | 说明                                   |
 | ---------------------------------------------------------------------------------- | -- | ------------------------------------ |
@@ -40,6 +40,17 @@ eratw-on-eracore       （本仓库 / EraRelay：EEv56 兼容层补丁 + 构建/
 | `EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.General.cs` | 修改 | 适配 `argumentTypeArrayEx` 等 API 变更    |
 | `EraCore.Core/Shared/Runtime/Utils/PluginSystem/PluginManager.cs`                  | 修改 | 插件加载容错（程序集重定向 / GetTypes 容错 / 目录大小写） |
 | `EraCore.Core/EraCore.Core.csproj`                                                 | 修改 | 纳入新文件                                |
+
+### `patches/nf-input-family.patch`（+89 / -4，5 个文件）
+
+补齐 eraTW **动态地图动画**依赖的 NF（不夺窗口焦点）输入指令族 ——
+`TINPUTNF` / `TINPUTSNF` / `TONEINPUTNF` / `TONEINPUTSNF`。
+该族是 eraTW 汉化整合版自带解释器 v9 的私有扩展，上游 `era-core` 未实现。
+
+### `patches/pluginsAware-soft-warning.md`（改动说明，非补丁文件）
+
+`pluginsAware` 门禁由「**硬拒绝启动**」改为「**软警告**」，与上游 Emuera 2026-05-26 的行为对齐；
+具体代码改动并入上方 `port/eratw-EE56-compat.patch` 的 `PluginManager.cs` 一处。
 
 ### `patches/als-VarKeyAreadyDefined-fix.patch`（独立小修，906 B）
 
