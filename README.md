@@ -23,29 +23,20 @@ EEv56 扩展指令集，而 `era-core` 的 `main` 分支只实现了基础指令
 
 ## 成果
 
-| 项目     | 结果                                                             |
-| ------ | -------------------------------------------------------------- |
-| 补丁规模   | `+999 / -10`，9 个文件，40.6 KB                                     |
-| ERB 加载 | 3931 个 ERB 全通过（`labels=112727`）                                |
-| 启动     | `Process.Initialize OK` → `state=WaitInput`；热 IR 缓存后 **约 6 秒** |
-| 真机     | 荣耀平板 ROD-W09 / Android 14 / 8 GB —— **完整可玩**<br>ALLDOCUBE 掌玩 mini / Android 13 —— **可玩**（★ 该机需先关掉多进程 WebView，见「快速开始」里的白屏说明） |
-| 内存     | 标题画面 **PSS 747 MB**，游玩 27+ 分钟未被系统回收                            |
-| APK    | **37.9 MB**（**arm64-v8a 单架构精简包**，见 Releases）                   |
+| 项目     | 结果                                                                                                                            |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| 补丁规模   | `+999 / -10`，9 个文件，40.6 KB                                                                                                    |
+| ERB 加载 | 3931 个 ERB 全通过（`labels=112727`）                                                                                               |
+| 启动     | `Process.Initialize OK` → `state=WaitInput`；热 IR 缓存后 **约 6 秒**                                                                |
+| 真机     | 荣耀平板 ROD-W09 / Android 14 / 8 GB —— **完整可玩**<br />ALLDOCUBE 掌玩 mini / Android 13 —— **可玩**（★ 该机需先关掉多进程 WebView，见「快速开始」里的白屏说明） |
+| 内存     | 标题画面 **PSS 747 MB**，游玩 27+ 分钟未被系统回收                                                                                           |
+| APK    | **37.9 MB**（**arm64-v8a 单架构精简包**，见 Releases）                                                                                  |
 
-### 内存对照
+### 内存表现
 
-同设备、同游戏目录下与另一款 Android 端模拟器（gEmuera v1.0.8）的实测对照：
+标题画面 **PSS 747 MB**，游玩 27+ 分钟未被系统回收。
 
-|          | EraCore（本仓库） | gEmuera v1.0.8 |
-| -------- | ------------ | -------------- |
-| 载入 eraTW | ✅            | ✅（部分版本）        |
-| 标题画面 PSS | **747 MB**   | 2,555 MB       |
-| 长时间游玩    | 27+ 分钟未被杀    | 6 分钟涨到 3.2 GB  |
-
-内存占用约为对照实现的 **1/3 ~ 1/4**。
-
-> ⚠️ **仅内存维度有数据。** 速度维度**没有量化对比**，主观感受不做结论。上表数据来自单台设备单次采样，  
-> 环境差异（系统版本、后台负载、采样方式）都会影响结果，请自行复现。
+> ⚠️ 数据来自单台设备单次采样，环境差异（系统版本、后台负载、采样方式）都会影响结果，请自行复现。
 
 ### ★ AI 参与游玩（本项目的独特之处）
 
@@ -73,10 +64,10 @@ WebView 只是其中一个「客户端」。这意味着 —— **AI agent 可�
 
 > **本 APK 不内置任何游戏内容**，请自行获取 eraTW 本体。
 
-> ⚠️ **如果装上打开是一片白**：多半是**设备自带的 WebView 不完整**（Android 10 起 WebView 拆成
-> 「外壳 + Trichrome 核心库」，有些白牌 ROM 只装了外壳），**与本应用无关** —— 这类机器上
-> 任何 WebView 应用都会白屏。两个办法：① 把系统的 WebView 实现换成完整的 Chrome
-> （设置 → 开发者选项 → WebView 实现）；② 在电脑上执行 `adb shell settings put global webview_multiprocess 0`，
+> ⚠️ **如果装上打开是一片白**：多半是**设备自带的 WebView 不完整**（Android 10 起 WebView 拆成  
+> 「外壳 + Trichrome 核心库」，有些白牌 ROM 只装了外壳），**与本应用无关** —— 这类机器上  
+> 任何 WebView 应用都会白屏。两个办法：① 把系统的 WebView 实现换成完整的 Chrome  
+> （设置 → 开发者选项 → WebView 实现）；② 在电脑上执行 `adb shell settings put global webview_multiprocess 0`，  
 > 退回单进程 WebView。★ 实测：一台白牌平板（Android 13）正是这种 ROM，用办法 ② 后白屏消失。
 
 ### 方式二：从源码构建
@@ -93,9 +84,9 @@ git apply /path/to/port/eratw-EE56-compat.patch
 dotnet publish EraCore.Maui/EraCore.Maui.csproj -f net10.0-android -c Release -r android-arm64
 ```
 
-> ★ **推荐改用本仓库的 `tools/build-android.sh Release arm64`** —— 它把上面的命令包起来，
-> 并额外做四道自检 + **自动签名**。★ 注意：`dotnet build` 即便显示「0 错误 0 警告 生成成功」，
-> 产出的 `com.eracore.maui-Signed.apk` **实际没有签名**（那个名字是误导），装机会报
+> ★ **推荐改用本仓库的 `tools/build-android.sh Release arm64`** —— 它把上面的命令包起来，  
+> 并额外做四道自检 + **自动签名**。★ 注意：`dotnet build` 即便显示「0 错误 0 警告 生成成功」，  
+> 产出的 `com.eracore.maui-Signed.apk` **实际没有签名**（那个名字是误导），装机会报  
 > `INSTALL_PARSE_FAILED_NO_CERTIFICATES`。
 
 需要 .NET 10 SDK、Android SDK、JDK 17+。上游详细的构建说明见其 README。
