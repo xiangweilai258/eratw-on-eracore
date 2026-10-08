@@ -44,7 +44,7 @@ $dotnet = Find-Exe @((Join-Path $ROOT 'tools\dotnet\dotnet.exe'), 'dotnet')
 if (-not $dotnet) { throw '找不到 dotnet' }
 $node = Find-Exe @(
     (Join-Path $ROOT 'tools\node\node.exe'),
-    "$env:USERPROFILE\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe",
+    $env:NODE,
     'node')
 if (-not $node) { throw '找不到 node（vite 与探针都要它）' }
 $chrome = Find-Exe @(
