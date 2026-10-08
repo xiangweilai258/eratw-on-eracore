@@ -69,7 +69,7 @@ BT_DIR="${BT_DIR%/}"
 ENGINE_ROOT="${ERACORE_ENGINE:-$REPO_ROOT/../eracore-engine}"
 PROJ="$ENGINE_ROOT/EraCore.Maui/EraCore.Maui.csproj"
 
-# Python 解释器（自检 2 用）。优先 PATH，其次 WorkBuddy 托管运行时 —— 不写死单机路径，
+# Python 解释器（自检 2 用）。优先 PATH，其次若干常见的托管运行时目录 —— 不写死单机路径，
 # 换机后无需再改（2026-09-26：由旧机写死路径改为解析式）。
 # ★ 2026-10-01 加固：必须**真正执行一次**才算可用 —— 本机 PATH 上的 `python` 是
 #   Microsoft Store 存根（WindowsApps\python.exe），它**不执行、直接返回非零**，
@@ -90,10 +90,14 @@ if [ -z "$PY" ]; then
   done
 fi
 if [ -z "$PY" ]; then
-  for p in "$HOME/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/python/python.exe" \
-           "$HOME/.workbuddy/binaries/python/versions/3.13.12/python.exe" \
-           "$HOME/.workbuddy/binaries/python/versions/3.13.12/bin/python3"; do
-    if [ -x "$p" ] && runs_ok "$p"; then PY="$p"; break; fi
+  # ★ 兜底：扫几个常见的托管运行时目录（★ 不写死任何单机路径，通配符在 for 列表里会展开；
+  #   无匹配时字面量留在列表里，由下面的 `-x` 判据挡掉）。
+  for p in "$HOME"/.local/share/*/python/python.exe \
+           "$HOME"/*/binaries/python/versions/*/python.exe \
+           "$HOME"/*/binaries/python/versions/*/bin/python3 \
+           /usr/bin/python3 /usr/local/bin/python3; do
+    [ -x "$p" ] || continue
+    if runs_ok "$p"; then PY="$p"; break; fi
   done
 fi
 : "${PY:?找不到【可用】的 python 解释器（Microsoft Store 存根不可用），请设置 PYTHON 环境变量}"
@@ -126,9 +130,9 @@ fi
 #        wwwroot。这样 wwwroot 必然比 Android 暂存新 ⇒ 下方缺陷 B 的清理逻辑也会正确触发。
 #   ★ 逃生阀：确认 dist-maui 已是最新时，可 SKIP_VUE_BUILD=1 跳过（会明确打印"跳过"）。
 NODE_EXE=""
+# ★ 候选顺序：仓库自带 → 环境变量 NODE（推荐给"node 不在 PATH"的机器）→ PATH 上的 node。
 for c in "$REPO_ROOT/tools/node/bin/node.exe" "$REPO_ROOT/tools/node/node.exe" \
-         "$HOME/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/node/bin/node.exe" \
-         "$(command -v node 2>/dev/null)"; do
+         "${NODE:-}" "$(command -v node 2>/dev/null)"; do
   if [ -n "$c" ] && [ -x "$c" ]; then NODE_EXE="$c"; break; fi
 done
 VITE_JS="$ENGINE_ROOT/EraCore.Web/node_modules/vite/bin/vite.js"
