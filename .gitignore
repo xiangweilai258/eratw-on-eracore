@@ -15,12 +15,10 @@ games/
 *.erb
 !test_game/**/*.erb
 
-# 别人的成品 APK（仅作本地对照测试用，绝不发布）
-XEmuera*.apk
-gemuera*.apk
-andEmuera*.apk
-uEmuera*.apk
-tEmuera*.apk
+# 其它模拟器的成品 APK（本地对照测试时可能留着，绝不发布）
+# ★ 2026-10-08：原先是逐个点名（5 行具体包名）—— 既无必要，也等于在仓库里列别人的名字。
+#   改用通配：任何 APK 都不入库（本仓库自己的包走 Releases，不进 git）。
+*.apk
 em*.apk
 
 # 上游源码（用 git clone 上游 + 打补丁即可，不在此重分发）
