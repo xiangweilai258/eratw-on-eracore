@@ -95,8 +95,6 @@ Copyright (C) 2008- MinorShift, 妊）|дﾟ)の中の人
 - **eraTW（画蛇添足版）** 是独立的社区同人作品，其版权归原作者群体所有。  
   其开发仓库为 <https://gitgud.io/era-games-zh/touhou/eratw-sub-modding>。
 - 本仓库提供的 APK **不内置任何游戏文件**，使用者需自行获取游戏本体。
-- 本仓库中提到的其他模拟器（如 gEmuera、XEmuera）仅作为**性能对照参照物被提及**，  
-  其代码与产物**不在本仓库中**。
 
 ---
 
