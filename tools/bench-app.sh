@@ -2,9 +2,9 @@
 # 跨架构启动/内存基准
 #
 # 为什么要额外量「系统可用内存变化」：
-#   不同宿主把开销放在不同的进程里——
+#   不同实现把开销放在不同的进程里——
 #     EraCore：主进程 + 独立的 WebView 渲染进程（com.huawei.webview:sandboxed_process*）
-#     gEmuera：主进程 + Godot 的额外进程/线程
+#     另有实现会另起引擎 / 渲染子进程；只量主进程的 PSS 会漏算。
 #   只量自己那个包的 PSS 会漏算，跨架构比较就不公平。
 #   因此除单进程 PSS 外，同步记录 /proc/meminfo 的 MemAvailable 变化。
 #
