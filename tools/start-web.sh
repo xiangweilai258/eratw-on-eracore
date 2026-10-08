@@ -1,7 +1,7 @@
 #!/bin/bash
 # EraCore Web 界面启动器 —— 用浏览器方式玩 eraTW
 #
-# ⚠ 必须前台运行（配合 WorkBuddy 的 run_in_background=true）。
+# ⚠ 必须前台运行（若由后台任务管理工具启动，请设为「前台 / 阻塞」模式）。
 #    若用 `nohup ... &` 然后在脚本里返回，进程会在 Bash 任务结束时被清理掉。
 #
 # 用法：
