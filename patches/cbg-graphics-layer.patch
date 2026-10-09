@@ -42,6 +42,83 @@ index a0c51838..bfeb1e62 100644
  );
  
  internal record ButtonRef(object value, bool isInteger, long generation, int? col = null, int? width = null);
+diff --git a/EraCore.Core/Assets/AssetChannel.cs b/EraCore.Core/Assets/AssetChannel.cs
+index 4813616e..27ea3407 100644
+--- a/EraCore.Core/Assets/AssetChannel.cs
++++ b/EraCore.Core/Assets/AssetChannel.cs
+@@ -52,6 +52,15 @@ internal static class AssetChannel
+             && TryReadImage(dirAccessor, gameRoot, rel, out bytes, out mimeType))
+             return true;
+ 
++        // 3. ★ 2026-10-09：SPRITECREATE 的**运行时合成名**回退。
++        //    合成名既不是文件路径、也不在 sprite 名表里 ⇒ 上面两步都不命中，图永远取不到。
++        //    而它其实来自某张真实文件（如 eraTW「神签」的 .webp）—— 无头下拿不到像素，
++        //    但**前端直接读原文件**就够了。★ 本步只做「名字 → 来源相对路径 → 读字节」。
++        if (AppContents.TryResolveSpriteSource(urlPath, out var srcRel)
++            && srcRel != null
++            && TryReadImage(dirAccessor, gameRoot, srcRel, out bytes, out mimeType))
++            return true;
++
+         return false;
+     }
+ 
+diff --git a/EraCore.Core/Shared/Runtime/InputRequest.cs b/EraCore.Core/Shared/Runtime/InputRequest.cs
+index 3fb60497..9263df16 100644
+--- a/EraCore.Core/Shared/Runtime/InputRequest.cs
++++ b/EraCore.Core/Shared/Runtime/InputRequest.cs
+@@ -53,7 +53,7 @@ internal sealed class InputRequest
+ 	/// 语义：输入等待期间「不夺取 / 不要求窗口焦点」——移动端无物理焦点概念时，
+ 	/// 让输入循环可被定时器推进（动画帧循环）。UI 层可读取本字段决定焦点行为；
+ 	/// ★ 即使 UI 层不读，TINPUT* 本身已具备「Timelimit 超时返回」能力，
+-	/// 故功能可用不依赖 UI 层改动（见 research/20 §5.6）。
++	/// 故功能可用不依赖 UI 层改动。
+ 	/// </summary>
+ 	public bool NoFocus;
+ 	#endregion
+diff --git a/EraCore.Core/Shared/Runtime/Script/Loader/ErbIrCache.cs b/EraCore.Core/Shared/Runtime/Script/Loader/ErbIrCache.cs
+index 8dfc5a1c..0bd5634d 100644
+--- a/EraCore.Core/Shared/Runtime/Script/Loader/ErbIrCache.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Loader/ErbIrCache.cs
+@@ -15,7 +15,7 @@ namespace MinorShift.Emuera.Runtime.Script.Loader;
+ /// ★ 行号是<b>必需</b>的：eraTW 的 <c>#PRI</c>/<c>#LATER</c> 事件链里同一文件会有多个同名标签
+ /// （如 <c>SYSTEM.ERB</c> 的 <c>@EVENTLOAD</c> 在 L33 与 L100 各一份），它们在标签字典里是<b>两个不同的函数</b>，
+ /// 只有行号能区分。旧键 <c>(File, Label)</c> 会把两者折叠成一个 → 被覆盖的那条永不物化
+-/// （2026-09-30 修复，根因与实测见 <c>research/25</c>）。
++/// 。
+ /// </summary>
+ internal sealed class IrIndexKeyComparer : IEqualityComparer<(string File, string Label, int LineNo)>
+ {
+diff --git a/EraCore.Core/Shared/Runtime/Script/Loader/ErbLoader.cs b/EraCore.Core/Shared/Runtime/Script/Loader/ErbLoader.cs
+index aa5b9137..8f8db41f 100644
+--- a/EraCore.Core/Shared/Runtime/Script/Loader/ErbLoader.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Loader/ErbLoader.cs
+@@ -110,7 +110,7 @@ internal sealed class ErbLoader
+ 		/// <summary>blob 偏移 → 索引条目（<b>全局唯一</b>）。驻留（几 MB 量级），等价 labelDic。
+ 		/// ★ 键必须是「条目自己的身份」，不能从 <c>(File, Label)</c> 或行号反推：同一文件会出现同名不同行的定义
+ 		/// （<c>#PRI</c>/<c>#LATER</c> 链，eraTW 有 3 处），而 <c>ScriptPosition.LineNo</c> 是显示用字段（构造时 +1）
+-		/// 不能当语义键 —— 2026-09-30 两条弯路都踩过（详见 <c>research/25</c> §9）。</summary>
++		/// 不能当语义键 —— 2026-09-30 两条弯路都踩过。</summary>
+ 		public Dictionary<long, IrIndexEntry> Index = null!;
+ 		/// <summary>逻辑文件名 → 该文件内按 @ 出现序的索引条目（TryGenerateFromIr 用，免 O(n·files) 逐文件扫全表）。</summary>
+ 		public Dictionary<string, List<IrIndexEntry>> ByFile = new(StringComparer.OrdinalIgnoreCase);
+@@ -485,7 +485,7 @@ internal sealed class ErbLoader
+ 					var ir = new IrState { Available = true, Path = irPath };
+ 					// ★ 逐条录入、绝不去重（2026-09-30 修复）：同文件同名不同行的函数（#PRI/#LATER 事件链）
+ 					//   必须全部进 ByFile —— 旧代码经 (File,Label) 字典中转，后一条静默覆盖前一条，
+-					//   被覆盖的定义永不物化（eraTW 实测热启动恒少 3 条，见 research/25）。
++					//   被覆盖的定义永不物化。
+ 					ir.Index = new Dictionary<long, IrIndexEntry>(entries.Count);
+ 					foreach (var e in entries)
+ 					{
+@@ -2447,7 +2447,7 @@ internal sealed class ErbLoader
+ 			{
+ 				if (label == null)
+ 				{
+-					// ★★ 0.4.1 修复（2026-09-30，详见 research/27 §9）：**源后背必须按【行号】锁定本函数**。
++					// ★★ 0.4.1 修复：**源后背必须按【行号】锁定本函数**。
+ 					//   原实现在此只按「@标签名」匹配，其前提「函数名在单文件内唯一」在 eraTW 里**不成立** ——
+ 					//   SYSTEM.ERB 有 3 个 @EVENTLOAD（33 / 100 / 268），而 #PRI/#LATER 事件链的设计本身就是
+ 					//   「同文件同名多定义」。于是物化 L100 的桩时取到**第一个**同名 @（L33），把 L33 的函数体
 diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs
 index b82ca740..efd0f087 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs
@@ -90,8 +167,40 @@ index b82ca740..efd0f087 100644
  				return 0;
  			// CBG_SetButtonMap: WinForms-only stub removed in Headless
  			return 1;
+diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Io.cs b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Io.cs
+index 7ad5e578..f6746e36 100644
+--- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Io.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Io.cs
+@@ -57,8 +57,25 @@ internal static partial class FunctionMethodCreator
+ 			if (g == null)
+ 				return 0;
+ #if HEADLESS
+-			// Headless 模式下不支持图片加载
+-			return 0;
++			// ★ 2026-10-09：原为「恒返回 0」⇒ eraTW「神签」的配图整块不显示。
++			//   无头下确实拿不到**像素**，但**尺寸**能探到、**来源相对路径**能记住 ——
++			//   前端据此直接读原文件即可把图显示出来（见 AssetChannel.TryGetImage 的第 3 步）。
++			string relPath = arguments[1].GetStrValue(exm);
++			if (string.IsNullOrEmpty(relPath))
++				return 0;
++			var gp = GamePaths.Current;
++			if (gp?.DirAccessor == null)
++				return 0;
++			// 与 #else 分支同口径：isRelative 为真时 filename 已是游戏根相对路径；
++			// ★ 无头下统一按「游戏根相对路径」处理（Program.ContentDir 即游戏根）。
++			var gFullPath = gp.DirAccessor.CombinePath(gp.ExeDir, relPath);
++			if (!ImageSizeProbe.TryGetPixelSize(gp.DirAccessor, gFullPath, out int fw, out int fh))
++				return 0;
++			if (fw <= 0 || fh <= 0
++				|| fw > AbstractImage.MAX_IMAGESIZE || fh > AbstractImage.MAX_IMAGESIZE)
++				return 0;
++			g.GCreateFromSize(fw, fh, relPath);
++			return 1;
+ #else
+ 			string filename = arguments[1].GetStrValue(exm);
+ 			bool isRelative = false;
 diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs
-index 4b35239e..ce47110c 100644
+index 4b35239e..e9112075 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs
 @@ -210,25 +210,28 @@ internal static partial class FunctionMethodCreator
@@ -122,18 +231,177 @@ index 4b35239e..ce47110c 100644
 -			GraphicsImage.GDrawCImg(img, destRect, cm);
 +			// ★ 二期·甲（协议 v13）：8 参形态带颜色矩阵 —— 交给记账层抽出协议能表达的三样
 +			//   （透明度 / 亮度 / 灰度）；★ 矩阵里的色相旋转、通道互换等成分**有意忽略**
-+			//   （协议无对应通道，见 GraphicsImage.ParseColorMatrix 的注释与 research/46 附录 A3）。
++			//   。
 +			GraphicsImage.RecordGfxCImg(imgname, destRect, cm);
  			return 1;
  		}
  
+diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/LogicalLine.cs b/EraCore.Core/Shared/Runtime/Script/Statements/LogicalLine.cs
+index 6ac1c3fd..dea5dd3e 100644
+--- a/EraCore.Core/Shared/Runtime/Script/Statements/LogicalLine.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Statements/LogicalLine.cs
+@@ -266,7 +266,7 @@ internal class FunctionLabelLine : LogicalLine, IComparable<FunctionLabelLine>
+ 	/// ★ 为什么不从 <c>(File, Label)</c> 反推身份：同一文件会出现同名不同行的定义（<c>#PRI</c>/<c>#LATER</c> 链，
+ 	/// eraTW 有 3 处），而 <c>(File,Label)</c> 无法区分它们；<c>ScriptPosition.LineNo</c> 又是**显示用**字段
+ 	/// （构造时 +1，其类型注释明言「除错误显示外不应被引用」），当语义键会静默错配 —— 2026-09-30 两条弯路都踩过
+-	/// （详见 <c>research/25</c> §9）。桩的归属在建桩时就是确定的，直接记下来最可靠。</summary>
++	/// 。桩的归属在建桩时就是确定的，直接记下来最可靠。</summary>
+ 	internal long IrBlobOffset = -1;
+ 
+ 	//public bool ArgOptional { get; set; }
+diff --git a/EraCore.Core/Shared/UI/Game/Image/AppContents.cs b/EraCore.Core/Shared/UI/Game/Image/AppContents.cs
+index c484eeb5..3d0f4bc8 100644
+--- a/EraCore.Core/Shared/UI/Game/Image/AppContents.cs
++++ b/EraCore.Core/Shared/UI/Game/Image/AppContents.cs
+@@ -19,6 +19,24 @@ static class AppContents
+ 	static string? _stubRoot;
+ 	static ConcurrentDictionary<string, ASprite> _stubs = new(StringComparer.OrdinalIgnoreCase);
+ 
++	/// <summary>
++	/// ★ 2026-10-09 新增：<c>SPRITECREATE</c> **运行时合成名**的注册表（与 <see cref="_stubs"/> 同款：
++	/// 锁保护 ＋ 按游戏根隔离 ＋ 随卸载清空）。
++	/// ★ 为什么需要它：合成名**不来自文件、也不在名表里**，而旧实现的 <see cref="CreateSpriteG"/> 是空方法体
++	/// ⇒ <c>SPRITECREATE</c> 报成功、这个名字却**查不到**。
++	/// </summary>
++	static readonly object _gspSync = new();
++	static string? _gspRoot;
++	static ConcurrentDictionary<string, ASprite> _gsprites = new(StringComparer.OrdinalIgnoreCase);
++
++	/// <summary>
++	/// ★ 2026-10-09：合成名 → **来源图片相对路径**（可为 null）。
++	/// ★ 用途：无头下画布拿不出像素，但**前端能直接读原文件** ——
++	///   <c>AssetChannel.TryGetImage</c> 的第 3 步用这张表把「合成名」解析成「相对路径」再读字节。
++	///   eraTW「神签」就是这条路：<c>GCREATEFROMFILE(文件)</c> → <c>SPRITECREATE(名, 画布)</c> → 前端按名字取图。
++	/// </summary>
++	static ConcurrentDictionary<string, string?> _gspSources = new(StringComparer.OrdinalIgnoreCase);
++
+ 	public static GraphicsImage GetGraphics(int i)
+ 	{
+ 		if (gList.TryGetValue(i, out GraphicsImage? value))
+@@ -41,6 +59,18 @@ static class AppContents
+ 		var paths = GamePaths.Current;
+ 		if (string.IsNullOrEmpty(name) || paths?.DirAccessor == null)
+ 			return null!;
++		// ★ 先查「SPRITECREATE 合成名」注册表：命中即返回 —— 它既不来自文件、也不在名表里，
++		//   所以必须排在原有两条路之前（否则合成名永远落到"未创建"）。
++		lock (_gspSync)
++		{
++			if (_gspRoot != paths.ExeDir)
++			{
++				_gspRoot = paths.ExeDir;
++				_gsprites = new ConcurrentDictionary<string, ASprite>(StringComparer.OrdinalIgnoreCase);
++			}
++			if (_gsprites.TryGetValue(name, out var made))
++				return made;
++		}
+ 		lock (_stubSync)
+ 		{
+ 			// 缓存按游戏根隔离：/load-game 切目录后同名 sprite 可能是新文件
+@@ -77,9 +107,70 @@ static class AppContents
+ 		}
+ 		return null!;
+ 	}
+-	public static void SpriteDispose(string name) { }
++	/// <summary>★ 释放合成名：从注册表移除。（资源表派生的替身仍留在 <see cref="_stubs"/>，不动。）</summary>
++	public static void SpriteDispose(string name)
++	{
++		if (string.IsNullOrEmpty(name))
++			return;
++		lock (_gspSync)
++		{
++			_gsprites.TryRemove(name, out _);
++			_gspSources.TryRemove(name, out _);
++		}
++	}
++
++	/// <summary>
++	/// ★ 2026-10-09：查某个**合成名**的来源图片相对路径。
++	/// 供 <c>AssetChannel.TryGetImage</c> 用 —— 合成名**既不是文件路径、也不在 sprite 名表里**，
++	/// 只有这里知道它来自哪张图。★ 非合成名 / 来源非文件 ⇒ 返回 false（调用方继续走原有路径）。
++	/// </summary>
++	public static bool TryResolveSpriteSource(string name, out string? relativePath)
++	{
++		relativePath = null;
++		if (string.IsNullOrEmpty(name))
++			return false;
++		lock (_gspSync)
++			return _gspSources.TryGetValue(name, out relativePath) && !string.IsNullOrEmpty(relativePath);
++	}
+ 	public static long SpriteDisposeAll(bool delCsvImage) => 0;
+-	public static void CreateSpriteG(string imgName, GraphicsImage parent, EmuRectangle rect) { }
++	/// <summary>
++	/// ★ 2026-10-09 修复：本方法**原为空方法体**，
++	/// 而调用方 <c>SpriteCreateMethod</c> 之后照样 <c>return 1</c> ⇒ <c>SPRITECREATE</c> **谎报成功**，
++	/// 名字随后查不到 ⇒ <c>SPRITECREATED</c>/<c>SPRITEWIDTH</c>/<c>SPRITEHEIGHT</c> 对**运行时合成名**恒 0。
++	/// ★ 危害：游戏拿 <c>SPRITECREATED</c> 当**缓存守卫**（eraTW <c>BODY_INFO\ALTER_IMAGE_SET.ERB:9</c>）
++	/// ⇒ **每次重跑合成、零报错**。
++	/// ★ 本修**只做「名字能被查到、尺寸能答对」**：登记一个轻量替身
++	/// （尺寸取 <paramref name="rect"/>；rect 无效则退回 <paramref name="parent"/> 尺寸）。
++	/// ★ **仍不做真正的像素合成**。
++	/// </summary>
++	public static void CreateSpriteG(string imgName, GraphicsImage parent, EmuRectangle rect)
++	{
++		if (string.IsNullOrEmpty(imgName) || parent == null)
++			return;
++		int w = rect.Width, h = rect.Height;
++		if (w <= 0 || h <= 0)
++		{
++			// 2 参形式传的是 (0,0,parent.W,parent.H)；但脚本也可能传全零矩形 ⇒ 退回父画布尺寸
++			w = parent.Width;
++			h = parent.Height;
++		}
++		if (w <= 0 || h <= 0)
++			return; // 两者都拿不到尺寸：宁可不登记，也不登记一个 0×0 的假精灵
++		var stub = new HeadlessSprite(imgName, new EmuSize(w, h));
++		var paths = GamePaths.Current;
++		lock (_gspSync)
++		{
++			if (_gspRoot != paths?.ExeDir)
++			{
++				_gspRoot = paths?.ExeDir;
++				_gsprites = new ConcurrentDictionary<string, ASprite>(StringComparer.OrdinalIgnoreCase);
++				_gspSources = new ConcurrentDictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
++			}
++			_gsprites[imgName] = stub;
++			// ★ 一并记住「这张合成图来自哪个文件」—— 无头下这是前端唯一能把图真正显示出来的线索。
++			_gspSources[imgName] = parent.SourceFilePath;
++		}
++	}
+ 	internal static void CreateSpriteAnime(string imgName, int w, int h) { }
+ 	public static Exception LoadContents(bool reload) => null!;
+ 	public static void UnloadContents()
+@@ -88,12 +179,15 @@ static class AppContents
+ 		gList.Clear();
+ 		// mem-leak-fix：_stubs 替身缓存退出游戏后仍驻留静态——随 UnloadContents 一并清（锁内，与 GetSprite 互斥）。
+ 		lock (_stubSync) { _stubRoot = null; _stubs.Clear(); }
++		// ★ 合成名注册表同理（否则切游戏后旧合成名仍查得到）
++		lock (_gspSync) { _gspRoot = null; _gsprites.Clear(); _gspSources.Clear(); }
+ 	}
+ 	public static void UnloadGraphicList()
+ 	{
+ 		foreach (var graph in gList.Values) graph.GDispose();
+ 		gList.Clear();
+ 		lock (_stubSync) { _stubRoot = null; _stubs.Clear(); }
++		lock (_gspSync) { _gspRoot = null; _gsprites.Clear(); _gspSources.Clear(); }
+ 	}
+ 	public static void UnloadTempLoadedConstImageNames() { }
+ 	public static void UnloadTempLoadedGraphicsImageNames() { }
 diff --git a/EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs b/EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs
-index c2a7aab0..995c5bad 100644
+index c2a7aab0..87d2307e 100644
 --- a/EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs
 +++ b/EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs
-@@ -23,7 +23,62 @@ internal sealed class GraphicsImage : AbstractImage
+@@ -22,8 +22,71 @@ internal sealed class GraphicsImage : AbstractImage
+ 	private EmuFontStyle _fontStyle;
  	private string _fontname = "";
  
++	/// <summary>
++	/// ★ 2026-10-09：本画布的**来源图片文件**（游戏根相对路径；非文件来源则为 null）。
++	/// ★ 用途：无头下没有位图、画布本身拿不出像素 —— 但**前端可以直接去读原文件**。
++	///   这条信息经 <c>AppContents.CreateSpriteG</c> 传给合成名，再由
++	///   <c>AssetChannel.TryGetImage</c> 的第 3 步取用（eraTW「神签」配图走的正是这条路）。
++	/// </summary>
++	public string? SourceFilePath { get; private set; }
++
  	public static bool useImgList => false;
 -	public static List<Tuple<ASprite, EmuRectangle>> drawImgList => null!;
 +
@@ -185,7 +453,7 @@ index c2a7aab0..995c5bad 100644
 +			return new GfxColorParams(opacity, r0, 0f);
 +
 +		// 情形三：其余形状（含色相旋转、通道互换等）★ 协议表达不了 ⇒ **有意降级**为亮度近似。
-+		// 取对角线平均作为近似增益；★ 这是有意的取舍，不是漏做（详见 research/46 附录 A3）。
++		// 取对角线平均作为近似增益；★ 这是有意的取舍，不是漏做。
 +		float approx = Clamp01((r0 + g1 + b2) / 3f);
 +		return new GfxColorParams(opacity, approx, 0f);
 +	}
@@ -195,7 +463,7 @@ index c2a7aab0..995c5bad 100644
  
  	public override int Width => _size.Width;
  	public override int Height => _size.Height;
-@@ -51,6 +106,7 @@ internal sealed class GraphicsImage : AbstractImage
+@@ -51,6 +114,7 @@ internal sealed class GraphicsImage : AbstractImage
  		GDispose();
  		_size = new EmuSize(x, y);
  		_created = true;
@@ -203,7 +471,29 @@ index c2a7aab0..995c5bad 100644
  	}
  
  	internal void GCreateFromF(object bmp, bool useGDI)
-@@ -65,8 +121,21 @@ internal sealed class GraphicsImage : AbstractImage
+@@ -59,14 +123,43 @@ internal sealed class GraphicsImage : AbstractImage
+ 		_created = true;
+ 	}
+ 
++	/// <summary>
++	/// ★ 2026-10-09：无头版的「文件 → 画布」。★ 与 WinForms 的 <see cref="GCreateFromF"/> 不同，
++	/// 这里**不去解码像素**（无头无位图），只记「尺寸 ＋ 来源相对路径」：
++	///   · 尺寸 ⇒ <c>GWIDTH</c>/<c>GHEIGHT</c> 与后续 <c>SPRITECREATE</c> 的几何正确；
++	///   · 来源路径 ⇒ **前端能直接读原文件**把图显示出来。
++	/// 调用方（<c>GraphicsCreateFromFileMethod</c>）负责**先探到尺寸**；探不到就别调本方法。
++	/// </summary>
++	internal void GCreateFromSize(int w, int h, string? sourceRelativePath)
++	{
++		GDispose();
++		_size = new EmuSize(w, h);
++		SourceFilePath = sourceRelativePath;
++		_created = true;
++		_drawImgList.Clear();
++	}
++
+ 	public static void GClear(EmuColor c) { }
+ 	public static void GClear(EmuColor c, int x, int y, int w, int h) { }
+ 	public static void GDrawString(string text, int x, int y) { }
  	public static void GDrawString(string text, int x, int y, int width, int height) { }
  	public static void GDrawRectangle(EmuRectangle rect) { }
  	public static void GFillRectangle(EmuRectangle rect) { }
@@ -227,12 +517,12 @@ index c2a7aab0..995c5bad 100644
  	public static void GDrawG(GraphicsImage srcGra, EmuRectangle destRect, EmuRectangle srcRect) { }
  	public static void GDrawG(GraphicsImage srcGra, EmuRectangle destRect, EmuRectangle srcRect, float[][] cm) { }
  	public static void GDrawGWithMask(GraphicsImage srcGra, GraphicsImage maskGra, EmuPoint destPoint) { }
-@@ -86,10 +155,30 @@ internal sealed class GraphicsImage : AbstractImage
+@@ -86,10 +179,30 @@ internal sealed class GraphicsImage : AbstractImage
  	public static bool GByteArrayToBitmap(long[,] array, int xstart, int ystart) => false;
  	public static void Load() { }
  	public void UnLoad() { _created = false; }
 -	public void GDispose() { _size = default; _created = false; }
-+	public void GDispose() { _size = default; _created = false; _drawImgList.Clear(); }
++	public void GDispose() { _size = default; _created = false; _drawImgList.Clear(); SourceFilePath = null; }
  	public override void Dispose() { GDispose(); GC.SuppressFinalize(this); }
  	~GraphicsImage() { Dispose(); }
  }
@@ -259,8 +549,46 @@ index c2a7aab0..995c5bad 100644
  #else
  using MinorShift.Emuera.Runtime.Config;
  using System;
+diff --git a/EraCore.Core/UI/Game/Console/ConsoleInputHandler.cs b/EraCore.Core/UI/Game/Console/ConsoleInputHandler.cs
+index 8f936bb8..7aa3fa41 100644
+--- a/EraCore.Core/UI/Game/Console/ConsoleInputHandler.cs
++++ b/EraCore.Core/UI/Game/Console/ConsoleInputHandler.cs
+@@ -200,7 +200,10 @@ internal sealed class ConsoleInputHandler
+                         _state.process!.InputInteger(inputValue);
+                     break;
+                 case InputType.IntButton:
+-                    if (string.IsNullOrEmpty(str) && _state.inputReq!.HasDefValue && !_console._timer.IsDisplayTimeActive)
++                    // ★ 2026-10-09 修复：加 `|| _state.isTimeout`，与上方 IntValue 分支同一套判定。
++                    //   原因：IsDisplayTimeActive 不含 !isTimeout ⇒ 超时那一刻它仍为真 ⇒ 按钮/字符串分支
++                    //   把"已超时"当成"还在显示倒计时"，于是**不回落默认值**（静默分支偏移）。
++                    if (string.IsNullOrEmpty(str) && _state.inputReq!.HasDefValue && (!_console._timer.IsDisplayTimeActive || _state.isTimeout))
+                     {
+                         inputValue = _state.inputReq!.DefIntValue;
+                         str = inputValue.ToString();
+@@ -212,7 +215,10 @@ internal sealed class ConsoleInputHandler
+                     _state.process!.InputInteger(inputValue);
+                     break;
+                 case InputType.StrValue:
+-                    if (string.IsNullOrEmpty(str) && _state.inputReq!.HasDefValue && !_console._timer.IsDisplayTimeActive)
++                    // ★ 2026-10-09 修复：同 IntValue 分支——超时须回落默认值。
++                    //   实测影响：eraTW 约 38 处 `TONEINPUTS 制限时间,"0",1`（disp=1 字符串形态）的 RESULTS
++                    //   会由 "0" 静默变成 ""。★ 不报错，所以此前没被发现。
++                    if (string.IsNullOrEmpty(str) && _state.inputReq!.HasDefValue && (!_console._timer.IsDisplayTimeActive || _state.isTimeout))
+                         str = _state.inputReq!.DefStrValue;
+                     if (str == null)
+                         str = "";
+@@ -221,7 +227,8 @@ internal sealed class ConsoleInputHandler
+                     _state.process!.InputString(str);
+                     break;
+                 case InputType.StrButton:
+-                    if (string.IsNullOrEmpty(str) && _state.inputReq!.HasDefValue && !_console._timer.IsDisplayTimeActive)
++                    // ★ 2026-10-09 修复：同 StrValue 分支——超时须回落默认值。
++                    if (string.IsNullOrEmpty(str) && _state.inputReq!.HasDefValue && (!_console._timer.IsDisplayTimeActive || _state.isTimeout))
+                         str = _state.inputReq!.DefStrValue;
+                     if (str == null)
+                         str = "";
 diff --git a/EraCore.Core/UI/Game/Console/ConsolePrintManager.cs b/EraCore.Core/UI/Game/Console/ConsolePrintManager.cs
-index d54fc1e5..44214582 100644
+index d54fc1e5..2c17dd5f 100644
 --- a/EraCore.Core/UI/Game/Console/ConsolePrintManager.cs
 +++ b/EraCore.Core/UI/Game/Console/ConsolePrintManager.cs
 @@ -12,6 +12,7 @@ using MinorShift.Emuera.Runtime.Utils;
@@ -279,7 +607,7 @@ index d54fc1e5..44214582 100644
 +    // WinForms 里 CBG_SetGraphics 把一块 GraphicsImage 铺到画布上；无头下没有位图，
 +    // 改为**记账**：把该画布上画过的每个资源转成一条背景图层（带位置、尺寸与颜色参数）。
 +    // ★ 语义：整体**替换**（先清后加）——与 eraTW 的用法一致（每帧 GCREATE→GDRAWSPRITE→CBGSETG）。
-+    // ★ 一期只支持「画精灵」；画布间合成（GDRAWG）已拆出单独立项（见 research/46 附录 A5）。
++    // ★ 一期只支持「画精灵」；画布间合成（GDRAWG）已拆出单独立项。
 +    // ★ 二期·甲：颜色矩阵压成 opacity / brightness / grayscale 三个标量（矩阵表达不了的部分有意忽略）。
 +
 +    /// <summary>
@@ -320,6 +648,49 @@ index 997c9845..9414bede 100644
      internal ConsoleDisplayLine[]? GetDisplayLines(long lineNo) => _printManager.GetDisplayLines(lineNo);
      internal ConsoleDisplayLine[]? PopDisplayingLines() => _printManager.PopDisplayingLines();
      internal ConsoleDisplayLine? PrintPlainwithSingleLine(string str) => _printManager.PrintPlainwithSingleLine(str);
+diff --git a/EraCore.Tests/AdapterV8Tests.cs b/EraCore.Tests/AdapterV8Tests.cs
+index e33e6dc8..43682dba 100644
+--- a/EraCore.Tests/AdapterV8Tests.cs
++++ b/EraCore.Tests/AdapterV8Tests.cs
+@@ -242,7 +242,7 @@ public class AdapterV8Tests : IDisposable
+         Assert.Equal("bg/forest.png", bg.GetProperty("src").GetString());
+         Assert.Equal(1, bg.GetProperty("depth").GetInt32());
+         Assert.Equal(0.5, bg.GetProperty("opacity").GetDouble());
+-        Assert.Equal(11, doc.RootElement.GetProperty("protocolVersion").GetInt32());
++        Assert.Equal(13, doc.RootElement.GetProperty("protocolVersion").GetInt32());
+ 
+         // v7 已知字段仍在——老客户端按 v7 解析不炸、忽略未知字段自然降级
+         Assert.Equal("#000000", doc.RootElement.GetProperty("bgColor").GetString());
+@@ -284,6 +284,6 @@ public class AdapterV8Tests : IDisposable
+         Assert.Equal(0, crop.GetProperty("y").GetInt32());
+         Assert.Equal(72, crop.GetProperty("imgWidth").GetInt32());
+         Assert.Equal(36, crop.GetProperty("imgHeight").GetInt32());
+-        Assert.Equal(11, doc.RootElement.GetProperty("protocolVersion").GetInt32());
++        Assert.Equal(13, doc.RootElement.GetProperty("protocolVersion").GetInt32());
+     }
+ }
+diff --git a/EraCore.Tests/AgentJsonlProtocolTests.cs b/EraCore.Tests/AgentJsonlProtocolTests.cs
+index dc52ffcd..cacd3a2a 100644
+--- a/EraCore.Tests/AgentJsonlProtocolTests.cs
++++ b/EraCore.Tests/AgentJsonlProtocolTests.cs
+@@ -75,7 +75,7 @@ public class AgentJsonlProtocolTests : IDisposable
+ 
+         Assert.Equal("WaitInput", root.GetProperty("state").GetString());
+         Assert.Equal("EnterKey", root.GetProperty("inputType").GetString());
+-        Assert.Equal(11, root.GetProperty("protocolVersion").GetInt32()); // v11：PrintSegment.strikeout
++        Assert.Equal(13, root.GetProperty("protocolVersion").GetInt32()); // v11：PrintSegment.strikeout
+ 
+         Assert.Equal(5000L, root.GetProperty("timeLimit").GetInt64());
+         Assert.True(root.GetProperty("displayTime").GetBoolean());
+@@ -197,7 +197,7 @@ public class AgentJsonlProtocolTests : IDisposable
+ 
+         Assert.NotNull(json);
+         using var doc = JsonDocument.Parse(json!);
+-        Assert.Equal(11, doc.RootElement.GetProperty("protocolVersion").GetInt32()); // v11：PrintSegment.strikeout
++        Assert.Equal(13, doc.RootElement.GetProperty("protocolVersion").GetInt32()); // v11：PrintSegment.strikeout
+     }
+ 
+     [Fact]
 diff --git a/EraCore.Tests/CbgColorMatrixTests.cs b/EraCore.Tests/CbgColorMatrixTests.cs
 new file mode 100644
 index 00000000..fe9cb349
@@ -432,6 +803,19 @@ index 00000000..fe9cb349
 +        Assert.Equal(1f, GraphicsImage.ParseColorMatrix([[1f, 0f, 0f]]).Opacity);
 +    }
 +}
+diff --git a/EraCore.Tests/ConfigNotWrittenOnLoadTests.cs b/EraCore.Tests/ConfigNotWrittenOnLoadTests.cs
+index 6c635c27..c6b98f31 100644
+--- a/EraCore.Tests/ConfigNotWrittenOnLoadTests.cs
++++ b/EraCore.Tests/ConfigNotWrittenOnLoadTests.cs
+@@ -11,7 +11,7 @@ namespace MinorShift.Emuera.Tests;
+ /// <summary>
+ /// ★★★ 2026-10-07「配置不被毁」回归网（对齐上游行为规范）。
+ /// <para>
+-/// 背景（<c>research/38</c> §5.1）：原实现在**加载期**有两条自动 <c>SaveConfig</c> 触发——
++/// 背景：原实现在**加载期**有两条自动 <c>SaveConfig</c> 触发——
+ /// ① 文件缺失 → 新建默认 config；② <c>CheckUpdate()</c>（最終更新コード 失配）→ 整份回写。
+ /// 而 <c>emuera.config</c> 位于**玩家的游戏目录**，本引擎以「日文键名」整份回写会破坏其它本地化
+ /// 分支（如简体中文版）的键名与专有项。上游记录过完整事故链：
 diff --git a/EraCore.Tests/DisplayStateSnapshotGoldenTests.cs b/EraCore.Tests/DisplayStateSnapshotGoldenTests.cs
 index 487af234..e7d51844 100644
 --- a/EraCore.Tests/DisplayStateSnapshotGoldenTests.cs
@@ -475,6 +859,329 @@ index 8dba7394..67e47902 100644
      }
  
      // ---------- ADR-0016：TINPUT timer 元数据填充 ----------
+diff --git a/EraCore.Tests/GraphicsCreateFromFileTests.cs b/EraCore.Tests/GraphicsCreateFromFileTests.cs
+new file mode 100644
+index 00000000..5781b8cf
+--- /dev/null
++++ b/EraCore.Tests/GraphicsCreateFromFileTests.cs
+@@ -0,0 +1,117 @@
++using System;
++using System.IO;
++using MinorShift.Emuera;
++using MinorShift.Emuera.Assets;
++using MinorShift.Emuera.Primitives;
++using MinorShift.Emuera.UI.Game.Image;
++using Xunit;
++
++namespace Emuera.Headless.Tests;
++
++/// <summary>
++/// ★ 2026-10-09 新增：<c>GCREATEFROMFILE</c> 不再恒返回 0，
++/// 且合成名能回溯到「来源图片相对路径」—— 前端据此**直接读原文件**把图显示出来（eraTW「神签」）。
++///
++/// <para>★ 无头下**仍然拿不到像素**。本测试钉的是三件事：
++/// ① 画布能用「文件」建成且尺寸正确；② 合成名带着来源路径；③ 资源通道第 3 步能把合成名落到真实文件。</para>
++///
++/// <para>GamePaths 是静态 Current ⇒ 与同类测试一样放串行隔离集合。</para>
++/// </summary>
++[Collection("GamePathsIsolated")]
++public class GraphicsCreateFromFileTests : IDisposable
++{
++    private readonly string _root;
++
++    public GraphicsCreateFromFileTests()
++    {
++        _root = Path.Combine(Path.GetTempPath(), "emuera_gfrom_" + Guid.NewGuid().ToString("N"));
++        Directory.CreateDirectory(_root);
++        GamePaths.Resolve(_root, new FileSystemGameDirAccessor());
++    }
++
++    public void Dispose()
++    {
++        try { Directory.Delete(_root, true); } catch { }
++    }
++
++    /// <summary>写一个最小合法 PNG（签名 ＋ IHDR 即可 —— 尺寸探针只读头部，不校验 CRC）。</summary>
++    private void WritePng(string relativePath, int w, int h)
++    {
++        var full = Path.Combine(_root, relativePath);
++        Directory.CreateDirectory(Path.GetDirectoryName(full)!);
++        var b = new byte[33];
++        byte[] sig = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
++        Array.Copy(sig, 0, b, 0, 8);
++        b[11] = 13;                                   // IHDR 数据长度
++        b[12] = (byte)'I'; b[13] = (byte)'H'; b[14] = (byte)'D'; b[15] = (byte)'R';
++        b[16] = (byte)(w >> 24); b[17] = (byte)(w >> 16); b[18] = (byte)(w >> 8); b[19] = (byte)w;
++        b[20] = (byte)(h >> 24); b[21] = (byte)(h >> 16); b[22] = (byte)(h >> 8); b[23] = (byte)h;
++        b[24] = 8;   // bit depth
++        b[25] = 6;   // color type = RGBA
++        File.WriteAllBytes(full, b);
++    }
++
++    [Fact]
++    public void GCreateFromSize_marks_created_with_size_and_source()
++    {
++        var g = AppContents.GetGraphics(991001);
++        g.GCreateFromSize(37, 19, "pic/probe.png");     // ★ 无头版的「文件 → 画布」
++
++        Assert.True(g.IsCreated, "★ 修前 GCREATEFROMFILE 恒返回 0 ⇒ 画布永远不会被创建");
++        Assert.Equal(37, g.Width);
++        Assert.Equal(19, g.Height);
++        Assert.Equal("pic/probe.png", g.SourceFilePath);
++    }
++
++    [Fact]
++    public void CreateSpriteG_carries_source_to_registry()
++    {
++        var g = AppContents.GetGraphics(991002);
++        g.GCreateFromSize(40, 30, "pic/src.png");
++        AppContents.CreateSpriteG("__合成_带源__", g, new EmuRectangle(0, 0, 40, 30));
++
++        Assert.True(AppContents.TryResolveSpriteSource("__合成_带源__", out var rel));
++        Assert.Equal("pic/src.png", rel);
++    }
++
++    [Fact]
++    public void SpriteDispose_also_drops_source()
++    {
++        var g = AppContents.GetGraphics(991003);
++        g.GCreateFromSize(10, 10, "pic/x.png");
++        AppContents.CreateSpriteG("__合成_释放__", g, new EmuRectangle(0, 0, 10, 10));
++        Assert.True(AppContents.TryResolveSpriteSource("__合成_释放__", out _));
++
++        AppContents.SpriteDispose("__合成_释放__");
++
++        Assert.False(AppContents.TryResolveSpriteSource("__合成_释放__", out _));
++    }
++
++    [Fact]
++    public void AssetChannel_resolves_composite_name_to_source_file()
++    {
++        WritePng("pic/target.png", 12, 7);
++        var g = AppContents.GetGraphics(991004);
++        g.GCreateFromSize(12, 7, "pic/target.png");
++        AppContents.CreateSpriteG("__合成_取图__", g, new EmuRectangle(0, 0, 12, 7));
++
++        // ★ 修前：AssetChannel 只有「直接路径」与「sprite 名表」两步 ⇒ 合成名两条都不命中、图永远取不到
++        bool ok = AssetChannel.TryGetImage(new FileSystemGameDirAccessor(), _root,
++                                           "__合成_取图__", out var bytes, out var mime);
++
++        Assert.True(ok, "★ 第 3 步（合成名 → 来源文件）没生效");
++        Assert.NotNull(bytes);
++        Assert.True(bytes!.Length > 0);
++        Assert.Contains("image", mime);
++    }
++
++    [Fact]
++    public void AssetChannel_still_rejects_unknown_name()
++    {
++        // 反向护栏：不存在的名字不能被"猜"出来（第 3 步不能变成万能兜底）
++        bool ok = AssetChannel.TryGetImage(new FileSystemGameDirAccessor(), _root,
++                                           "__根本不存在__", out _, out _);
++
++        Assert.False(ok);
++    }
++}
+diff --git a/EraCore.Tests/SpriteCreateGRegistryTests.cs b/EraCore.Tests/SpriteCreateGRegistryTests.cs
+new file mode 100644
+index 00000000..03a96256
+--- /dev/null
++++ b/EraCore.Tests/SpriteCreateGRegistryTests.cs
+@@ -0,0 +1,129 @@
++using System;
++using System.IO;
++using MinorShift.Emuera;
++using MinorShift.Emuera.Primitives;
++using MinorShift.Emuera.UI.Game.Image;
++using Xunit;
++
++namespace Emuera.Headless.Tests;
++
++/// <summary>
++/// ★ 2026-10-09 新增：<c>SPRITECREATE</c> 不再「谎报成功」。
++///
++/// <para>修前：<see cref="AppContents.CreateSpriteG"/> 是空方法体，而调用方照样返回 1
++/// ⇒ 合成名之后**查不到** ⇒ <c>SPRITECREATED</c>/<c>SPRITEWIDTH</c>/<c>SPRITEHEIGHT</c> 对运行时合成名恒 0。
++/// 而游戏拿 <c>SPRITECREATED</c> 当**缓存守卫**（eraTW <c>BODY_INFO\ALTER_IMAGE_SET.ERB:9</c>）
++/// ⇒ 每次重跑合成、零报错。</para>
++///
++/// <para>GamePaths 是静态 Current ⇒ 与同类测试一样放串行隔离集合。
++/// ★ 本测试**不需要图片夹具**：合成名不经文件系统。</para>
++/// </summary>
++[Collection("GamePathsIsolated")]
++public class SpriteCreateGRegistryTests : IDisposable
++{
++    private readonly string _root;
++
++    public SpriteCreateGRegistryTests()
++    {
++        _root = Path.Combine(Path.GetTempPath(), "emuera_spritereg_" + Guid.NewGuid().ToString("N"));
++        Directory.CreateDirectory(_root);
++        GamePaths.Resolve(_root, new FileSystemGameDirAccessor());
++    }
++
++    public void Dispose()
++    {
++        try { Directory.Delete(_root, true); } catch { }
++    }
++
++    /// <summary>造一块已知尺寸的画布（6 参形式里 rect 之外还依赖 parent 尺寸做回退）。</summary>
++    private static GraphicsImage Canvas(int id, int w, int h)
++    {
++        var g = AppContents.GetGraphics(id);
++        g.GCreate(w, h, false);
++        return g;
++    }
++
++    [Fact]
++    public void CreateSpriteG_makes_name_resolvable()
++    {
++        var g = Canvas(990001, 100, 50);
++        AppContents.CreateSpriteG("__合成_可查__", g, new EmuRectangle(0, 0, 100, 50));
++
++        var sprite = AppContents.GetSprite("__合成_可查__");
++
++        // ① SPRITECREATED 判定依赖 IsCreated
++        Assert.NotNull(sprite);
++        Assert.True(sprite!.IsCreated, "★ 修前这里必为 null —— 那正是「谎报成功」的根因");
++    }
++
++    [Fact]
++    public void CreateSpriteG_reports_rect_size()
++    {
++        var g = Canvas(990002, 100, 50);
++        AppContents.CreateSpriteG("__合成_尺寸__", g, new EmuRectangle(0, 0, 37, 19));
++
++        var sprite = AppContents.GetSprite("__合成_尺寸__");
++
++        // ② SPRITEWIDTH / SPRITEHEIGHT 读的就是 DestBaseSize
++        Assert.NotNull(sprite);
++        Assert.Equal(37, sprite!.DestBaseSize.Width);
++        Assert.Equal(19, sprite.DestBaseSize.Height);
++    }
++
++    [Fact]
++    public void Dispose_removes_registered_name()
++    {
++        var g = Canvas(990003, 20, 20);
++        AppContents.CreateSpriteG("__合成_释放__", g, new EmuRectangle(0, 0, 20, 20));
++        Assert.NotNull(AppContents.GetSprite("__合成_释放__"));
++
++        // ③ SPRITEDISPOSE（SpriteDisposeMethod 会先 GetSprite 确认存在，再调这里）
++        AppContents.SpriteDispose("__合成_释放__");
++
++        Assert.Null(AppContents.GetSprite("__合成_释放__"));
++    }
++
++    [Fact]
++    public void Zero_rect_falls_back_to_parent_size()
++    {
++        // 2 参形式传 (0,0,parent.W,parent.H)；但脚本也可能传全零矩形 ⇒ 必须退回父画布尺寸，
++        // 否则会登记一个 0×0 的假精灵（那等于换一种方式撒谎）。
++        var g = Canvas(990004, 64, 32);
++        AppContents.CreateSpriteG("__合成_零矩形__", g, default);
++
++        var sprite = AppContents.GetSprite("__合成_零矩形__");
++
++        Assert.NotNull(sprite);
++        Assert.Equal(64, sprite!.DestBaseSize.Width);
++        Assert.Equal(32, sprite.DestBaseSize.Height);
++    }
++
++    [Fact]
++    public void Negative_origin_rect_uses_width_height_only()
++    {
++        // ReadRectangle 允许负起点（WinForms 语义：四角形可正可负，只要与父图画布相交）。
++        // ⇒ 登记尺寸只能取 Width/Height，不能把负数当尺寸。
++        var g = Canvas(990005, 100, 100);
++        AppContents.CreateSpriteG("__合成_负起点__", g, new EmuRectangle(-10, -5, 40, 30));
++
++        var sprite = AppContents.GetSprite("__合成_负起点__");
++
++        Assert.NotNull(sprite);
++        Assert.Equal(40, sprite!.DestBaseSize.Width);
++        Assert.Equal(30, sprite.DestBaseSize.Height);
++    }
++
++    [Fact]
++    public void Recreate_overwrites_previous_entry()
++    {
++        var g = Canvas(990006, 100, 100);
++        AppContents.CreateSpriteG("__合成_覆盖__", g, new EmuRectangle(0, 0, 10, 10));
++        AppContents.CreateSpriteG("__合成_覆盖__", g, new EmuRectangle(0, 0, 80, 60));
++
++        var sprite = AppContents.GetSprite("__合成_覆盖__");
++
++        Assert.NotNull(sprite);
++        Assert.Equal(80, sprite!.DestBaseSize.Width);
++        Assert.Equal(60, sprite.DestBaseSize.Height);
++    }
++}
+diff --git a/EraCore.Tests/TestData/Phase0/clearline_state.json b/EraCore.Tests/TestData/Phase0/clearline_state.json
+index 405b1fce..b2a80487 100644
+--- a/EraCore.Tests/TestData/Phase0/clearline_state.json
++++ b/EraCore.Tests/TestData/Phase0/clearline_state.json
+@@ -37,6 +37,6 @@
+   "bgColor": "#000000",
+   "state": "WaitInput",
+   "needValue": false,
+-  "protocolVersion": 11,
++  "protocolVersion": 13,
+   "generation": 0
+ }
+\ No newline at end of file
+diff --git a/EraCore.Tests/TestData/Phase0/empty_screen.json b/EraCore.Tests/TestData/Phase0/empty_screen.json
+index 7bd8e929..5cd9155d 100644
+--- a/EraCore.Tests/TestData/Phase0/empty_screen.json
++++ b/EraCore.Tests/TestData/Phase0/empty_screen.json
+@@ -3,6 +3,6 @@
+   "bgColor": "#000000",
+   "state": "WaitInput",
+   "needValue": false,
+-  "protocolVersion": 11,
++  "protocolVersion": 13,
+   "generation": 0
+ }
+\ No newline at end of file
+diff --git a/EraCore.Tests/TestData/Phase0/multi_line_buttons.json b/EraCore.Tests/TestData/Phase0/multi_line_buttons.json
+index 41496792..2234462b 100644
+--- a/EraCore.Tests/TestData/Phase0/multi_line_buttons.json
++++ b/EraCore.Tests/TestData/Phase0/multi_line_buttons.json
+@@ -63,6 +63,6 @@
+   "bgColor": "#000000",
+   "state": "WaitInput",
+   "needValue": false,
+-  "protocolVersion": 11,
++  "protocolVersion": 13,
+   "generation": 0
+ }
+\ No newline at end of file
+diff --git a/EraCore.Tests/TestData/Phase0/set_bg_state.json b/EraCore.Tests/TestData/Phase0/set_bg_state.json
+index 80c7c67a..2d96a483 100644
+--- a/EraCore.Tests/TestData/Phase0/set_bg_state.json
++++ b/EraCore.Tests/TestData/Phase0/set_bg_state.json
+@@ -18,6 +18,6 @@
+   "state": "WaitInput",
+   "inputType": "IntValue",
+   "needValue": true,
+-  "protocolVersion": 11,
++  "protocolVersion": 13,
+   "generation": 0
+ }
+\ No newline at end of file
+diff --git a/EraCore.Tests/TestData/Phase0/single_line.json b/EraCore.Tests/TestData/Phase0/single_line.json
+index d50ff74d..810941d3 100644
+--- a/EraCore.Tests/TestData/Phase0/single_line.json
++++ b/EraCore.Tests/TestData/Phase0/single_line.json
+@@ -24,6 +24,6 @@
+   "bgColor": "#000000",
+   "state": "WaitInput",
+   "needValue": false,
+-  "protocolVersion": 11,
++  "protocolVersion": 13,
+   "generation": 0
+ }
+\ No newline at end of file
 diff --git a/EraCore.Web/src/components/TerminalDisplay.vue b/EraCore.Web/src/components/TerminalDisplay.vue
 index 73d4055e..e64664da 100644
 --- a/EraCore.Web/src/components/TerminalDisplay.vue
@@ -488,37 +1195,6 @@ index 73d4055e..e64664da 100644
  
  /**
   * TerminalDisplay.vue — Emuera 终端渲染器（issue 03 / issue 12 固定宽度布局 /
-@@ -171,7 +171,7 @@ usePinchZoom({
-   target: terminalRef,
-   getScale: () => game.effectiveScale,
-   setScale: (v) => game.setScale(v),
--  // ★ 2026-10-08：设置里的「双指缩放」开关（默认开）；关掉后双指手势完全不生效。
-+  // ★ 2026-10-08：设置里的「双指缩放」开关（默认开）；关掉后双指手势完全不生效。
-   isEnabled: () => game.pinchZoomEnabled,
- });
- 
-@@ -219,7 +219,7 @@ function valueToWire(v: ButtonValue): string {
- /**
-  * 这个按钮的文字是不是「看不见」——字暗 **且** 背景也暗。
-  *
-- * ★ 触发场景（2026-10-08 用户 实测指出）：eraTW 部分界面（如 DLC 补丁设置里的
-+ * ★ 触发场景（2026-10-08 用户 实测指出）：eraTW 部分界面（如 DLC 补丁设置里的
-  *   「启动 / 返回」）把按钮文字设成近黑色，而游戏背景是**纯黑** —— 文字与背景同色，
-  *   玩家看不出哪里有选项。★ 这**也是原版行为**（原版靠鼠标划过变黄才看得见），
-  *   但触屏没有"划过"，⇒ **手机用户永远看不到**，所以这里补一层底衬。
-@@ -396,10 +396,10 @@ watch(() => game.inputInFlight, (inFlight) => {
-   if (inFlight) vs.scrollToBottom();
- });
- 
--// ---------- 切回终端视图时回到底部（2026-10-08） ----------
-+// ---------- 切回终端视图时回到底部（2026-10-08） ----------
- //
- // 症状：从「调试 / 设置」切回终端（菜单里的「回到游戏（Terminal）」）后画面**停在最顶部**
--// （最旧的那几行），必须手动往下划到底部才能继续玩 —— 原话「默认不回到最下面的游戏区域，
-+// （最旧的那几行），必须手动往下划到底部才能继续玩 —— 原话「默认不回到最下面的游戏区域，
- // 十分烦人，导致每次返回得手动划到最底下」。
- //
- // ★★ 教训（我第一版修错了，留痕）：我以为终端视图是**常驻**的（只切可见性、不重新挂载），
 @@ -432,6 +432,47 @@ onMounted(async () => {
    await nextTick();
    vs.scrollToBottom();
@@ -576,15 +1252,83 @@ index 73d4055e..e64664da 100644
          draggable="false"
        />
      </div>
-@@ -536,7 +577,7 @@ onMounted(async () => {
-      无 padding——与 WinForms mainPicBox / CLI 终端一致，字符画从容器边缘开始渲染。 */
-   overflow-y: auto;
-   overflow-x: auto;
--  /* ★ 2026-10-08：「游戏界面的文本区域显示太靠近最下面，最好往上留出一列文字的余量」。
-+  /* ★ 2026-10-08：「游戏界面的文本区域显示太靠近最下面，最好往上留出一列文字的余量」。
-      原设计明确无 padding（对齐 WinForms mainPicBox 语义），但真机上末行紧贴屏幕底边、
-      还会被输入栏悬浮层压住 ⇒ 最后一行读不到。这里留出一行高。
-      ★ 安全性：useVirtualScroll 的 scrollToBottom 与贴底判定都读 DOM 的 scrollHeight
+diff --git a/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts b/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
+index e3e56af8..325c825c 100644
+--- a/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
++++ b/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
+@@ -460,6 +460,32 @@ describe('TerminalDisplay: 背景图层', () => {
+     expect(imgs[2].attributes('style')).toContain('opacity: 0.8');
+   });
+ 
++  it('★ v13：brightness/grayscale 映射成 CSS filter；缺省（或 1/0）不写 filter', async () => {
++    const bgImages: BgImageState[] = [
++      { src: 'bg/plain.png', depth: 0, opacity: 1 },
++      { src: 'bg/identity.png', depth: 1, opacity: 1, brightness: 1, grayscale: 0 },
++      { src: 'bg/stopped.png', depth: 2, opacity: 0.9, grayscale: 1 },
++      { src: 'bg/dim.png', depth: 3, opacity: 1, brightness: 0.5 },
++      { src: 'bg/both.png', depth: 4, opacity: 1, brightness: 0.8, grayscale: 0.5 },
++    ];
++    const { wrapper } = await mountWith([line([imgSeg()])], bgImages);
++    const imgs = wrapper.findAll('.term-bg-img');
++    expect(imgs).toHaveLength(5);
++
++    // ★ 缺省 / 等于恒等值时**整条 filter 不写** —— 不给正常帧加无谓的合成层
++    expect(imgs[0].attributes('style')).not.toContain('filter');
++    expect(imgs[1].attributes('style')).not.toContain('filter');
++
++    expect(imgs[2].attributes('style')).toContain('grayscale(1)');
++    expect(imgs[3].attributes('style')).toContain('brightness(0.5)');
++
++    // 两者都有时按 grayscale → brightness 顺序合成
++    const s = imgs[4].attributes('style')!;
++    expect(s).toContain('grayscale(0.5)');
++    expect(s).toContain('brightness(0.8)');
++    expect(s.indexOf('grayscale')).toBeLessThan(s.indexOf('brightness'));
++  });
++
+   it('无 bgImages 不渲染背景层', async () => {
+     const { wrapper } = await mountWith([line([imgSeg()])]);
+     expect(wrapper.find('.term-bg-layer').exists()).toBe(false);
+diff --git a/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts b/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts
+index aa502396..2e34d7cd 100644
+--- a/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts
++++ b/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts
+@@ -576,6 +576,35 @@ describe('parseTurnRecord - v8 image/shape/bgImages', () => {
+     expect(turn.diff!.bgImages![1].opacity).toBe(0.5);
+   });
+ 
++  it('★ v13：bgImages 的 brightness/grayscale 透传；非法/缺失值宽容降级为 null', () => {
++    const json = JSON.stringify({
++      state: 'WaitInput',
++      needValue: false,
++      generation: 0,
++      diff: {
++        lineOps: [],
++        bgImages: [
++          // eraTW「时间停止」：三行相同的颜色矩阵 ⇒ 去色（grayscale≈1）
++          { src: 'bg/stopped.png', depth: 0, opacity: 0.9, brightness: 1, grayscale: 0.996 },
++          { src: 'bg/dim.png', depth: 1, opacity: 1, brightness: 0.5 },
++          // 宽容：类型不对 / null ⇒ null，不抛错
++          { src: 'bg/bad.png', depth: 2, opacity: 1, brightness: 'oops', grayscale: null },
++          { src: 'bg/nonum.png', depth: 3, opacity: 1, grayscale: false },
++        ],
++      },
++    });
++    const turn = parseTurnRecord(json);
++    const bg = turn.diff!.bgImages!;
++    expect(bg).toHaveLength(4);
++    expect(bg[0].grayscale).toBeCloseTo(0.996, 5);
++    expect(bg[0].brightness).toBe(1);
++    expect(bg[1].brightness).toBe(0.5);
++    expect(bg[1].grayscale).toBeNull(); // 缺失 ⇒ null（渲染层按 0 处理）
++    expect(bg[2].brightness).toBeNull();
++    expect(bg[2].grayscale).toBeNull();
++    expect(bg[3].grayscale).toBeNull();
++  });
++
+   it('纯文本段：image/shape 为 undefined（v7 行为锁定）', () => {
+     const json = JSON.stringify({
+       state: 'WaitInput',
 diff --git a/EraCore.Web/src/lib/parseTurnRecord.ts b/EraCore.Web/src/lib/parseTurnRecord.ts
 index 89f19ff9..d6c86ec5 100644
 --- a/EraCore.Web/src/lib/parseTurnRecord.ts

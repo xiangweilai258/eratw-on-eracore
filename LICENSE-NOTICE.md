@@ -52,29 +52,30 @@ eratw-on-eracore       （本仓库 / EraRelay：EEv56 兼容层补丁 + 构建/
 `pluginsAware` 门禁由「**硬拒绝启动**」改为「**软警告**」，与上游 Emuera 2026-05-26 的行为对齐；
 具体代码改动并入上方 `port/eratw-EE56-compat.patch` 的 `PluginManager.cs` 一处。
 
-### `patches/cbg-graphics-layer.patch`（+357 / -27，13 个文件）
+### `patches/cbg-graphics-layer.patch`（+827 / -45，33 个文件）
 
-让 era 类游戏使用的**图形画布**族指令（`GCREATE` / `GDRAWSPRITE` / `CBGSETG` 等）在无头构建下真正生效。
+让 era 类游戏使用的**图形画布**族指令（`GCREATE` / `GDRAWSPRITE` / `CBGSETG` 等）在无头构建下真正生效，
+并补齐围绕它的图形能力（背景图的颜色处理、运行时合成图的登记与取图等）。
 上游在无头化改造时移除了这条链路（源码中保留了说明其被移除的注释），本次将其接回，
 并把绘制结果经由显示协议送到前端渲染。
 
-| 文件                                                                        | 类型 | 说明                                          |
-| ------------------------------------------------------------------------- | -- | ------------------------------------------- |
-| `EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs`                      | 修改 | 无头分支：画布由空实现改为**记录绘制内容**（资源名 ＋ 目标矩形）           |
-| `EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs` | 修改 | `GDRAWSPRITE` 记录所绘资源与目标矩形                   |
-| `EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs` | 修改 | 接回 `CBG_SetGraphics`（设置图形图层）与 `CBG_Clear`（清除） |
-| `EraCore.Core/UI/Game/Console/ConsolePrintManager.cs`                     | 修改 | 新增图形图层出口：把画布内容转为背景图层并下发                     |
-| `EraCore.Core/UI/Game/EmueraConsole.cs`                                   | 修改 | 转发图形图层设置                                    |
-| `EraCore.Core/Agent/TurnRecord.cs`                                        | 修改 | 背景图层状态新增可空的位置与尺寸字段；显示协议版本 11 → 12           |
-| `EraCore.Web/src/types/protocol.ts`                                       | 修改 | 前端类型同步上述字段                                  |
-| `EraCore.Web/src/lib/parseTurnRecord.ts`                                  | 修改 | 宽容解析新增字段                                    |
-| `EraCore.Web/src/components/TerminalDisplay.vue`                          | 修改 | 按图层自带的位置渲染背景图                               |
-| `EraCore.Tests/DisplayStateTests.cs`                                      | 修改 | 协议版本期望值随之上调                                 |
-| `EraCore.Tests/DisplayStateSnapshotGoldenTests.cs`                        | 修改 | 同上                                          |
-| `tests/emuera_server.py`                                                  | 修改 | 测试夹具的协议版本常量同步                               |
+★ **主要改动**（★ 完整清单见补丁本身，共 **45** 个文件）：
 
-★ 说明：本补丁**只包含图形画布的绘制链路**；同版本中「背景图颜色处理（去色／亮度／透明度）」的改动
-属于后续的独立改动，**不包含在此补丁内**。
+| 文件                                                                        | 类型    | 说明                                     |
+| ------------------------------------------------------------------------- | ----- | -------------------------------------- |
+| `EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs`                      | 修改    | 无头分支：画布由空实现改为**记录绘制内容与来源**             |
+| `EraCore.Core/Shared/UI/Game/Image/AppContents.cs`                        | 修改    | 画布→命名图的登记与查询；合成名可回溯到来源                 |
+| `EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs` | 修改    | 接回 `CBG_SetGraphics`（设置图形图层）与 `CBG_Clear`（清除） |
+| `EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs` | 修改    | 记录所绘资源与目标矩形；颜色矩阵解析                     |
+| `EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Io.cs` | 修改    | 「从文件建画布」在无头下的实现（记录尺寸与来源）               |
+| `EraCore.Core/UI/Game/Console/ConsolePrintManager.cs`                     | 修改    | 图形图层出口：把画布内容转为背景图层并下发                  |
+| `EraCore.Core/Assets/AssetChannel.cs`                                     | 修改    | 取图回退：合成名可落到它的来源文件                      |
+| `EraCore.Core/Agent/TurnRecord.cs`                                        | 修改    | 背景图层状态新增可空字段；显示协议版本 11 → 13            |
+| `EraCore.Web/src/`（3 个文件）                                                | 修改    | 前端类型、解析与背景图渲染同步                        |
+| `EraCore.Tests/`、`tests/emuera_server.py`                                 | 修改／新增 | 单元测试与测试夹具同步（含 4 个新增测试文件）                |
+
+★ 说明：本补丁**包含图形画布链路本身，以及围绕它的图形能力改动**（背景图的颜色处理、运行时合成图的登记与取图等）。
+★ 本节的规模与范围**以本节为准**（此前的版本说明只涵盖绘制链路，范围更窄）。
 
 ### `patches/als-VarKeyAreadyDefined-fix.patch`（独立小修，906 B）
 
