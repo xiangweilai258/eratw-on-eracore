@@ -1,0 +1,815 @@
+diff --git a/EraCore.Core/Agent/TurnRecord.cs b/EraCore.Core/Agent/TurnRecord.cs
+index a0c51838..bfeb1e62 100644
+--- a/EraCore.Core/Agent/TurnRecord.cs
++++ b/EraCore.Core/Agent/TurnRecord.cs
+@@ -41,8 +41,14 @@ internal record TurnRecord(
+     /// v11：PrintSegment 加 strikeout?——PRINT_SLIDER 实际用 ERB FONTSTYLE 位4（删除线，取消線）
+     /// 绘制滑条轨道，v10 只实现 underline 导致删除线缺失、被 v10 修复提交误映射为 underline；
+     /// 现按 ERB 位契约（位4=删除线、位8=下划线）对称补齐 strikeout 字段。
++    /// v12（CBG 图形图层一期）：BgImageState 加 x?/y?/w?/h?（画布上的位置与尺寸）——
++    /// eraTW 的「背景图补丁」走 GCREATE → GDRAWSPRITE → CBGSETG，此前无头侧整条链是空桩、
++    /// 背景永远纯黑。纯增量字段，老客户端忽略未知字段自然降级。
++    /// v13（CBG 二期·甲）：BgImageState 加 brightness?/grayscale?（来自 GDRAWSPRITE 的颜色矩阵；
++    /// 矩阵里表达不了的成分——色相旋转、通道互换等——**有意忽略**），且 opacity 开始真的带矩阵 A 行。
++    /// ★ 仍为纯增量：旧字段语义不变，老客户端忽略新字段即可降级。
+     /// </summary>
+-    internal const int CurrentProtocolVersion = 11;
++    internal const int CurrentProtocolVersion = 13;
+ }
+ 
+ /// <summary>
+@@ -214,11 +220,22 @@ internal record SegmentShape(
+ /// <summary>
+ /// v8：背景图状态（issue 02）——depth 决定 z 序（WinForms 降序烘焙），opacity 0.0-1.0。
+ /// 用于 DisplaySnapshot.bgImages 与 DisplayDiff.bgImages。
++/// v12（CBG 图形图层一期）：加 x?/y?/w?/h?（画布上该图的位置与尺寸，像素，可空——
++/// 可空时前端按原图尺寸、左上对齐渲染，与 v8 行为一致）。★ 新增字段一律放末尾，不动已有顺序。
++/// v13（CBG 二期·甲）：加 brightness?（亮度增益，1 = 原样）与 grayscale?（灰度程度，0 = 原样）。
++/// ★ 二者来自 `GDRAWSPRITE` 的颜色矩阵 —— 矩阵表达不了的成分（色相旋转等）**有意忽略**；
++/// ★ 且 `opacity` 现在会真的带上矩阵的 A 行系数（v12 时恒为 1.0）。
+ /// </summary>
+ internal record BgImageState(
+     string src,
+     long depth,
+-    float opacity
++    float opacity,
++    int? x = null,
++    int? y = null,
++    int? w = null,
++    int? h = null,
++    float? brightness = null,
++    float? grayscale = null
+ );
+ 
+ internal record ButtonRef(object value, bool isInteger, long generation, int? col = null, int? width = null);
+diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs
+index b82ca740..10851b8a 100644
+--- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs
+@@ -30,7 +30,11 @@ internal static partial class FunctionMethodCreator
+ 		}
+ 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+ 		{
+-			// CBG_Clear: WinForms-only stub removed in Headless
++			// ★ v12（CBG 图形图层一期·补漏）：原本是空桩 ⇒ eraTW **关闭**背景图补丁时
++			//   靠 CBG_CLEAR 清场，而空桩什么都不做 ⇒ **背景关不掉**（民 2026-10-09 实测：
++			//   「能启用不能关闭」）。CBG 图层与 SETBGIMAGE 在本实现里共用同一份背景层列表，
++			//   故直接清它即可。
++			exm.Console.ClearBgImage();
+ 			return 1;
+ 		}
+ 	}
+@@ -97,13 +101,17 @@ internal static partial class FunctionMethodCreator
+ 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+ 		{
+ 			GraphicsImage? g = TryGetCreatedGraphics(Name, exm, arguments, 0);
+-			if (g == null || GraphicsImage.Bitmap == null)
++			// ★ v12（CBG 图形图层一期）：不再用 `GraphicsImage.Bitmap == null` 判断 ——
++			//   无头下位图恒为 null，那会让本指令永远 return 0（正是背景图不显示的根因）。
++			//   改为按「画布是否真的创建过」判断，内容改由记账（RecordGfxCImg）提供。
++			if (g == null || !g.IsCreated)
+ 				return 0;
+ 			EmuPoint p = ReadPoint(Name, exm, arguments, 1);
+ 			long z64 = arguments[3].GetIntValue(exm);
+ 			if (z64 < int.MinValue || z64 > int.MaxValue || z64 == 0)
+ 				throw new CodeEE(string.Format(trerror.ArgIsOutOfRangeExcept.Text, Name, 4, z64, int.MinValue, int.MaxValue, 0));
+-			// CBG_SetGraphics: WinForms-only stub removed in Headless
++			// CBG_SetGraphics：无头侧接成「图形图层」通道（替换式背景层）
++			exm.Console.SetGfxLayer(g, p.X, p.Y, (int)z64);
+ 			return 1;
+ 
+ 		}
+@@ -120,7 +128,9 @@ internal static partial class FunctionMethodCreator
+ 		public override long GetIntValue(ExpressionMediator exm, List<AExpression> arguments)
+ 		{
+ 			GraphicsImage? g = TryGetCreatedGraphics(Name, exm, arguments, 0);
+-			if (g == null || GraphicsImage.Bitmap == null)
++			// ★ v12：同 CBGSetGraphicsMethod —— 去掉 `Bitmap == null`（无头恒 null）；
++			//   本指令仍是**留桩**（eraTW 不用它），只改判断条件。
++			if (g == null || !g.IsCreated)
+ 				return 0;
+ 			// CBG_SetButtonMap: WinForms-only stub removed in Headless
+ 			return 1;
+diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs
+index 4b35239e..ce47110c 100644
+--- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs
++++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs
+@@ -210,25 +210,28 @@ internal static partial class FunctionMethodCreator
+ 			EmuRectangle destRect = new(0, 0, img.DestBaseSize.Width, img.DestBaseSize.Height);
+ 			if (arguments.Count == 2)
+ 			{
+-				GraphicsImage.GDrawCImg(img, destRect);
++				GraphicsImage.RecordGfxCImg(imgname, destRect);
+ 				return 1;
+ 			}
+ 			if (arguments.Count == 4)
+ 			{
+ 				EmuPoint p = ReadPoint(Name, exm, arguments, 2);
+ 				destRect = destRect with { X = p.X, Y = p.Y };
+-				GraphicsImage.GDrawCImg(img, destRect);
++				GraphicsImage.RecordGfxCImg(imgname, destRect);
+ 				return 1;
+ 			}
+ 			if (arguments.Count == 6)
+ 			{
+ 				destRect = ReadRectangle(Name, exm, arguments, 2);
+-				GraphicsImage.GDrawCImg(img, destRect);
++				GraphicsImage.RecordGfxCImg(imgname, destRect);
+ 				return 1;
+ 			}
+ 			destRect = ReadRectangle(Name, exm, arguments, 2);
+ 			float[][] cm = ReadColormatrix(Name, exm, arguments, 6);
+-			GraphicsImage.GDrawCImg(img, destRect, cm);
++			// ★ 二期·甲（协议 v13）：8 参形态带颜色矩阵 —— 交给记账层抽出协议能表达的三样
++			//   （透明度 / 亮度 / 灰度）；★ 矩阵里的色相旋转、通道互换等成分**有意忽略**
++			//   （协议无对应通道，见 GraphicsImage.ParseColorMatrix 的注释与 research/46 附录 A3）。
++			GraphicsImage.RecordGfxCImg(imgname, destRect, cm);
+ 			return 1;
+ 		}
+ 
+diff --git a/EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs b/EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs
+index c2a7aab0..995c5bad 100644
+--- a/EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs
++++ b/EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs
+@@ -23,7 +23,62 @@ internal sealed class GraphicsImage : AbstractImage
+ 	private string _fontname = "";
+ 
+ 	public static bool useImgList => false;
+-	public static List<Tuple<ASprite, EmuRectangle>> drawImgList => null!;
++
++	/// <summary>
++	/// ★ CBG 图形图层通道（2026-10-09 一期，协议 v12；二期·甲 加颜色参数 → v13）：
++	/// 无头下**没有真实位图**，改为**记账**「这块画布上画了哪些**资源**、画在什么位置、用什么颜色参数」。
++	/// ★ 记的是**资源名（string）**而不是 ASprite 对象：协议层要的正是资源名（前端据此解析图片）。
++	/// ★ 原实现恒为 null，导致 CBG_SetGraphics 永远拿不到内容、直接放弃
++	///   （eraTW 的「背景图补丁」因此完全不显示）。
++	/// ★ 故意**不动 `useImgList`** —— 它连带 CroppedImage 与 AppContents 的行为，改了是不必要的风险。
++	/// </summary>
++	private static readonly List<GfxDrawItem> _drawImgList = [];
++	public static List<GfxDrawItem> drawImgList => _drawImgList;
++
++	/// <summary>
++	/// ★ 二期：从 GDI+ 风格的 5×5 颜色矩阵里，抽出协议**能表达**的三样（其余成分有意忽略）。
++	/// ★★ 注意语义（这是重点，别想当然）：
++	/// <c>out_i = Σ_j m[i][j] × in_j + m[i][4]</c>，第 4 列为常数偏移、第 4 行为平行移位。
++	/// eraTW（`魔改内容/QOL_IMAGE.ERB:1750-1763`）那个矩阵的三行 **R/G/B 行完全相同** ——
++	/// 即 `R' = G' = B' = (85R+85G+85B)/256`，★ 这是**去色（灰度化）**、总亮度基本不变（权重和 ≈ 1），
++	/// **不是"把画面压暗到 1/3"**。下面对这两类分别识别，避免把"变灰"错显示成"变暗"。
++	/// </summary>
++	internal static GfxColorParams ParseColorMatrix(float[][]? cm)
++	{
++		if (cm == null || cm.Length < 4)
++			return GfxColorParams.Default;
++		for (int i = 0; i < 4; i++)
++			if (cm[i] == null || cm[i].Length < 5)
++				return GfxColorParams.Default;
++
++		// 第 3 行第 3 列 = 透明度系数（eraTW 用它做「衬底透明度」）
++		float opacity = Clamp01(cm[3][3]);
++
++		float r0 = cm[0][0], g0 = cm[0][1], b0 = cm[0][2];
++		float r1 = cm[1][0], g1 = cm[1][1], b1 = cm[1][2];
++		float r2 = cm[2][0], g2 = cm[2][1], b2 = cm[2][2];
++
++		// 情形一（eraTW 用到的）：三行相同 ⇒ 把 RGB 混成同一个值 ⇒ 灰度化。
++		// 程度取「该行权重之和」的饱和度：等权 1/3×3 = 1 ⇒ 全灰。
++		if (r0 == r1 && r1 == r2 && g0 == g1 && g1 == g2 && b0 == b1 && b1 == b2)
++		{
++			float sum = Clamp01(r0 + g0 + b0);
++			return new GfxColorParams(opacity, 1f, sum);
++		}
++
++		// 情形二：纯对角线缩放（每行只保留自己那一路）⇒ 亮度增益。
++		bool offDiagZero = g0 == 0f && b0 == 0f && r1 == 0f && b1 == 0f && r2 == 0f && g2 == 0f;
++		if (offDiagZero && r0 == g1 && g1 == b2)
++			return new GfxColorParams(opacity, r0, 0f);
++
++		// 情形三：其余形状（含色相旋转、通道互换等）★ 协议表达不了 ⇒ **有意降级**为亮度近似。
++		// 取对角线平均作为近似增益；★ 这是有意的取舍，不是漏做（详见 research/46 附录 A3）。
++		float approx = Clamp01((r0 + g1 + b2) / 3f);
++		return new GfxColorParams(opacity, approx, 0f);
++	}
++
++	private static float Clamp01(float v) => v < 0f ? 0f : (v > 1f ? 1f : v);
++
+ 
+ 	public override int Width => _size.Width;
+ 	public override int Height => _size.Height;
+@@ -51,6 +106,7 @@ internal sealed class GraphicsImage : AbstractImage
+ 		GDispose();
+ 		_size = new EmuSize(x, y);
+ 		_created = true;
++		_drawImgList.Clear();   // ★ 新画布从零开始记账（eraTW 的用法是 GCreate→GDRAWSPRITE→CBGSETG）
+ 	}
+ 
+ 	internal void GCreateFromF(object bmp, bool useGDI)
+@@ -65,8 +121,21 @@ internal sealed class GraphicsImage : AbstractImage
+ 	public static void GDrawString(string text, int x, int y, int width, int height) { }
+ 	public static void GDrawRectangle(EmuRectangle rect) { }
+ 	public static void GFillRectangle(EmuRectangle rect) { }
+-	public static void GDrawCImg(ASprite img, EmuRectangle destRect) { }
+-	public static void GDrawCImg(ASprite img, EmuRectangle destRect, float[][] cm) { }
++	/// <summary>
++	/// ★ 一期记账：记下「**哪个资源**、画在哪」。二期·甲：额外带上颜色参数（透明度/亮度/灰度）。
++	/// ★ 由 `GraphicsDrawSpriteMethod` 在算出 destRect 后调用（替代原来往空方法里画的 GDrawCImg）。
++	/// </summary>
++	public static void RecordGfxCImg(string imgName, EmuRectangle destRect)
++		=> RecordGfxCImg(imgName, destRect, null);
++
++	/// <summary>★ 二期·甲：带颜色矩阵的重载（eraTW 的 8 参 GDRAWSPRITE 走这条）。</summary>
++	public static void RecordGfxCImg(string imgName, EmuRectangle destRect, float[][]? cm)
++	{
++		if (string.IsNullOrEmpty(imgName))
++			return;
++		GfxColorParams p = ParseColorMatrix(cm);
++		_drawImgList.Add(new GfxDrawItem(imgName, destRect, p.Opacity, p.Brightness, p.Grayscale));
++	}
+ 	public static void GDrawG(GraphicsImage srcGra, EmuRectangle destRect, EmuRectangle srcRect) { }
+ 	public static void GDrawG(GraphicsImage srcGra, EmuRectangle destRect, EmuRectangle srcRect, float[][] cm) { }
+ 	public static void GDrawGWithMask(GraphicsImage srcGra, GraphicsImage maskGra, EmuPoint destPoint) { }
+@@ -86,10 +155,30 @@ internal sealed class GraphicsImage : AbstractImage
+ 	public static bool GByteArrayToBitmap(long[,] array, int xstart, int ystart) => false;
+ 	public static void Load() { }
+ 	public void UnLoad() { _created = false; }
+-	public void GDispose() { _size = default; _created = false; }
++	public void GDispose() { _size = default; _created = false; _drawImgList.Clear(); }
+ 	public override void Dispose() { GDispose(); GC.SuppressFinalize(this); }
+ 	~GraphicsImage() { Dispose(); }
+ }
++
++/// <summary>
++/// ★ 二期·甲（协议 v13）：一条画布记账项 —— 资源名 ＋ 目标矩形 ＋ 颜色参数。
++/// </summary>
++internal readonly record struct GfxDrawItem(
++	string Src,
++	EmuRectangle Rect,
++	float Opacity,
++	float Brightness,
++	float Grayscale
++);
++
++/// <summary>
++/// ★ 二期·甲：颜色矩阵里**协议能表达**的三样（其余成分有意忽略，见 <see cref="GraphicsImage.ParseColorMatrix"/>）。
++/// ★ 三者默认 1 表示"原样"；<see cref="Brightness"/> / <see cref="Grayscale"/> 为 1 / 0 时前端不写对应滤镜。
++/// </summary>
++internal readonly record struct GfxColorParams(float Opacity, float Brightness, float Grayscale)
++{
++	public static readonly GfxColorParams Default = new(1f, 1f, 0f);
++}
+ #else
+ using MinorShift.Emuera.Runtime.Config;
+ using System;
+diff --git a/EraCore.Core/UI/Game/Console/ConsolePrintManager.cs b/EraCore.Core/UI/Game/Console/ConsolePrintManager.cs
+index d54fc1e5..44214582 100644
+--- a/EraCore.Core/UI/Game/Console/ConsolePrintManager.cs
++++ b/EraCore.Core/UI/Game/Console/ConsolePrintManager.cs
+@@ -12,6 +12,7 @@ using MinorShift.Emuera.Runtime.Utils;
+ using MinorShift.Emuera.Runtime.Utils.EvilMask;
+ using static MinorShift.Emuera.Runtime.Utils.EvilMask.Utils;
+ using MinorShift.Emuera.UI.Game;
++using MinorShift.Emuera.UI.Game.Image;
+ using trerror = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.Error;
+ using trmb = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.MessageBox;
+ using trsl = MinorShift.Emuera.Runtime.Utils.EvilMask.Lang.SystemLine;
+@@ -481,6 +482,35 @@ internal sealed class ConsolePrintManager
+         _state._pendingOps.Enqueue(new ClearBgImageOp());
+     }
+ 
++    // --- ★ CBG 图形图层（v12 / 2026-10-09 一期；v13 二期·甲 加颜色参数） ---
++    // WinForms 里 CBG_SetGraphics 把一块 GraphicsImage 铺到画布上；无头下没有位图，
++    // 改为**记账**：把该画布上画过的每个资源转成一条背景图层（带位置、尺寸与颜色参数）。
++    // ★ 语义：整体**替换**（先清后加）——与 eraTW 的用法一致（每帧 GCREATE→GDRAWSPRITE→CBGSETG）。
++    // ★ 一期只支持「画精灵」；画布间合成（GDRAWG）已拆出单独立项（见 research/46 附录 A5）。
++    // ★ 二期·甲：颜色矩阵压成 opacity / brightness / grayscale 三个标量（矩阵表达不了的部分有意忽略）。
++
++    /// <summary>
++    /// ★ 把一块图形画布的记账内容接成背景图层（替换式）。
++    /// <paramref name="x"/><paramref name="y"/> 是画布在画面上的原点，
++    /// <paramref name="depth"/> 用于 z 序（与 SETBGIMAGE 同一套排序）。
++    /// </summary>
++    public void SetGfxLayer(GraphicsImage g, int x, int y, int depth)
++    {
++        _state.bgImages.Clear();
++        _state._pendingOps.Enqueue(new ClearBgImageOp());
++        foreach (var item in GraphicsImage.drawImgList)
++        {
++            var rect = item.Rect;
++            // 画布项坐标是**相对画布**的，叠加画布原点后得到画面坐标
++            _state.bgImages.Add(new BgImageState(
++                item.Src, depth, item.Opacity,
++                x + rect.X, y + rect.Y, rect.Width, rect.Height,
++                item.Brightness, item.Grayscale));
++            // TurnOp 流（agent 侧）不携带几何与颜色——它们经 DisplayDiff.bgImages 全量字段下发
++            _state._pendingOps.Enqueue(new SetBgImageOp(item.Src, depth, item.Opacity));
++        }
++    }
++
+     public void PrintShape(string type, MixedNum[] param)
+     {
+         ConsoleShapePart part = ConsoleShapePart.CreateShape(type, param, _state.userStyle.Color, _state.userStyle.ButtonColor, false);
+diff --git a/EraCore.Core/UI/Game/EmueraConsole.cs b/EraCore.Core/UI/Game/EmueraConsole.cs
+index 997c9845..9414bede 100644
+--- a/EraCore.Core/UI/Game/EmueraConsole.cs
++++ b/EraCore.Core/UI/Game/EmueraConsole.cs
+@@ -231,6 +231,8 @@ internal sealed class EmueraConsole : IDisposable, IConsoleStateView, IButtonDis
+     internal void SetBgImage(string name, long depth, float opacity) => _printManager.SetBgImage(name, depth, opacity);
+     internal void RemoveBgImage(string name) => _printManager.RemoveBgImage(name);
+     internal void ClearBgImage() => _printManager.ClearBgImage();
++    /// <summary>★ v12（CBG 图形图层一期）：把图形画布的记账内容接成背景图层（替换式）。</summary>
++    internal void SetGfxLayer(GraphicsImage g, int x, int y, int depth) => _printManager.SetGfxLayer(g, x, y, depth);
+     internal ConsoleDisplayLine[]? GetDisplayLines(long lineNo) => _printManager.GetDisplayLines(lineNo);
+     internal ConsoleDisplayLine[]? PopDisplayingLines() => _printManager.PopDisplayingLines();
+     internal ConsoleDisplayLine? PrintPlainwithSingleLine(string str) => _printManager.PrintPlainwithSingleLine(str);
+diff --git a/EraCore.Tests/AdapterV8Tests.cs b/EraCore.Tests/AdapterV8Tests.cs
+index e33e6dc8..43682dba 100644
+--- a/EraCore.Tests/AdapterV8Tests.cs
++++ b/EraCore.Tests/AdapterV8Tests.cs
+@@ -242,7 +242,7 @@ public class AdapterV8Tests : IDisposable
+         Assert.Equal("bg/forest.png", bg.GetProperty("src").GetString());
+         Assert.Equal(1, bg.GetProperty("depth").GetInt32());
+         Assert.Equal(0.5, bg.GetProperty("opacity").GetDouble());
+-        Assert.Equal(11, doc.RootElement.GetProperty("protocolVersion").GetInt32());
++        Assert.Equal(13, doc.RootElement.GetProperty("protocolVersion").GetInt32());
+ 
+         // v7 已知字段仍在——老客户端按 v7 解析不炸、忽略未知字段自然降级
+         Assert.Equal("#000000", doc.RootElement.GetProperty("bgColor").GetString());
+@@ -284,6 +284,6 @@ public class AdapterV8Tests : IDisposable
+         Assert.Equal(0, crop.GetProperty("y").GetInt32());
+         Assert.Equal(72, crop.GetProperty("imgWidth").GetInt32());
+         Assert.Equal(36, crop.GetProperty("imgHeight").GetInt32());
+-        Assert.Equal(11, doc.RootElement.GetProperty("protocolVersion").GetInt32());
++        Assert.Equal(13, doc.RootElement.GetProperty("protocolVersion").GetInt32());
+     }
+ }
+diff --git a/EraCore.Tests/AgentJsonlProtocolTests.cs b/EraCore.Tests/AgentJsonlProtocolTests.cs
+index dc52ffcd..cacd3a2a 100644
+--- a/EraCore.Tests/AgentJsonlProtocolTests.cs
++++ b/EraCore.Tests/AgentJsonlProtocolTests.cs
+@@ -75,7 +75,7 @@ public class AgentJsonlProtocolTests : IDisposable
+ 
+         Assert.Equal("WaitInput", root.GetProperty("state").GetString());
+         Assert.Equal("EnterKey", root.GetProperty("inputType").GetString());
+-        Assert.Equal(11, root.GetProperty("protocolVersion").GetInt32()); // v11：PrintSegment.strikeout
++        Assert.Equal(13, root.GetProperty("protocolVersion").GetInt32()); // v11：PrintSegment.strikeout
+ 
+         Assert.Equal(5000L, root.GetProperty("timeLimit").GetInt64());
+         Assert.True(root.GetProperty("displayTime").GetBoolean());
+@@ -197,7 +197,7 @@ public class AgentJsonlProtocolTests : IDisposable
+ 
+         Assert.NotNull(json);
+         using var doc = JsonDocument.Parse(json!);
+-        Assert.Equal(11, doc.RootElement.GetProperty("protocolVersion").GetInt32()); // v11：PrintSegment.strikeout
++        Assert.Equal(13, doc.RootElement.GetProperty("protocolVersion").GetInt32()); // v11：PrintSegment.strikeout
+     }
+ 
+     [Fact]
+diff --git a/EraCore.Tests/CbgColorMatrixTests.cs b/EraCore.Tests/CbgColorMatrixTests.cs
+new file mode 100644
+index 00000000..fe9cb349
+--- /dev/null
++++ b/EraCore.Tests/CbgColorMatrixTests.cs
+@@ -0,0 +1,106 @@
++using MinorShift.Emuera.UI.Game.Image;
++using Xunit;
++
++namespace MinorShift.Emuera.Tests;
++
++/// <summary>
++/// ★ CBG 二期·甲（协议 v13）：颜色矩阵 → 协议三个标量（透明度 / 亮度 / 灰度）的提取规则。
++///
++/// ★★ 这条测试为什么必须存在：
++/// eraTW 在「时间停止」时用的矩阵是**三行相同**的 `[85,85,85]` ——
++/// 按颜色矩阵语义 `out_i = Σ_j m[i][j] × in_j`，那是把 RGB 混成同一个值，
++/// 即**去色（灰度化）**，且权重和 ≈ 1 ⇒ **总亮度基本不变**。
++/// 它**不是**「把画面压暗到 1/3」（那是常见误读）。
++/// 若有人把这里改回"亮度近似"，时间停止就会从「**变灰**」错成「**变暗**」—— 这条会拦住。
++/// </summary>
++public class CbgColorMatrixTests
++{
++    /// <summary>eraTW `QOL_IMAGE.ERB:1751-1753`「平常」：单位矩阵 ⇒ 什么也不做。</summary>
++    private static float[][] Identity() =>
++    [
++        [1f, 0f, 0f, 0f, 0f],
++        [0f, 1f, 0f, 0f, 0f],
++        [0f, 0f, 1f, 0f, 0f],
++        [0f, 0f, 0f, 1f, 0f],
++        [0f, 0f, 0f, 0f, 1f],
++    ];
++
++    /// <summary>eraTW `QOL_IMAGE.ERB:1755-1757`「时间停止」：三行皆 `[85,85,85]`（除以 256）。</summary>
++    private static float[][] TimeStop()
++    {
++        float k = 85f / 256f;
++        return
++        [
++            [k, k, k, 0f, 0f],
++            [k, k, k, 0f, 0f],
++            [k, k, k, 0f, 0f],
++            [0f, 0f, 0f, 1f, 0f],
++            [0f, 0f, 0f, 0f, 1f],
++        ];
++    }
++
++    [Fact]
++    public void NoMatrix_is_identity()
++    {
++        var p = GraphicsImage.ParseColorMatrix(null);
++        Assert.Equal(1f, p.Opacity);
++        Assert.Equal(1f, p.Brightness);
++        Assert.Equal(0f, p.Grayscale);
++    }
++
++    [Fact]
++    public void IdentityMatrix_equals_no_matrix()
++    {
++        var p = GraphicsImage.ParseColorMatrix(Identity());
++        Assert.Equal(1f, p.Opacity);
++        Assert.Equal(1f, p.Brightness);
++        Assert.Equal(0f, p.Grayscale);
++    }
++
++    /// <summary>★ 核心判据：eraTW 的时间停止是**去色**，且**亮度不变**。</summary>
++    [Fact]
++    public void EraTwTimeStop_is_grayscale_not_darkening()
++    {
++        var p = GraphicsImage.ParseColorMatrix(TimeStop());
++
++        Assert.Equal(1f, p.Opacity);
++        // ★ 等权 1/3 × 3 = 1 ⇒ 判为全灰
++        Assert.True(p.Grayscale > 0.99f, $"应判为去色，实际 grayscale={p.Grayscale}");
++        // ★★ 绝不能变成"压暗到 1/3" —— 亮度必须保持 1
++        Assert.Equal(1f, p.Brightness);
++    }
++
++    [Fact]
++    public void DiagonalScale_is_brightness()
++    {
++        float[][] cm =
++        [
++            [0.5f, 0f, 0f, 0f, 0f],
++            [0f, 0.5f, 0f, 0f, 0f],
++            [0f, 0f, 0.5f, 0f, 0f],
++            [0f, 0f, 0f, 1f, 0f],
++            [0f, 0f, 0f, 0f, 1f],
++        ];
++        var p = GraphicsImage.ParseColorMatrix(cm);
++        Assert.Equal(0.5f, p.Brightness);
++        Assert.Equal(0f, p.Grayscale);
++    }
++
++    /// <summary>eraTW 的「衬底透明度」走 A 行第 4 列（`CN_CM:3:0` 的第 4 个值）。</summary>
++    [Fact]
++    public void AlphaRow_maps_to_opacity()
++    {
++        var cm = Identity();
++        cm[3][3] = 0.4f;
++        var p = GraphicsImage.ParseColorMatrix(cm);
++        Assert.Equal(0.4f, p.Opacity, 3);
++    }
++
++    /// <summary>形状不对（空 / 太短）时按"原样"兜底，不抛错。</summary>
++    [Fact]
++    public void MalformedMatrix_falls_back_without_throwing()
++    {
++        Assert.Equal(1f, GraphicsImage.ParseColorMatrix([]).Opacity);
++        Assert.Equal(1f, GraphicsImage.ParseColorMatrix([[1f, 0f, 0f]]).Opacity);
++    }
++}
+diff --git a/EraCore.Tests/DisplayStateSnapshotGoldenTests.cs b/EraCore.Tests/DisplayStateSnapshotGoldenTests.cs
+index 487af234..e7d51844 100644
+--- a/EraCore.Tests/DisplayStateSnapshotGoldenTests.cs
++++ b/EraCore.Tests/DisplayStateSnapshotGoldenTests.cs
+@@ -24,7 +24,7 @@ namespace Emuera.Headless.Tests;
+ public class DisplayStateSnapshotGoldenTests
+ {
+     private const string DefaultFontName = "MS Gothic";
+-    private const int ExpectedProtocolVersion = 11; // v11：PrintSegment.strikeout
++    private const int ExpectedProtocolVersion = 13; // v13：BgImageState 加 brightness/grayscale（CBG 二期·甲）
+ 
+     /// <summary>
+     /// golden 序列化选项：与生产 DisplayState.JsonOpts 一致使用 WhenWritingNull，
+diff --git a/EraCore.Tests/DisplayStateTests.cs b/EraCore.Tests/DisplayStateTests.cs
+index 8dba7394..67e47902 100644
+--- a/EraCore.Tests/DisplayStateTests.cs
++++ b/EraCore.Tests/DisplayStateTests.cs
+@@ -24,7 +24,7 @@ namespace Emuera.Headless.Tests;
+ /// </summary>
+ public class DisplayStateTests
+ {
+-    private const int ExpectedProtocolVersion = 11; // v11：PrintSegment.strikeout
++    private const int ExpectedProtocolVersion = 13; // v13：BgImageState 加 brightness/grayscale（CBG 二期·甲）
+ 
+     /// <summary>
+     /// 通过反射直接设置 ConsoleDisplayLine 的私有 align 字段，绕过 SetAlignment 对 Config.DrawableWidth 的依赖。
+@@ -326,13 +326,13 @@ public class DisplayStateTests
+     }
+ 
+     [Fact]
+-    public void ProtocolVersion_is_eleven()
++    public void ProtocolVersion_is_thirteen()
+     {
+-        // v11：PrintSegment.strikeout 保留 PRINT_SLIDER 的彩色删除线空格
++        // v12：BgImageState 加 x/y/w/h（CBG 图形图层一期）
+         var snapshot = DisplayState.BuildSnapshot(
+             new List<ConsoleDisplayLine>(), EmuColor.Black, ConsoleState.WaitInput, currentRequest: null, "TestFont");
+ 
+-        Assert.Equal(11, snapshot.protocolVersion);
++        Assert.Equal(13, snapshot.protocolVersion);
+     }
+ 
+     // ---------- ADR-0016：TINPUT timer 元数据填充 ----------
+diff --git a/EraCore.Tests/TestData/Phase0/clearline_state.json b/EraCore.Tests/TestData/Phase0/clearline_state.json
+index 405b1fce..b2a80487 100644
+--- a/EraCore.Tests/TestData/Phase0/clearline_state.json
++++ b/EraCore.Tests/TestData/Phase0/clearline_state.json
+@@ -37,6 +37,6 @@
+   "bgColor": "#000000",
+   "state": "WaitInput",
+   "needValue": false,
+-  "protocolVersion": 11,
++  "protocolVersion": 13,
+   "generation": 0
+ }
+\ No newline at end of file
+diff --git a/EraCore.Tests/TestData/Phase0/empty_screen.json b/EraCore.Tests/TestData/Phase0/empty_screen.json
+index 7bd8e929..5cd9155d 100644
+--- a/EraCore.Tests/TestData/Phase0/empty_screen.json
++++ b/EraCore.Tests/TestData/Phase0/empty_screen.json
+@@ -3,6 +3,6 @@
+   "bgColor": "#000000",
+   "state": "WaitInput",
+   "needValue": false,
+-  "protocolVersion": 11,
++  "protocolVersion": 13,
+   "generation": 0
+ }
+\ No newline at end of file
+diff --git a/EraCore.Tests/TestData/Phase0/multi_line_buttons.json b/EraCore.Tests/TestData/Phase0/multi_line_buttons.json
+index 41496792..2234462b 100644
+--- a/EraCore.Tests/TestData/Phase0/multi_line_buttons.json
++++ b/EraCore.Tests/TestData/Phase0/multi_line_buttons.json
+@@ -63,6 +63,6 @@
+   "bgColor": "#000000",
+   "state": "WaitInput",
+   "needValue": false,
+-  "protocolVersion": 11,
++  "protocolVersion": 13,
+   "generation": 0
+ }
+\ No newline at end of file
+diff --git a/EraCore.Tests/TestData/Phase0/set_bg_state.json b/EraCore.Tests/TestData/Phase0/set_bg_state.json
+index 80c7c67a..2d96a483 100644
+--- a/EraCore.Tests/TestData/Phase0/set_bg_state.json
++++ b/EraCore.Tests/TestData/Phase0/set_bg_state.json
+@@ -18,6 +18,6 @@
+   "state": "WaitInput",
+   "inputType": "IntValue",
+   "needValue": true,
+-  "protocolVersion": 11,
++  "protocolVersion": 13,
+   "generation": 0
+ }
+\ No newline at end of file
+diff --git a/EraCore.Tests/TestData/Phase0/single_line.json b/EraCore.Tests/TestData/Phase0/single_line.json
+index d50ff74d..810941d3 100644
+--- a/EraCore.Tests/TestData/Phase0/single_line.json
++++ b/EraCore.Tests/TestData/Phase0/single_line.json
+@@ -24,6 +24,6 @@
+   "bgColor": "#000000",
+   "state": "WaitInput",
+   "needValue": false,
+-  "protocolVersion": 11,
++  "protocolVersion": 13,
+   "generation": 0
+ }
+\ No newline at end of file
+diff --git a/EraCore.Web/src/components/TerminalDisplay.vue b/EraCore.Web/src/components/TerminalDisplay.vue
+index 73d4055e..53bd467d 100644
+--- a/EraCore.Web/src/components/TerminalDisplay.vue
++++ b/EraCore.Web/src/components/TerminalDisplay.vue
+@@ -11,7 +11,7 @@ import { resolveResource } from '../lib/resourceResolver';
+ import { hasInvisibleButtonText } from '../lib/colorContrast';
+ import { clickToImagePixel, loadImageAndReadPixel, sortBgImages } from '../lib/imageLayout';
+ import SegmentRenderer from './SegmentRenderer.vue';
+-import type { ButtonValue, SegmentImage, DisplayLine, DisplayEntry } from '../types/protocol';
++import type { ButtonValue, SegmentImage, DisplayLine, DisplayEntry, BgImageState } from '../types/protocol';
+ 
+ /**
+  * TerminalDisplay.vue — Emuera 终端渲染器（issue 03 / issue 12 固定宽度布局 /
+@@ -432,6 +432,47 @@ onMounted(async () => {
+   await nextTick();
+   vs.scrollToBottom();
+ });
++
++/**
++ * ★ v12（CBG 图形图层一期）：背景图的内联样式。
++ *
++ * 协议新增 `x/y/w/h`（画布上的位置与尺寸）—— eraTW 的「背景图补丁」正是靠它把
++ * 一张等比缩放到窗口宽度的实景照片铺满背景。
++ * ★ 未下发坐标时回落 (0,0) ＋ 原图尺寸 ⇒ **与 v8 行为完全一致**（老帧不受影响）。
++ * ★ 像素几何 × `effectiveScale`，与终端其余几何（SegmentRenderer 的 scaled()）保持一致。
++ *
++ * ★ v13（CBG 二期·甲）：`brightness` / `grayscale` 映射成 CSS `filter`。
++ * ★ 关于旧 WebView：本仓对 `color-mix` 用过「先兜底、`@supports` 覆盖」（theme.css:35-41），
++ *   但那是因为 `color-mix` 要 Chrome 111。★ `brightness()` / `grayscale()` 自 Chrome 18 起就有，
++ *   远低于我们 Chromium 101 的地板 ⇒ **不需要 @supports 降级**；且缺省时**整条 filter 不写**，
++ *   所以不支持滤镜的环境只会"少一层颜色效果"，不会渲染异常。
++ * ★ 只在明确需要时才写（1 / 0 视为不需要）—— 避免给正常帧加无谓的合成层。
++ */
++function bgImageStyle(bg: BgImageState): Record<string, string> {
++  const s = game.effectiveScale;
++  const style: Record<string, string> = {
++    opacity: String(bg.opacity),
++    top: `${Math.round((bg.y ?? 0) * s)}px`,
++    left: `${Math.round((bg.x ?? 0) * s)}px`,
++  };
++  if (bg.w != null) style.width = `${Math.round(bg.w * s)}px`;
++  if (bg.h != null) style.height = `${Math.round(bg.h * s)}px`;
++
++  const filters: string[] = [];
++  if (bg.grayscale != null && bg.grayscale > 0) {
++    filters.push(`grayscale(${clamp01(bg.grayscale)})`);
++  }
++  if (bg.brightness != null && bg.brightness !== 1) {
++    filters.push(`brightness(${Math.max(0, bg.brightness)})`);
++  }
++  if (filters.length > 0) style.filter = filters.join(' ');
++  return style;
++}
++
++/** 把数值夹到 0–1（滤镜参数越界时浏览器会整条丢弃，这里先夹住更稳）。 */
++function clamp01(v: number): number {
++  return v < 0 ? 0 : v > 1 ? 1 : v;
++}
+ </script>
+ 
+ <template>
+@@ -449,7 +490,7 @@ onMounted(async () => {
+         :key="`${bg.src}:${bg.depth}`"
+         class="term-bg-img"
+         :src="resolveResource(bg.src)"
+-        :style="{ opacity: bg.opacity }"
++        :style="bgImageStyle(bg)"
+         draggable="false"
+       />
+     </div>
+diff --git a/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts b/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
+index e3e56af8..325c825c 100644
+--- a/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
++++ b/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
+@@ -460,6 +460,32 @@ describe('TerminalDisplay: 背景图层', () => {
+     expect(imgs[2].attributes('style')).toContain('opacity: 0.8');
+   });
+ 
++  it('★ v13：brightness/grayscale 映射成 CSS filter；缺省（或 1/0）不写 filter', async () => {
++    const bgImages: BgImageState[] = [
++      { src: 'bg/plain.png', depth: 0, opacity: 1 },
++      { src: 'bg/identity.png', depth: 1, opacity: 1, brightness: 1, grayscale: 0 },
++      { src: 'bg/stopped.png', depth: 2, opacity: 0.9, grayscale: 1 },
++      { src: 'bg/dim.png', depth: 3, opacity: 1, brightness: 0.5 },
++      { src: 'bg/both.png', depth: 4, opacity: 1, brightness: 0.8, grayscale: 0.5 },
++    ];
++    const { wrapper } = await mountWith([line([imgSeg()])], bgImages);
++    const imgs = wrapper.findAll('.term-bg-img');
++    expect(imgs).toHaveLength(5);
++
++    // ★ 缺省 / 等于恒等值时**整条 filter 不写** —— 不给正常帧加无谓的合成层
++    expect(imgs[0].attributes('style')).not.toContain('filter');
++    expect(imgs[1].attributes('style')).not.toContain('filter');
++
++    expect(imgs[2].attributes('style')).toContain('grayscale(1)');
++    expect(imgs[3].attributes('style')).toContain('brightness(0.5)');
++
++    // 两者都有时按 grayscale → brightness 顺序合成
++    const s = imgs[4].attributes('style')!;
++    expect(s).toContain('grayscale(0.5)');
++    expect(s).toContain('brightness(0.8)');
++    expect(s.indexOf('grayscale')).toBeLessThan(s.indexOf('brightness'));
++  });
++
+   it('无 bgImages 不渲染背景层', async () => {
+     const { wrapper } = await mountWith([line([imgSeg()])]);
+     expect(wrapper.find('.term-bg-layer').exists()).toBe(false);
+diff --git a/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts b/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts
+index aa502396..2e34d7cd 100644
+--- a/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts
++++ b/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts
+@@ -576,6 +576,35 @@ describe('parseTurnRecord - v8 image/shape/bgImages', () => {
+     expect(turn.diff!.bgImages![1].opacity).toBe(0.5);
+   });
+ 
++  it('★ v13：bgImages 的 brightness/grayscale 透传；非法/缺失值宽容降级为 null', () => {
++    const json = JSON.stringify({
++      state: 'WaitInput',
++      needValue: false,
++      generation: 0,
++      diff: {
++        lineOps: [],
++        bgImages: [
++          // eraTW「时间停止」：三行相同的颜色矩阵 ⇒ 去色（grayscale≈1）
++          { src: 'bg/stopped.png', depth: 0, opacity: 0.9, brightness: 1, grayscale: 0.996 },
++          { src: 'bg/dim.png', depth: 1, opacity: 1, brightness: 0.5 },
++          // 宽容：类型不对 / null ⇒ null，不抛错
++          { src: 'bg/bad.png', depth: 2, opacity: 1, brightness: 'oops', grayscale: null },
++          { src: 'bg/nonum.png', depth: 3, opacity: 1, grayscale: false },
++        ],
++      },
++    });
++    const turn = parseTurnRecord(json);
++    const bg = turn.diff!.bgImages!;
++    expect(bg).toHaveLength(4);
++    expect(bg[0].grayscale).toBeCloseTo(0.996, 5);
++    expect(bg[0].brightness).toBe(1);
++    expect(bg[1].brightness).toBe(0.5);
++    expect(bg[1].grayscale).toBeNull(); // 缺失 ⇒ null（渲染层按 0 处理）
++    expect(bg[2].brightness).toBeNull();
++    expect(bg[2].grayscale).toBeNull();
++    expect(bg[3].grayscale).toBeNull();
++  });
++
+   it('纯文本段：image/shape 为 undefined（v7 行为锁定）', () => {
+     const json = JSON.stringify({
+       state: 'WaitInput',
+diff --git a/EraCore.Web/src/lib/parseTurnRecord.ts b/EraCore.Web/src/lib/parseTurnRecord.ts
+index 89f19ff9..d6c86ec5 100644
+--- a/EraCore.Web/src/lib/parseTurnRecord.ts
++++ b/EraCore.Web/src/lib/parseTurnRecord.ts
+@@ -104,6 +104,10 @@ function parseBgImages(raw: unknown): BgImageState[] {
+ 
+ /**
+  * v8：解析单个背景图状态——src 必填 string；depth 必填 int；opacity 必填 number。
++ * ★ v12：x/y/w/h 为**可选** int（CBG 图形图层一期）—— 缺失时按原图尺寸渲染；
++ *   存在但非 int 时按"缺失"处理（宽容，不给老/新混合帧抛错）。
++ * ★ v13：brightness/grayscale 为**可选** float（CBG 二期·甲，颜色矩阵）——
++ *   缺失或非有限数时按 `null` 处理，渲染层按"原样"（不写 filter）兜底。
+  */
+ function parseBgImageState(raw: unknown, path: string): BgImageState {
+   if (typeof raw !== 'object' || raw === null) {
+@@ -113,10 +117,21 @@ function parseBgImageState(raw: unknown, path: string): BgImageState {
+   if (typeof obj.src !== 'string') {
+     throw new ParseTurnRecordError(`${path}.src 缺失或非 string`);
+   }
++  const optInt = (v: unknown): number | null =>
++    typeof v === 'number' && Number.isInteger(v) ? v : null;
++  /** ★ v13：可空 float（不做整数要求；NaN/Infinity 视作缺失）。 */
++  const optNum = (v: unknown): number | null =>
++    typeof v === 'number' && Number.isFinite(v) ? v : null;
+   return {
+     src: obj.src,
+     depth: readIntRequired(obj.depth, `${path}.depth`),
+     opacity: readNumberRequired(obj.opacity, `${path}.opacity`),
++    x: optInt(obj.x),
++    y: optInt(obj.y),
++    w: optInt(obj.w),
++    h: optInt(obj.h),
++    brightness: optNum(obj.brightness),
++    grayscale: optNum(obj.grayscale),
+   };
+ }
+ 
+diff --git a/EraCore.Web/src/types/protocol.ts b/EraCore.Web/src/types/protocol.ts
+index ddfa6546..ca85c194 100644
+--- a/EraCore.Web/src/types/protocol.ts
++++ b/EraCore.Web/src/types/protocol.ts
+@@ -104,11 +104,26 @@ export interface SegmentShape {
+  * - `src`：游戏根相对路径
+  * - `depth`：z 序（WinForms 降序烘焙——depth 大的在上）
+  * - `opacity`：0.0-1.0
++ *
++ * ★ v12（CBG 图形图层一期）：`x` / `y` / `w` / `h` 是**画布上的位置与尺寸**（像素，可空）。
++ * 可空时按原图尺寸、左上对齐渲染（与 v8 行为一致）。
++ *
++ * ★ v13（CBG 二期·甲）：`brightness` / `grayscale` 来自 `GDRAWSPRITE` 的**颜色矩阵**
++ * （`eraTW` 用它在「时间停止」时把背景**去色**）。
++ * - `brightness`：亮度增益，1 = 原样（可空时按 1 处理）
++ * - `grayscale`：灰度程度，0 = 原样（可空时按 0 处理）
++ * ★ 两个都缺省 ⇒ **不写 filter**，与 v12 渲染完全一致。
+  */
+ export interface BgImageState {
+   src: string;
+   depth: number;
+   opacity: number;
++  x?: number | null;
++  y?: number | null;
++  w?: number | null;
++  h?: number | null;
++  brightness?: number | null;
++  grayscale?: number | null;
+ }
+ 
+ /**
+diff --git a/tests/emuera_server.py b/tests/emuera_server.py
+index aed82a74..d5798f9c 100644
+--- a/tests/emuera_server.py
++++ b/tests/emuera_server.py
+@@ -8,7 +8,9 @@ import json
+ # TurnOp 加 set_bg_image/remove_bg_image/clear_bg_image。
+ # v9（issue 07）：SegmentImage 加 crop?（裁切矩形几何）。
+ # v10：PrintSegment 加 underline?；v11：PrintSegment 加 strikeout?（PRINT_SLIDER 实际用删除线）。
+-PROTOCOL_VERSION = 11
++# v12（CBG 图形图层一期）：BgImageState 加 x?/y?/w?/h?（画布上的位置与尺寸）。
++# v13（CBG 二期·甲）：BgImageState 加 brightness?/grayscale?（来自 GDRAWSPRITE 的颜色矩阵）。
++PROTOCOL_VERSION = 13
+ 
+ import os
+ import shutil

@@ -102,7 +102,7 @@ def decide(txt):
     if "是" in zone and "否" in zone:
         return "0", "确认 → 是"
     if "变更" in zone and ("名字" in zone or "称呼" in zone):
-        return "民", "输入名字"
+        return "玩家", "输入名字"
     if "设定完毕" in zone:
         return "9999", "角色设定 → 设定完毕"
     if "开始游戏" in zone and "继续游戏" in zone:
@@ -118,7 +118,7 @@ def decide(txt):
     if "设定完毕" in wide:
         return "9999", "宽窗口：设定完毕"
     if "变更" in wide and ("名字" in wide or "称呼" in wide):
-        return "民", "宽窗口：输入名字"
+        return "玩家", "宽窗口：输入名字"
     if "开始游戏" in wide and "继续游戏" in wide:
         return "0", "宽窗口：标题"
     if "请选择游戏模式" in wide:
