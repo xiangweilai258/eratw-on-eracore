@@ -43,7 +43,7 @@ index a0c51838..bfeb1e62 100644
  
  internal record ButtonRef(object value, bool isInteger, long generation, int? col = null, int? width = null);
 diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs
-index b82ca740..10851b8a 100644
+index b82ca740..efd0f087 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs
 @@ -30,7 +30,11 @@ internal static partial class FunctionMethodCreator
@@ -52,7 +52,7 @@ index b82ca740..10851b8a 100644
  		{
 -			// CBG_Clear: WinForms-only stub removed in Headless
 +			// ★ v12（CBG 图形图层一期·补漏）：原本是空桩 ⇒ eraTW **关闭**背景图补丁时
-+			//   靠 CBG_CLEAR 清场，而空桩什么都不做 ⇒ **背景关不掉**（民 2026-10-09 实测：
++			//   靠 CBG_CLEAR 清场，而空桩什么都不做 ⇒ **背景关不掉**（2026-10-09 实测：
 +			//   「能启用不能关闭」）。CBG 图层与 SETBGIMAGE 在本实现里共用同一份背景层列表，
 +			//   故直接清它即可。
 +			exm.Console.ClearBgImage();
@@ -320,49 +320,6 @@ index 997c9845..9414bede 100644
      internal ConsoleDisplayLine[]? GetDisplayLines(long lineNo) => _printManager.GetDisplayLines(lineNo);
      internal ConsoleDisplayLine[]? PopDisplayingLines() => _printManager.PopDisplayingLines();
      internal ConsoleDisplayLine? PrintPlainwithSingleLine(string str) => _printManager.PrintPlainwithSingleLine(str);
-diff --git a/EraCore.Tests/AdapterV8Tests.cs b/EraCore.Tests/AdapterV8Tests.cs
-index e33e6dc8..43682dba 100644
---- a/EraCore.Tests/AdapterV8Tests.cs
-+++ b/EraCore.Tests/AdapterV8Tests.cs
-@@ -242,7 +242,7 @@ public class AdapterV8Tests : IDisposable
-         Assert.Equal("bg/forest.png", bg.GetProperty("src").GetString());
-         Assert.Equal(1, bg.GetProperty("depth").GetInt32());
-         Assert.Equal(0.5, bg.GetProperty("opacity").GetDouble());
--        Assert.Equal(11, doc.RootElement.GetProperty("protocolVersion").GetInt32());
-+        Assert.Equal(13, doc.RootElement.GetProperty("protocolVersion").GetInt32());
- 
-         // v7 已知字段仍在——老客户端按 v7 解析不炸、忽略未知字段自然降级
-         Assert.Equal("#000000", doc.RootElement.GetProperty("bgColor").GetString());
-@@ -284,6 +284,6 @@ public class AdapterV8Tests : IDisposable
-         Assert.Equal(0, crop.GetProperty("y").GetInt32());
-         Assert.Equal(72, crop.GetProperty("imgWidth").GetInt32());
-         Assert.Equal(36, crop.GetProperty("imgHeight").GetInt32());
--        Assert.Equal(11, doc.RootElement.GetProperty("protocolVersion").GetInt32());
-+        Assert.Equal(13, doc.RootElement.GetProperty("protocolVersion").GetInt32());
-     }
- }
-diff --git a/EraCore.Tests/AgentJsonlProtocolTests.cs b/EraCore.Tests/AgentJsonlProtocolTests.cs
-index dc52ffcd..cacd3a2a 100644
---- a/EraCore.Tests/AgentJsonlProtocolTests.cs
-+++ b/EraCore.Tests/AgentJsonlProtocolTests.cs
-@@ -75,7 +75,7 @@ public class AgentJsonlProtocolTests : IDisposable
- 
-         Assert.Equal("WaitInput", root.GetProperty("state").GetString());
-         Assert.Equal("EnterKey", root.GetProperty("inputType").GetString());
--        Assert.Equal(11, root.GetProperty("protocolVersion").GetInt32()); // v11：PrintSegment.strikeout
-+        Assert.Equal(13, root.GetProperty("protocolVersion").GetInt32()); // v11：PrintSegment.strikeout
- 
-         Assert.Equal(5000L, root.GetProperty("timeLimit").GetInt64());
-         Assert.True(root.GetProperty("displayTime").GetBoolean());
-@@ -197,7 +197,7 @@ public class AgentJsonlProtocolTests : IDisposable
- 
-         Assert.NotNull(json);
-         using var doc = JsonDocument.Parse(json!);
--        Assert.Equal(11, doc.RootElement.GetProperty("protocolVersion").GetInt32()); // v11：PrintSegment.strikeout
-+        Assert.Equal(13, doc.RootElement.GetProperty("protocolVersion").GetInt32()); // v11：PrintSegment.strikeout
-     }
- 
-     [Fact]
 diff --git a/EraCore.Tests/CbgColorMatrixTests.cs b/EraCore.Tests/CbgColorMatrixTests.cs
 new file mode 100644
 index 00000000..fe9cb349
@@ -518,73 +475,8 @@ index 8dba7394..67e47902 100644
      }
  
      // ---------- ADR-0016：TINPUT timer 元数据填充 ----------
-diff --git a/EraCore.Tests/TestData/Phase0/clearline_state.json b/EraCore.Tests/TestData/Phase0/clearline_state.json
-index 405b1fce..b2a80487 100644
---- a/EraCore.Tests/TestData/Phase0/clearline_state.json
-+++ b/EraCore.Tests/TestData/Phase0/clearline_state.json
-@@ -37,6 +37,6 @@
-   "bgColor": "#000000",
-   "state": "WaitInput",
-   "needValue": false,
--  "protocolVersion": 11,
-+  "protocolVersion": 13,
-   "generation": 0
- }
-\ No newline at end of file
-diff --git a/EraCore.Tests/TestData/Phase0/empty_screen.json b/EraCore.Tests/TestData/Phase0/empty_screen.json
-index 7bd8e929..5cd9155d 100644
---- a/EraCore.Tests/TestData/Phase0/empty_screen.json
-+++ b/EraCore.Tests/TestData/Phase0/empty_screen.json
-@@ -3,6 +3,6 @@
-   "bgColor": "#000000",
-   "state": "WaitInput",
-   "needValue": false,
--  "protocolVersion": 11,
-+  "protocolVersion": 13,
-   "generation": 0
- }
-\ No newline at end of file
-diff --git a/EraCore.Tests/TestData/Phase0/multi_line_buttons.json b/EraCore.Tests/TestData/Phase0/multi_line_buttons.json
-index 41496792..2234462b 100644
---- a/EraCore.Tests/TestData/Phase0/multi_line_buttons.json
-+++ b/EraCore.Tests/TestData/Phase0/multi_line_buttons.json
-@@ -63,6 +63,6 @@
-   "bgColor": "#000000",
-   "state": "WaitInput",
-   "needValue": false,
--  "protocolVersion": 11,
-+  "protocolVersion": 13,
-   "generation": 0
- }
-\ No newline at end of file
-diff --git a/EraCore.Tests/TestData/Phase0/set_bg_state.json b/EraCore.Tests/TestData/Phase0/set_bg_state.json
-index 80c7c67a..2d96a483 100644
---- a/EraCore.Tests/TestData/Phase0/set_bg_state.json
-+++ b/EraCore.Tests/TestData/Phase0/set_bg_state.json
-@@ -18,6 +18,6 @@
-   "state": "WaitInput",
-   "inputType": "IntValue",
-   "needValue": true,
--  "protocolVersion": 11,
-+  "protocolVersion": 13,
-   "generation": 0
- }
-\ No newline at end of file
-diff --git a/EraCore.Tests/TestData/Phase0/single_line.json b/EraCore.Tests/TestData/Phase0/single_line.json
-index d50ff74d..810941d3 100644
---- a/EraCore.Tests/TestData/Phase0/single_line.json
-+++ b/EraCore.Tests/TestData/Phase0/single_line.json
-@@ -24,6 +24,6 @@
-   "bgColor": "#000000",
-   "state": "WaitInput",
-   "needValue": false,
--  "protocolVersion": 11,
-+  "protocolVersion": 13,
-   "generation": 0
- }
-\ No newline at end of file
 diff --git a/EraCore.Web/src/components/TerminalDisplay.vue b/EraCore.Web/src/components/TerminalDisplay.vue
-index 73d4055e..53bd467d 100644
+index 73d4055e..e64664da 100644
 --- a/EraCore.Web/src/components/TerminalDisplay.vue
 +++ b/EraCore.Web/src/components/TerminalDisplay.vue
 @@ -11,7 +11,7 @@ import { resolveResource } from '../lib/resourceResolver';
@@ -596,6 +488,37 @@ index 73d4055e..53bd467d 100644
  
  /**
   * TerminalDisplay.vue — Emuera 终端渲染器（issue 03 / issue 12 固定宽度布局 /
+@@ -171,7 +171,7 @@ usePinchZoom({
+   target: terminalRef,
+   getScale: () => game.effectiveScale,
+   setScale: (v) => game.setScale(v),
+-  // ★ 2026-10-08：设置里的「双指缩放」开关（默认开）；关掉后双指手势完全不生效。
++  // ★ 2026-10-08：设置里的「双指缩放」开关（默认开）；关掉后双指手势完全不生效。
+   isEnabled: () => game.pinchZoomEnabled,
+ });
+ 
+@@ -219,7 +219,7 @@ function valueToWire(v: ButtonValue): string {
+ /**
+  * 这个按钮的文字是不是「看不见」——字暗 **且** 背景也暗。
+  *
+- * ★ 触发场景（2026-10-08 用户 实测指出）：eraTW 部分界面（如 DLC 补丁设置里的
++ * ★ 触发场景（2026-10-08 用户 实测指出）：eraTW 部分界面（如 DLC 补丁设置里的
+  *   「启动 / 返回」）把按钮文字设成近黑色，而游戏背景是**纯黑** —— 文字与背景同色，
+  *   玩家看不出哪里有选项。★ 这**也是原版行为**（原版靠鼠标划过变黄才看得见），
+  *   但触屏没有"划过"，⇒ **手机用户永远看不到**，所以这里补一层底衬。
+@@ -396,10 +396,10 @@ watch(() => game.inputInFlight, (inFlight) => {
+   if (inFlight) vs.scrollToBottom();
+ });
+ 
+-// ---------- 切回终端视图时回到底部（2026-10-08） ----------
++// ---------- 切回终端视图时回到底部（2026-10-08） ----------
+ //
+ // 症状：从「调试 / 设置」切回终端（菜单里的「回到游戏（Terminal）」）后画面**停在最顶部**
+-// （最旧的那几行），必须手动往下划到底部才能继续玩 —— 原话「默认不回到最下面的游戏区域，
++// （最旧的那几行），必须手动往下划到底部才能继续玩 —— 原话「默认不回到最下面的游戏区域，
+ // 十分烦人，导致每次返回得手动划到最底下」。
+ //
+ // ★★ 教训（我第一版修错了，留痕）：我以为终端视图是**常驻**的（只切可见性、不重新挂载），
 @@ -432,6 +432,47 @@ onMounted(async () => {
    await nextTick();
    vs.scrollToBottom();
@@ -653,83 +576,15 @@ index 73d4055e..53bd467d 100644
          draggable="false"
        />
      </div>
-diff --git a/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts b/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
-index e3e56af8..325c825c 100644
---- a/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
-+++ b/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
-@@ -460,6 +460,32 @@ describe('TerminalDisplay: 背景图层', () => {
-     expect(imgs[2].attributes('style')).toContain('opacity: 0.8');
-   });
- 
-+  it('★ v13：brightness/grayscale 映射成 CSS filter；缺省（或 1/0）不写 filter', async () => {
-+    const bgImages: BgImageState[] = [
-+      { src: 'bg/plain.png', depth: 0, opacity: 1 },
-+      { src: 'bg/identity.png', depth: 1, opacity: 1, brightness: 1, grayscale: 0 },
-+      { src: 'bg/stopped.png', depth: 2, opacity: 0.9, grayscale: 1 },
-+      { src: 'bg/dim.png', depth: 3, opacity: 1, brightness: 0.5 },
-+      { src: 'bg/both.png', depth: 4, opacity: 1, brightness: 0.8, grayscale: 0.5 },
-+    ];
-+    const { wrapper } = await mountWith([line([imgSeg()])], bgImages);
-+    const imgs = wrapper.findAll('.term-bg-img');
-+    expect(imgs).toHaveLength(5);
-+
-+    // ★ 缺省 / 等于恒等值时**整条 filter 不写** —— 不给正常帧加无谓的合成层
-+    expect(imgs[0].attributes('style')).not.toContain('filter');
-+    expect(imgs[1].attributes('style')).not.toContain('filter');
-+
-+    expect(imgs[2].attributes('style')).toContain('grayscale(1)');
-+    expect(imgs[3].attributes('style')).toContain('brightness(0.5)');
-+
-+    // 两者都有时按 grayscale → brightness 顺序合成
-+    const s = imgs[4].attributes('style')!;
-+    expect(s).toContain('grayscale(0.5)');
-+    expect(s).toContain('brightness(0.8)');
-+    expect(s.indexOf('grayscale')).toBeLessThan(s.indexOf('brightness'));
-+  });
-+
-   it('无 bgImages 不渲染背景层', async () => {
-     const { wrapper } = await mountWith([line([imgSeg()])]);
-     expect(wrapper.find('.term-bg-layer').exists()).toBe(false);
-diff --git a/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts b/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts
-index aa502396..2e34d7cd 100644
---- a/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts
-+++ b/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts
-@@ -576,6 +576,35 @@ describe('parseTurnRecord - v8 image/shape/bgImages', () => {
-     expect(turn.diff!.bgImages![1].opacity).toBe(0.5);
-   });
- 
-+  it('★ v13：bgImages 的 brightness/grayscale 透传；非法/缺失值宽容降级为 null', () => {
-+    const json = JSON.stringify({
-+      state: 'WaitInput',
-+      needValue: false,
-+      generation: 0,
-+      diff: {
-+        lineOps: [],
-+        bgImages: [
-+          // eraTW「时间停止」：三行相同的颜色矩阵 ⇒ 去色（grayscale≈1）
-+          { src: 'bg/stopped.png', depth: 0, opacity: 0.9, brightness: 1, grayscale: 0.996 },
-+          { src: 'bg/dim.png', depth: 1, opacity: 1, brightness: 0.5 },
-+          // 宽容：类型不对 / null ⇒ null，不抛错
-+          { src: 'bg/bad.png', depth: 2, opacity: 1, brightness: 'oops', grayscale: null },
-+          { src: 'bg/nonum.png', depth: 3, opacity: 1, grayscale: false },
-+        ],
-+      },
-+    });
-+    const turn = parseTurnRecord(json);
-+    const bg = turn.diff!.bgImages!;
-+    expect(bg).toHaveLength(4);
-+    expect(bg[0].grayscale).toBeCloseTo(0.996, 5);
-+    expect(bg[0].brightness).toBe(1);
-+    expect(bg[1].brightness).toBe(0.5);
-+    expect(bg[1].grayscale).toBeNull(); // 缺失 ⇒ null（渲染层按 0 处理）
-+    expect(bg[2].brightness).toBeNull();
-+    expect(bg[2].grayscale).toBeNull();
-+    expect(bg[3].grayscale).toBeNull();
-+  });
-+
-   it('纯文本段：image/shape 为 undefined（v7 行为锁定）', () => {
-     const json = JSON.stringify({
-       state: 'WaitInput',
+@@ -536,7 +577,7 @@ onMounted(async () => {
+      无 padding——与 WinForms mainPicBox / CLI 终端一致，字符画从容器边缘开始渲染。 */
+   overflow-y: auto;
+   overflow-x: auto;
+-  /* ★ 2026-10-08：「游戏界面的文本区域显示太靠近最下面，最好往上留出一列文字的余量」。
++  /* ★ 2026-10-08：「游戏界面的文本区域显示太靠近最下面，最好往上留出一列文字的余量」。
+      原设计明确无 padding（对齐 WinForms mainPicBox 语义），但真机上末行紧贴屏幕底边、
+      还会被输入栏悬浮层压住 ⇒ 最后一行读不到。这里留出一行高。
+      ★ 安全性：useVirtualScroll 的 scrollToBottom 与贴底判定都读 DOM 的 scrollHeight
 diff --git a/EraCore.Web/src/lib/parseTurnRecord.ts b/EraCore.Web/src/lib/parseTurnRecord.ts
 index 89f19ff9..d6c86ec5 100644
 --- a/EraCore.Web/src/lib/parseTurnRecord.ts

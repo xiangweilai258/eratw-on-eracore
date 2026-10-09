@@ -116,10 +116,15 @@ port/
   make-nf-patch.py             NF 指令族补丁生成脚本（可复现）
   make-pluginaware-patch.py    pluginsAware 软警告改动的补丁生成脚本（可复现）
 patches/
-  cbg-graphics-layer.patch      ★ 图形画布层补丁（+128/-21，12 文件，见下）—— 让 eraTW 的背景图片补丁可用
+  cbg-graphics-layer.patch      ★ 图形画布层补丁（+357/-27，13 文件，见下）—— 让 eraTW 的背景图片补丁可用
   nf-input-family.patch         ★ NF 指令族补丁（+89/-4，5 文件，见下）
   als-VarKeyAreadyDefined-fix.patch   一个独立的小修（上游 main 分支可用）
   pluginsAware-soft-warning.md        插件门禁改软警告的逐处改动说明（见下）
+docs/
+  01-移植技术报告.md       移植原理与改动说明
+  02-使用说明.md          安装与游玩
+  03-补丁验证记录.md       每个补丁的验证方法与结果
+  ★ 04-版本更新记录.md     ★ 全部版本的更新内容（最新在最上）
 tools/
   build-android.sh        Android 打包（含 Debug 打包的 .so 压缩坑的修复）
   deploy-android.sh       部署到真机 + 启动自检 + 内存采样

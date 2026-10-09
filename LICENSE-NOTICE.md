@@ -52,7 +52,7 @@ eratw-on-eracore       （本仓库 / EraRelay：EEv56 兼容层补丁 + 构建/
 `pluginsAware` 门禁由「**硬拒绝启动**」改为「**软警告**」，与上游 Emuera 2026-05-26 的行为对齐；
 具体代码改动并入上方 `port/eratw-EE56-compat.patch` 的 `PluginManager.cs` 一处。
 
-### `patches/cbg-graphics-layer.patch`（+128 / -21，12 个文件）
+### `patches/cbg-graphics-layer.patch`（+357 / -27，13 个文件）
 
 让 era 类游戏使用的**图形画布**族指令（`GCREATE` / `GDRAWSPRITE` / `CBGSETG` 等）在无头构建下真正生效。
 上游在无头化改造时移除了这条链路（源码中保留了说明其被移除的注释），本次将其接回，
