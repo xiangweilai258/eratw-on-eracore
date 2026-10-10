@@ -6951,7 +6951,7 @@ index 2da2a7d6..6ca1eb07 100644
      }
  }
 diff --git a/EraCore.Maui/EraCore.Maui.csproj b/EraCore.Maui/EraCore.Maui.csproj
-index 3f3b8255..a449267b 100644
+index 3f3b8255..ba067645 100644
 --- a/EraCore.Maui/EraCore.Maui.csproj
 +++ b/EraCore.Maui/EraCore.Maui.csproj
 @@ -28,10 +28,13 @@
@@ -6966,8 +6966,8 @@ index 3f3b8255..a449267b 100644
  		<ApplicationId>com.eracore.maui</ApplicationId>
 -		<ApplicationDisplayVersion>0.1</ApplicationDisplayVersion>
 -		<ApplicationVersion>1</ApplicationVersion>
-+		<ApplicationDisplayVersion>0.5.3</ApplicationDisplayVersion>
-+		<ApplicationVersion>503</ApplicationVersion>
++		<ApplicationDisplayVersion>0.5.4</ApplicationDisplayVersion>
++		<ApplicationVersion>504</ApplicationVersion>
  
  		<!-- Windows 桌面 unpackaged 模式（开发期直接 dotnet run 启动，不需要 MSIX 打包）。
  		     Phase 2 评估 MSIX 打包发布。-->
@@ -9165,10 +9165,10 @@ index 00000000..a2604f32
 +}
 diff --git a/EraCore.Tests/ButtonWrapPixelBudgetTests.cs b/EraCore.Tests/ButtonWrapPixelBudgetTests.cs
 new file mode 100644
-index 00000000..04285acd
+index 00000000..7747aff8
 --- /dev/null
 +++ b/EraCore.Tests/ButtonWrapPixelBudgetTests.cs
-@@ -0,0 +1,104 @@
+@@ -0,0 +1,111 @@
 +using System;
 +using System.Collections.Generic;
 +using System.Linq;
@@ -9196,7 +9196,14 @@ index 00000000..04285acd
 +/// 且首行必须恰好装下这么多个——再多一个就超预算。
 +/// 整数除法恒等式 <c>floor(floor(x)/k) == floor(x/k)</c> 保证两者恒等，
 +/// 所以这条断言同时锁住「度量单位不漂移」与「折点是极大前缀」两件事。
++///
++/// ★ F-1（2026-10-10 独立审查）：本类会经 <c>HtmlManager.Html2ButtonList</c> 走
++/// <c>HtmlManager.tagAnalyze</c>——那里对进程级静态 <c>LexicalAnalyzer.UseMacro</c> 做非原子的
++/// 「存/置 false/还原」，并行时会与其它测试（或另一路 tagAnalyze）交错，导致本用例偶发
++/// <c>NullReferenceException at GlobalStatic.get_IdentifierDictionary()</c>。
++/// 故挂进隔离 collection，理由与实测证据见 <see cref="HtmlLayoutTestCollection"/>。
 +/// </summary>
++[Collection("HtmlLayoutTests")]
 +public class ButtonWrapPixelBudgetTests : IDisposable
 +{
 +    private readonly IDisposable _scope;
@@ -9957,6 +9964,207 @@ index 00000000..372dde5c
 +	}
 +}
 \ No newline at end of file
+diff --git a/EraCore.Tests/DesignCanvasWidthTests.cs b/EraCore.Tests/DesignCanvasWidthTests.cs
+new file mode 100644
+index 00000000..1581aa3d
+--- /dev/null
++++ b/EraCore.Tests/DesignCanvasWidthTests.cs
+@@ -0,0 +1,195 @@
++using System;
++using System.IO;
++using System.Text;
++using MinorShift.Emuera;
++using MinorShift.Emuera.Runtime.Config;
++using MinorShift.Emuera.Server;
++using Xunit;
++
++namespace MinorShift.Emuera.Tests;
++
++/// <summary>
++/// ★ F-2（2026-10-10 独立审查・中）：逻辑画布 <c>1152</c> 此前在 <c>EraCore.Tests</c> 里
++/// **0 命中**——<see cref="DesignCanvas"/> 与写入点 <see cref="GameConfigService"/> 都没有测试，
++/// 于是「1152 写错 / 写漏某条路径 / 被改回 760」时 CI 全绿。本文件补三个断言面：
++///
++/// <list type="number">
++/// <item>① <b>常量本体</b> = 1152，且 ≠ <c>ConfigData</c> 的默认 <c>WindowX</c>(760)
++///   —— 把「改回 760」变成红。</item>
++/// <item>② <b>写入生效</b>：经 <see cref="GameConfigService.Reload"/>（CLI / HTTP 模式重建
++///   ConfigData 的唯一入口）之后，<c>ConfigCode.WindowX</c> == <see cref="DesignCanvas.Width"/>，
++///   并且**连续两次 Reload 都生效**（防「只有第一次生效」的一次性 bug）；
++///   同时覆盖游戏线程真正的读取路径（<c>Config.WindowX</c>，走 <c>GlobalStatic.OpenScope</c>，
++///   与生产 <c>GameLoopComposer</c> 同款）。</item>
++/// <item>③ <b>不落盘</b>：Reload 全程不碰游戏目录的 <c>emuera.config</c>——逐字节 + 连 mtime 都不动。
++///   口径参照 <c>ConfigNotWrittenOnLoadTests</c>（那组测的是 <c>ConfigData.LoadConfig</c> 本身；
++///   这里多覆盖 Reload 在其后追加的 <c>AppSettings.ApplyTo</c> + <c>ApplyDesignCanvasWidth</c> 两步，
++///   以及「设计画布宽度是内存覆盖、绝不回写玩家配置」这条设计约束，见 DesignCanvas.cs 类注释末段）。</item>
++/// </list>
++///
++/// <para>
++/// ★ ambient 纪律：<c>Reload</c> 会 <c>ConfigData.SetCurrent</c>（AsyncLocal，生产语义要求它与
++/// 新 Session 构造在同一 async 流内），但**测试不能把这个副作用漏给别的测试**（F-1 的类别）
++/// ——故本文件每条用例结束时都把 <c>Config</c>/<c>ConfigData</c> 的 ambient 归零
++/// （经 scope Dispose，或显式 ClearCurrent）。既有的 <c>GameConfigServiceTests</c> 未做这步，
++/// 这里不跟它保持一致。
++/// </para>
++/// </summary>
++public class DesignCanvasWidthTests
++{
++	/// <summary>
++	/// 今天对外口径的逻辑画布宽（= GEmuera 的 Godot 基准画布 1152×648）。
++	/// ★ 故意**写死**在这里：只断言「WindowX == DesignCanvas.Width」是**自洽**的
++	/// ——常量被改回 760 时它照样通过（2026-10-10 实测确认过这一点）。
++	/// 只有把 1152 这个数钉住，「被改回 760」才会变红。
++	/// </summary>
++	private const int ExpectedDesignCanvasWidth = 1152;
++
++	private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
++
++	/// <summary>临时游戏目录模板（与 <c>GameConfigServiceTests.WithTempGameDir</c> 同款）。</summary>
++	private static void WithTempGameDir(Action<string> action)
++	{
++		var gameDir = Path.Combine(Path.GetTempPath(), "emuera_canvas_" + Guid.NewGuid().ToString("N"));
++		Directory.CreateDirectory(gameDir);
++		try
++		{
++			action(gameDir);
++		}
++		finally
++		{
++			Directory.Delete(gameDir, recursive: true);
++		}
++	}
++
++	/// <summary>写一份游戏目录里的 emuera.config（键名用日文显示名，见 ConfigData.setDefault）。</summary>
++	private static string WriteConfig(string gameDir, string content)
++	{
++		var path = Path.Combine(gameDir, "emuera.config");
++		File.WriteAllText(path, content, Utf8NoBom);
++		return path;
++	}
++
++	/// <summary>ambient 归零——Reload 的 SetCurrent 副作用不留给下一个测试（F-1 纪律）。</summary>
++	private static void ClearAmbient()
++	{
++		ConfigData.ClearCurrent();
++		Config.ClearCurrent();
++	}
++
++	/// <summary>
++	/// ① 常量本体：逻辑画布宽 = 1152（GEmuera 的 Godot 基准画布同宽），
++	/// 且它**不等于** ConfigData 的默认窗口宽 760 —— 后者正是「被改回 760」事故的现象值。
++	/// </summary>
++	[Fact]
++	public void DesignCanvas_width_is_1152_and_differs_from_the_default_windowx()
++	{
++		Assert.Equal(ExpectedDesignCanvasWidth, DesignCanvas.Width);
++
++		// 默认值钉在这里：一旦 DesignCanvas.Width 被改回 760，本断言与上面那条同时红。
++		var fresh = new ConfigData();
++		Assert.Equal(760, fresh.GetConfigValue<int>(ConfigCode.WindowX));
++		Assert.NotEqual(DesignCanvas.Width, fresh.GetConfigValue<int>(ConfigCode.WindowX));
++	}
++
++	/// <summary>
++	/// ② 写入生效（单次）：emuera.config 里写明 900，Reload 后必须被覆盖成 1152；
++	/// 同时经 <c>GlobalStatic.OpenScope</c> 走一遍游戏线程的读取路径 <c>Config.WindowX</c>。
++	/// </summary>
++	[Fact]
++	public void Reload_writes_design_canvas_width_over_the_config_file_value()
++	{
++		WithTempGameDir(gameDir =>
++		{
++			WriteConfig(gameDir, "ウィンドウ幅 : 900\n一行の高さ : 19\n");
++
++			var svc = new GameConfigService(new ConfigData());
++			var reloaded = svc.Reload(gameDir);
++
++			// 配置文件里的 900 必须被压过。
++			// ① 钉死今天对外口径的 1152：写路径坏 → 这里会看到文件里的 900；常量被改回 760 → 会看到 760。
++			Assert.Equal(ExpectedDesignCanvasWidth, reloaded.GetConfigValue<int>(ConfigCode.WindowX));
++			// ② 再断言与常量同源（关系断言）：让「常量被合法重调」时两侧仍然自洽、不假红。
++			Assert.Equal(DesignCanvas.Width, reloaded.GetConfigValue<int>(ConfigCode.WindowX));
++			Assert.Equal(ExpectedDesignCanvasWidth, svc.GetValue<int>(ConfigCode.WindowX));
++			// /state 的窗口元信息同源（控制服务器那份也是同一个实例）。
++			Assert.Equal(ExpectedDesignCanvasWidth, svc.GetWindowMetrics().WindowWidth);
++
++			// 游戏线程真正的读取路径：Config.* 经 scope 绑定（与 GameLoopComposer 同款）。
++			using var scope = GlobalStatic.OpenScope(reloaded);
++			Assert.Equal(ExpectedDesignCanvasWidth, Config.WindowX);
++			// 排版坐标系从它派生（折行/居中的实际判据）。
++			Assert.Equal(DesignCanvas.Width - Config.DrawingParam_ShapePositionShift, Config.DrawableWidth);
++		});
++	}
++
++	/// <summary>
++	/// ★ ② 两次连续 Reload 都要生效：两个目录各自写明不同窗口宽（900 / 640），
++	/// 若实现里存在「只在第一次 Reload 时写宽度」的一次性路径（例如某处缓存了
++	/// 「已应用」标志），第二次就会漏出 640。
++	/// </summary>
++	[Fact]
++	public void Two_consecutive_reloads_both_apply_design_canvas_width()
++	{
++		WithTempGameDir(dirA =>
++		{
++			WithTempGameDir(dirB =>
++			{
++				WriteConfig(dirA, "ウィンドウ幅 : 900\n");
++				WriteConfig(dirB, "ウィンドウ幅 : 640\n");
++
++				var svc = new GameConfigService(new ConfigData());
++				try
++				{
++					var first = svc.Reload(dirA);
++					Assert.Equal(ExpectedDesignCanvasWidth, first.GetConfigValue<int>(ConfigCode.WindowX));
++
++					var second = svc.Reload(dirB);
++					Assert.Equal(ExpectedDesignCanvasWidth, second.GetConfigValue<int>(ConfigCode.WindowX));
++
++					// 服务当前持有的那份也要是 1152（不是残留的第一次结果）。
++					Assert.Same(second, svc.Current);
++					Assert.Equal(DesignCanvas.Width, svc.GetValue<int>(ConfigCode.WindowX));
++				}
++				finally
++				{
++					ClearAmbient();
++				}
++			});
++		});
++	}
++
++	/// <summary>
++	/// ③ 不落盘：Reload 前后 <c>emuera.config</c> 逐字节一致，且 mtime 不动。
++	/// mtime 显式设成 2020 年——只比内容会漏掉「内容相同但文件被重写」的情形
++	/// （口径与 <c>ConfigNotWrittenOnLoadTests</c> 一致）。
++	/// </summary>
++	[Fact]
++	public void Reload_neither_rewrites_nor_touches_the_config_file()
++	{
++		WithTempGameDir(gameDir =>
++		{
++			var configPath = WriteConfig(gameDir, "ウィンドウ幅 : 900\n私の専用鍵 : 1\n");
++			var fixedTime = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc);
++			File.SetLastWriteTimeUtc(configPath, fixedTime);
++			var bytesBefore = File.ReadAllBytes(configPath);
++
++			var svc = new GameConfigService(new ConfigData());
++			try
++			{
++				// 连做两次——写盘类回归常只在第二次（例如缓存/落盘分支）冒出来。
++				svc.Reload(gameDir);
++				svc.Reload(gameDir);
++
++				Assert.Equal(bytesBefore, File.ReadAllBytes(configPath));
++				Assert.Equal(fixedTime, File.GetLastWriteTimeUtc(configPath));
++				// 也不该在别处冒出 config。
++				Assert.Single(Directory.GetFiles(gameDir, "*.config"));
++			}
++			finally
++			{
++				ClearAmbient();
++			}
++		});
++	}
++}
 diff --git a/EraCore.Tests/DimLockPolicyTests.cs b/EraCore.Tests/DimLockPolicyTests.cs
 index 0f04327a..a0df7151 100644
 --- a/EraCore.Tests/DimLockPolicyTests.cs
@@ -10169,12 +10377,62 @@ index 00000000..5781b8cf
 +        Assert.False(ok);
 +    }
 +}
+diff --git a/EraCore.Tests/HtmlLayoutTestCollection.cs b/EraCore.Tests/HtmlLayoutTestCollection.cs
+new file mode 100644
+index 00000000..d533e931
+--- /dev/null
++++ b/EraCore.Tests/HtmlLayoutTestCollection.cs
+@@ -0,0 +1,44 @@
++using Xunit;
++
++namespace MinorShift.Emuera.Tests;
++
++/// <summary>
++/// ★ F-1（2026-10-10 独立审查）修复：把「会走 <c>HtmlManager.tagAnalyze</c> 的 HTML / 排版测试」
++/// 收进一个**与其它 collection 完全隔离**的 collection。
++///
++/// <para>
++/// <b>根因（本机实测，非推断）</b>：<c>HtmlManager.tagAnalyze</c> 对
++/// <c>LexicalAnalyzer.UseMacro</c> 这个<b>进程级可变静态</b>做「存旧值 → 置 false → 解析 →
++/// <c>finally</c> 还原」的<b>非原子</b>操作（<c>HtmlManager.cs:948-961</c>）。并行跑测试时
++/// 两个 tagAnalyze 的窗口会交错：
++/// <code>
++/// A: 存 true  → 置 false                  B: 存 false → 置 false
++/// A: 解析…                                B: 解析…      ← 此刻 UseMacro 已被 A 还原成 true
++/// A: finally 还原 true
++/// </code>
++/// 于是 B 的解析走进宏展开分支（<c>LexicalAnalyzer.Analyse:1029</c> <c>if (UseMacro)</c>
++/// → <c>expandMacro:1048</c> 读 <c>GlobalStatic.IdentifierDictionary</c>）——
++/// 而这类排版测试的 scope 里<b>没有 Process</b>，于是抛
++/// <c>NullReferenceException at GlobalStatic.get_IdentifierDictionary()</c>。
++/// </para>
++/// <para>
++/// <b>实测证据</b>：2026-10-10 本机全量跑 6 次，第 6 次出现 3 失败，第 3 条正是
++/// <c>HtmlPrintLineBreakTests.Suppressed_and_unsuppressed_differ_in_first_line_blocks</c>，
++/// 异常栈逐帧对应上述三处（tagAnalyze → Analyse:1029 → expandMacro:1048）。
++/// 受害者不固定（审查方当天看到的是 <c>ButtonWrapPixelBudgetTests</c> 的同一条 flaky）——
++/// 凡是这一族「HTML 排版 + scope 内无 Process」的用例都会中招。
++/// ★ 生产不会中招：单会话下打印在单线程上，这是<b>测试并行独有的</b>竞态；
++/// 故本修复只动测试调度，不碰引擎语义（<c>UseMacro</c> 仍是进程级静态）。
++/// </para>
++/// <para>
++/// <b>为什么用 <c>DisableParallelization = true</c></b>：xunit 自带文档对该属性的原文是
++/// 「Determines whether tests in this collection runs in parallel with <b>any other collections</b>」
++/// ⇒ 打上它，本 collection 的用例彼此串行、且<b>不与任何其它 collection 并行</b>，
++/// 上面那对「读—写」不再可能交错（连别处 <c>Process.Initialize</c> 写同一个静态也一并排除）。
++/// ★ 只隔离这一小组（毫秒级），<b>不</b>用程序集级 <c>DisableTestParallelization</c>——
++/// 那会把全部用例串行化、代价大，还会掩盖真正有价值的并行竞态。
++/// ★ 沿用本工程既有先例 <c>LoaderTestCollection</c>（同为 <c>DisableParallelization = true</c>）。
++/// </para>
++/// </summary>
++[CollectionDefinition("HtmlLayoutTests", DisableParallelization = true)]
++public class HtmlLayoutTestCollection { }
 diff --git a/EraCore.Tests/HtmlPrintLineBreakTests.cs b/EraCore.Tests/HtmlPrintLineBreakTests.cs
 new file mode 100644
-index 00000000..0c21d863
+index 00000000..915682e3
 --- /dev/null
 +++ b/EraCore.Tests/HtmlPrintLineBreakTests.cs
-@@ -0,0 +1,149 @@
+@@ -0,0 +1,157 @@
 +using System;
 +using System.Linq;
 +using MinorShift.Emuera;
@@ -10199,7 +10457,15 @@ index 00000000..0c21d863
 +///
 +/// 断言口径：PrintOp 逐内容块产出，行边界只由 NewLineOp 标记。
 +/// 并且优先用「两组相对比较」，不把绝对行数写死。
++///
++/// ★ F-1（2026-10-10 独立审查）：本类经 <c>PrintHtml</c> → <c>HtmlManager.tagAnalyze</c>，
++/// 该处对进程级静态 <c>LexicalAnalyzer.UseMacro</c> 做非原子的「存/置 false/还原」；
++/// 2026-10-10 全量实测就在这里抓到过一条并行竞态失败
++/// （<c>Suppressed_and_unsuppressed_differ_in_first_line_blocks</c> 抛
++/// <c>NullReferenceException at GlobalStatic.get_IdentifierDictionary()</c>）。
++/// 故挂进隔离 collection，理由与实测证据见 <see cref="HtmlLayoutTestCollection"/>。
 +/// </summary>
++[Collection("HtmlLayoutTests")]
 +public class HtmlPrintLineBreakTests : IDisposable
 +{
 +    private readonly IDisposable _scope;
@@ -12224,7 +12490,7 @@ index 8444b1be..e71ea5b2 100644
    color: var(--color-success);
  }
 diff --git a/EraCore.Web/src/components/TerminalDisplay.vue b/EraCore.Web/src/components/TerminalDisplay.vue
-index b491deeb..cb20c4e0 100644
+index b491deeb..fd80c82b 100644
 --- a/EraCore.Web/src/components/TerminalDisplay.vue
 +++ b/EraCore.Web/src/components/TerminalDisplay.vue
 @@ -1,5 +1,5 @@
@@ -12373,7 +12639,7 @@ index b491deeb..cb20c4e0 100644
    zIndex: '-1',
    pointerEvents: 'none',
    overflow: 'hidden',
-@@ -378,6 +451,133 @@ watch(() => game.lastDisplaySignal, (signal) => {
+@@ -378,6 +451,189 @@ watch(() => game.lastDisplaySignal, (signal) => {
  watch(() => game.inputInFlight, (inFlight) => {
    if (inFlight) vs.scrollToBottom();
  });
@@ -12403,27 +12669,81 @@ index b491deeb..cb20c4e0 100644
 +});
 +
 +/**
-+ * ★★ 自动适配缩放（2026-10-11）
++ * 逻辑画布高度（前端侧常量）。
++ *
++ * ★ 它与引擎侧的 `DesignCanvas.Width`（`EraCore.Core/Shared/Runtime/Config/DesignCanvas.cs`）
++ *   是**同一套逻辑画布的两个维度** —— 逻辑画布是 1152 宽、16:9（原版 GEmuera 的 Godot 基准
++ *   画布 1152×648）。
++ * ★ 与宽度不同：引擎侧目前**只定义了宽度常量、没有定义高度**
++ *   （`DesignCanvas.cs` 里 648 只出现在注释中）。所以这里只能在前端侧补齐这个具名常量。
++ * ★★ 将来若引擎侧补上 `DesignCanvas.Height`（或改了基准分辨率），
++ *   **这里必须跟着改** —— 否则宽高取自两套口径，超宽屏的 fit 会算错。
++ */
++const LOGICAL_CANVAS_HEIGHT = 648;
++
++/**
++ * 逻辑画布的宽高比（1152 / 648 = 16/9 ≈ 1.7778）。
++ * 用于判定「视口是否比 16:9 更宽」—— 这是「高度是否会成为更紧的一边」的充要条件
++ * （见 updateAutoFit 的推导注释）。
++ */
++const LOGICAL_CANVAS_ASPECT = 1152 / LOGICAL_CANVAS_HEIGHT;
++
++/**
++ * ★★ 自动适配缩放（2026-10-10）
 + *
 + * 引擎侧把 `windowWidth`（= `Config.WindowX`）固定成**游戏设计画布宽（逻辑宽）**，
 + * 不再跟随设备像素 —— 因为它是**排版坐标系**：若按设备宽度重排，同一份内容在每台设备上
 + * 会排出不同的换行与列数，与「原版在任何 16:9 设备上看起来一模一样」正好相反。
-+ * 所以适配屏幕这件事**必须由这里做**：把整幅画面**等比缩放**到容器可用宽度。
++ * 所以适配屏幕这件事**必须由这里做**：把整幅画面**等比缩放**到容器可用尺寸。
 + * ★ 这就是安卓版原版（GEmuera：Godot 固定逻辑画布 + 整幅等比放大铺满）的做法。
 + *
-+ * ★ 为什么取 `terminalRef.clientWidth`：它是**容器**宽度、不含内容溢出，
-+ *   所以「容器宽 ÷ 逻辑宽」不会因内容变宽而自我放大 ⇒ **无反馈循环**。
++ * ★ 为什么取 `terminalRef.clientWidth` / `clientHeight`：它们是**容器**尺寸、不含内容溢出，
++ *   所以「容器尺寸 ÷ 逻辑尺寸」不会因内容变宽变高而自我放大 ⇒ **无反馈循环**。
 + *   用户手动捏合是 store 里的另一级系数，两级相乘、互不干扰。
 + */
 +let fitObserver: ResizeObserver | null = null;
 +
++/**
++ * 自动适配系数 = 「宽和高里**更紧**的那一边」。
++ *
++ * ★ 2026-10-10 修正（原实现只读宽度）：旧式 `fit = 容器宽 / 逻辑宽` 在**视口宽高比 > 16:9**
++ *   的设备上（21:9 超宽显示器、20:9 手机横屏）会把整幅画面放到高过视口 ——
++ *   1.9 倍字号、可视行数骤减，必须滚动才看得全（内容不丢：`.terminal` 是 `overflow-y: auto`，
++ *   但「原版处处一致」的观感已经破了）。
++ *   推导：记 W/H 为容器宽高、w/h 为逻辑画布宽高（1152/648）。
++ *   按宽算 fit_w = W/w，缩放后画面高 = h·W/w；高过容器 ⟺ h·W/w > H ⟺ W/H > w/h = 16:9。
++ *   ⇒ **只有当视口比 16:9 更宽时高度才会成为更紧的一边**；此时取 fit_h = H/h 兜住高度，
++ *   放大的倍数变小、画面完整落在视口内。比 16:9 更窄（16:10 / 4:3 / 手机竖屏）时
++ *   fit_w ≤ fit_h 恒成立，取 min 的结果**与旧实现逐值相同** ⇒ 主力设备零观感变化
++ *   （见 `TerminalDisplay.test.ts` 的「宽高取更紧一边」用例组）。
++ *
++ * ★ 高度读**容器**（同 `clientWidth` 的理由，见上）——不能用 `window.innerHeight`：
++ *   终端容器只是页面的一部分（上方还有连接栏 / 底部有输入栏），用视口高会把画面放大到
++ *   被上下 UI 遮住的那部分也算进可用高度。
++ *
++ * ★ 安全回退：`clientHeight` 为 0（容器隐藏 / display:none / 布局未就绪）或读到非有限值时，
++ *   **退回旧的纯宽度算法**——绝不让 0/NaN 进入 store。此回退在
++ *   「宽高比 ≤ 16:9」的前提下与「两手都读」逐值等价，故不会造成观感抖动。
++ */
 +function updateAutoFit(): void {
 +  const el = terminalRef.value;
 +  if (!el) return;
-+  const avail = el.clientWidth;
-+  const logical = effectiveWindowWidth.value;
-+  if (avail <= 0 || logical <= 0) return;
-+  game.setAutoFitScale(avail / logical);
++  const availWidth = el.clientWidth;
++  const availHeight = el.clientHeight;
++  const logicalWidth = effectiveWindowWidth.value;
++  if (!(availWidth > 0) || !(logicalWidth > 0)) return;
++  const fitByWidth = availWidth / logicalWidth;
++  // 容器高不可用（0 / 非有限）⇒ 纯宽度算法；宽高比 ≤ 16:9 时与联合算法结果等价。
++  if (!(availHeight > 0)) {
++    game.setAutoFitScale(fitByWidth);
++    return;
++  }
++  const fitByHeight = availHeight / LOGICAL_CANVAS_HEIGHT;
++  const fit = availWidth / availHeight > LOGICAL_CANVAS_ASPECT
++    ? Math.min(fitByWidth, fitByHeight)
++    : fitByWidth;
++  if (!Number.isFinite(fit) || fit <= 0) return; // 兜底：非法值不写进 store
++  game.setAutoFitScale(fit);
 +}
 +
 +onMounted(() => {
@@ -12446,6 +12766,8 @@ index b491deeb..cb20c4e0 100644
 +
 +// ★ 游戏的逻辑宽在加载游戏后才由宿主写入，届时必须重算一次 —
 +//   否则会一直用挂载时的旧值算出的系数。
++//   ★ 容器**高度**的变化不在这里兜：它由上面的 ResizeObserver 与 window.resize 覆盖
++//     （两者都在调 updateAutoFit，而 updateAutoFit 现在同时读宽和高）。
 +watch(effectiveWindowWidth, () => {
 +  nextTick(() => updateAutoFit());
 +});
@@ -12507,7 +12829,7 @@ index b491deeb..cb20c4e0 100644
  </script>
  
  <template>
-@@ -395,7 +595,7 @@ watch(() => game.inputInFlight, (inFlight) => {
+@@ -395,7 +651,7 @@ watch(() => game.inputInFlight, (inFlight) => {
          :key="`${bg.src}:${bg.depth}`"
          class="term-bg-img"
          :src="resolveResource(bg.src)"
@@ -12516,7 +12838,7 @@ index b491deeb..cb20c4e0 100644
          draggable="false"
        />
      </div>
-@@ -428,25 +628,32 @@ watch(() => game.inputInFlight, (inFlight) => {
+@@ -428,25 +684,32 @@ watch(() => game.inputInFlight, (inFlight) => {
            v-for="item in visibleLines"
            :key="item.absIdx"
            class="term-line"
@@ -12559,7 +12881,7 @@ index b491deeb..cb20c4e0 100644
                />
              </span>
            </template>
-@@ -481,6 +688,12 @@ watch(() => game.inputInFlight, (inFlight) => {
+@@ -481,6 +744,12 @@ watch(() => game.inputInFlight, (inFlight) => {
       无 padding——与 WinForms mainPicBox / CLI 终端一致，字符画从容器边缘开始渲染。 */
    overflow-y: auto;
    overflow-x: auto;
@@ -12572,7 +12894,7 @@ index b491deeb..cb20c4e0 100644
    /* 触屏手势仲裁（usePinchZoom 的前置依赖，见其注释）：
       pan-x pan-y——单指横/纵向滚动保留给浏览器原生（虚拟滚动依赖 scrollTop），
       双指手势归 JS 接管、浏览器原生页面缩放/双击放大被禁用。 */
-@@ -502,10 +715,16 @@ watch(() => game.inputInFlight, (inFlight) => {
+@@ -502,10 +771,16 @@ watch(() => game.inputInFlight, (inFlight) => {
    pointer-events: none;
  }
  .term-bg-img {
@@ -12590,7 +12912,7 @@ index b491deeb..cb20c4e0 100644
  }
  /* 虚拟滚动 spacer——撑总高度（itemCount * rowHeight），position:relative 让子元素 absolute 定位 */
  .term-virtual-spacer {
-@@ -526,6 +745,26 @@ watch(() => game.inputInFlight, (inFlight) => {
+@@ -526,6 +801,26 @@ watch(() => game.inputInFlight, (inFlight) => {
    min-height: var(--term-line-min-height, 1.5em);
    /* 行内 inline 元素从左到右流式排列——按钮 entry 与文本 entry 自然交替。 */
  }
@@ -12617,7 +12939,7 @@ index b491deeb..cb20c4e0 100644
  .term-entry {
    display: inline;
  }
-@@ -551,13 +790,28 @@ watch(() => game.inputInFlight, (inFlight) => {
+@@ -551,13 +846,28 @@ watch(() => game.inputInFlight, (inFlight) => {
    vertical-align: baseline;
    transition: background var(--motion-fast), text-decoration-color var(--motion-fast);
  }
@@ -13086,10 +13408,18 @@ index 00000000..1c279e5f
 +  });
 +});
 diff --git a/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts b/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
-index e3e56af8..1629615a 100644
+index e3e56af8..5c5817a7 100644
 --- a/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
 +++ b/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
-@@ -460,6 +460,32 @@ describe('TerminalDisplay: 背景图层', () => {
+@@ -1,5 +1,6 @@
+ // @vitest-environment happy-dom
+-import { describe, it, expect, vi, beforeEach } from 'vitest';
++import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
++import { nextTick } from 'vue';
+ import { mount } from '@vue/test-utils';
+ import { createPinia, setActivePinia } from 'pinia';
+ import TerminalDisplay from '../TerminalDisplay.vue';
+@@ -460,6 +461,32 @@ describe('TerminalDisplay: 背景图层', () => {
      expect(imgs[2].attributes('style')).toContain('opacity: 0.8');
    });
  
@@ -13122,7 +13452,7 @@ index e3e56af8..1629615a 100644
    it('无 bgImages 不渲染背景层', async () => {
      const { wrapper } = await mountWith([line([imgSeg()])]);
      expect(wrapper.find('.term-bg-layer').exists()).toBe(false);
-@@ -491,4 +517,46 @@ describe('TerminalDisplay: 背景图层', () => {
+@@ -491,4 +518,199 @@ describe('TerminalDisplay: 背景图层', () => {
      const { wrapper } = await mountWith([line([imgSeg()])], bgImages);
      expect(wrapper.find('.term-bg-layer').exists()).toBe(false);
    });
@@ -13167,6 +13497,159 @@ index e3e56af8..1629615a 100644
 +    expect(style).not.toContain('height');
 +    // 透明度仍逐张应用
 +    expect(style).toContain('opacity: 1');
++  });
++});
++
++/**
++ * ★★ updateAutoFit：宽高取**更紧的一边**（F-2 前端侧补测）。
++ *
++ * 背景（审查报告 F-2）：真正做设备适配的那一行 `avail / logical` 此前 0 覆盖 ——
++ * store 层的 `setAutoFitScale` 反倒有 6 组测试。**测了「存」，没测「算」。**
++ *
++ * ★ 为什么在**组件层**测而不是把算法抽成纯函数：这一行读的是 `terminalRef` 的
++ *   `clientWidth` / `clientHeight`，而本仓既有测试**从不 mock 组件内部元素尺寸**；
++ *   真正要锁住的行为是「组件读到容器尺寸后，写进 store 的 autoFitScale 是多少」——
++ *   抽函数会让测试与真实调用点脱钩（改了组件不调它，测试照样绿）。
++ *
++ * ★★ 两个环境事实（实测，不是猜的）：
++ *   ① happy-dom 不做布局 ⇒ 元素 `clientWidth` / `clientHeight` **默认都是 0**
++ *      （挂载时组件算出的系数因此不进入任何分支，store 保持 1.0）。
++ *      本仓既有的 mock 只读属性写法是
++ *      `Object.defineProperty(el, prop, { value: N, configurable: true })`
++ *      （见上面 srcm 用例 mock `naturalWidth` / `naturalHeight`）——这里对
++ *      **具体元素实例**沿用同一写法，afterEach 再删除这两个自有属性恢复原型 getter。
++ *   ② **`game.windowWidth` 默认是 `null`，组件会 fallback 到 760**
++ *      （`effectiveWindowWidth`，见组件里 "默认值来源 ConfigCode.WindowX" 那段）。
++ *      而生产环境里宿主已把它固定成设计画布宽 1152 ⇒ 本组用例必须**显式设成 1152**，
++ *      否则测的是「逻辑宽 760」这条已废弃的口径（★ 这个坑我踩过一次：
++ *      2400/760 被 store 的防爆夹取到 4.0，用例会以假值"通过"）。
++ *
++ * ★ 触发方式：挂载时元素尺寸还是 0，故先给尺寸再派发 `window.resize` ——
++ *   组件 `onMounted` 里注册的 `window.addEventListener('resize', updateAutoFit)` 兜底路径
++ *   （旋转屏幕/窗口拉伸的真实通道）会因此重算一次。这样同时验证了
++ *   「高度确实被接进了 resize 回调」。
++ */
++describe('TerminalDisplay: 自动适配缩放（updateAutoFit，宽高取更紧一边）', () => {
++  /** 逻辑画布宽——与引擎侧 `DesignCanvas.Width` 同值（生产环境宿主的写入值）。 */
++  const LOGICAL_WIDTH = 1152;
++  /** 逻辑画布高——组件侧 `LOGICAL_CANVAS_HEIGHT` 的同值副本（测试独立写死，防实现被改动后静默跟随）。 */
++  const LOGICAL_HEIGHT = 648;
++
++  /** 本组件渲染出来的终端容器（Ref 指向 `.terminal`）。 */
++  function terminalEl(wrapper: ReturnType<typeof mount>): HTMLElement {
++    return wrapper.find('.terminal').element as HTMLElement;
++  }
++
++  /**
++   * 给容器实例注入可视尺寸（覆盖原型上的只读 getter）。
++   * `height` 传 `undefined` 表示**不定义**自有属性 ⇒ 回落到环境默认值 0（模拟容器隐藏）。
++   */
++  function setContainerSize(el: HTMLElement, width: number | undefined, height: number | undefined): void {
++    if (width !== undefined) Object.defineProperty(el, 'clientWidth', { value: width, configurable: true });
++    if (height !== undefined) Object.defineProperty(el, 'clientHeight', { value: height, configurable: true });
++  }
++
++  /** 删除自有属性 → 恢复原型 getter（默认 0），避免污染后续用例。 */
++  function clearContainerSize(el: HTMLElement | null): void {
++    if (!el) return;
++    delete (el as unknown as Record<string, unknown>).clientWidth;
++    delete (el as unknown as Record<string, unknown>).clientHeight;
++  }
++
++  /** 走真实通道触发重算：组件监听的那个 window resize 回调。 */
++  async function resizeTo(el: HTMLElement, width: number | undefined, height: number | undefined): Promise<void> {
++    setContainerSize(el, width, height);
++    window.dispatchEvent(new Event('resize'));
++    await nextTick();
++  }
++
++  let wrapper: ReturnType<typeof mount> | null = null;
++
++  /** 挂载一个终端，并把逻辑宽明确钉成生产值 1152（见上 ★★ ②）。 */
++  async function mountFitted() {
++    const mounted = await mountWith([line([imgSeg()])]);
++    wrapper = mounted.wrapper;
++    mounted.game.windowWidth = LOGICAL_WIDTH;
++    await nextTick(); // 让 watch(effectiveWindowWidth) 的重算先跑完，再注入尺寸
++    return mounted;
++  }
++
++  afterEach(() => {
++    clearContainerSize(wrapper ? terminalEl(wrapper) : null);
++    wrapper?.unmount();
++    wrapper = null;
++  });
++
++  it('容器 1152×648（= 逻辑画布原尺寸）⇒ autoFitScale = 1', async () => {
++    const mounted = await mountFitted();
++    await resizeTo(terminalEl(wrapper!), LOGICAL_WIDTH, LOGICAL_HEIGHT);
++    expect(mounted.game.autoFitScale).toBe(1);
++  });
++
++  it('★ 宽度充裕但高度不足（2400×1080，21:9）⇒ 由高度决定 = 1080/648', async () => {
++    const mounted = await mountFitted();
++    await resizeTo(terminalEl(wrapper!), 2400, 1080);
++    // 纯宽度算法会给出 2400/1152 ≈ 2.083（缩放后画面高 1350 > 容器 1080，必须滚动）；
++    // 取更紧一边后由高度兜住：1080/648 ≈ 1.667 ⇒ 整幅画面完整落在容器内。
++    expect(mounted.game.autoFitScale).toBeCloseTo(1080 / LOGICAL_HEIGHT, 10);
++    // ★ 这条才是"高度真的参与"的判据：结果严格小于纯宽度会给出的值，
++    //   且不等于 store 防爆夹取的上限 4.0（否则就是把"夹取"误当"高度生效"）。
++    expect(mounted.game.autoFitScale).toBeLessThan(2400 / LOGICAL_WIDTH);
++    expect(mounted.game.autoFitScale).toBeLessThan(4.0);
++  });
++
++  it('★ 容器高为 0（隐藏 / 未布局）⇒ 退回纯宽度算法，不产生 0 / NaN', async () => {
++    const mounted = await mountFitted();
++    // 只定义宽、不定义高 ⇒ clientHeight 走原型 getter = 0
++    await resizeTo(terminalEl(wrapper!), LOGICAL_WIDTH, undefined);
++    expect(Number.isFinite(mounted.game.autoFitScale)).toBe(true);
++    expect(mounted.game.autoFitScale).toBeGreaterThan(0);
++    expect(mounted.game.autoFitScale).toBe(1); // 纯宽度 = 1152/1152
++  });
++
++  it('★ 解析出 NaN 的高度也走回退（不把 NaN 写进 store）', async () => {
++    const mounted = await mountFitted();
++    await resizeTo(terminalEl(wrapper!), LOGICAL_WIDTH, Number.NaN);
++    expect(mounted.game.autoFitScale).toBe(1);
++  });
++
++  it('★ 宽度为 0（容器不可见）⇒ 不写 store，保持 1.0（不产生 0 / NaN）', async () => {
++    const mounted = await mountFitted();
++    await resizeTo(terminalEl(wrapper!), 0, LOGICAL_HEIGHT);
++    expect(mounted.game.autoFitScale).toBe(1);
++  });
++
++  it('★ 宽高比 ≤ 16:9（16:10 / 4:3 / 手机竖屏 / 恰 16:9）⇒ 与旧的纯宽度算法逐值相同', async () => {
++    const mounted = await mountFitted();
++    const el = terminalEl(wrapper!);
++    // [容器宽, 容器高, 期望 fit = 宽/1152]——这些宽高比全部 ≤ 16:9
++    const cases: Array<[number, number, number]> = [
++      [2000, 1200, 2000 / LOGICAL_WIDTH], // 16:10 横（主力平板）
++      [1024, 768, 1024 / LOGICAL_WIDTH], // 4:3
++      [1080, 2400, 1080 / LOGICAL_WIDTH], // 手机竖屏 9:16
++      [2304, 1296, 2], // 恰 16:9 的 2 倍
++    ];
++    for (const [w, h, expected] of cases) {
++      // 先坐实用例本身站得住：这一档里"按高算"本来就不比"按宽算"更紧，
++      // 所以期望值 = 纯宽度值，且不是靠两条支路碰巧同值。
++      expect(h / LOGICAL_HEIGHT).toBeGreaterThanOrEqual(w / LOGICAL_WIDTH);
++      await resizeTo(el, w, h);
++      expect(mounted.game.autoFitScale).toBeCloseTo(expected, 10);
++    }
++  });
++
++  it('★ 逻辑宽变化后按新宽度重算（watch effectiveWindowWidth 路径）', async () => {
++    const mounted = await mountFitted();
++    await resizeTo(terminalEl(wrapper!), LOGICAL_WIDTH, LOGICAL_HEIGHT);
++    expect(mounted.game.autoFitScale).toBe(1);
++    mounted.game.windowWidth = 576;
++    // ★ 要冲刷**两次**微任务：组件的 watcher 体是 `nextTick(() => updateAutoFit())`——
++    //   第一次 nextTick 只把 watcher 跑掉、把回调排进队列，回调本身在下一轮才执行。
++    //   （这里不靠 window.resize 触发，就是为了锁住"逻辑宽变化"这条路径本身。）
++    await nextTick();
++    await nextTick();
++    // 容器 1152×648 对逻辑 576×648：宽高比 16:9 不宽于画布 ⇒ 纯宽度算法 = 1152/576 = 2
++    expect(mounted.game.autoFitScale).toBe(2);
 +  });
  });
 diff --git a/EraCore.Web/src/components/menuTypes.ts b/EraCore.Web/src/components/menuTypes.ts
@@ -14102,7 +14585,7 @@ index 00000000..5fc39e7f
 +  });
 +});
 diff --git a/EraCore.Web/src/stores/__tests__/game.test.ts b/EraCore.Web/src/stores/__tests__/game.test.ts
-index acbe3d6d..3ea267de 100644
+index acbe3d6d..e4f2fc61 100644
 --- a/EraCore.Web/src/stores/__tests__/game.test.ts
 +++ b/EraCore.Web/src/stores/__tests__/game.test.ts
 @@ -1058,3 +1058,69 @@ describe('useGameStore - setScale（缩放 clamp + 持久化）', () => {
@@ -14111,7 +14594,7 @@ index acbe3d6d..3ea267de 100644
  });
 +
 +describe('useGameStore - 自动适配缩放（autoFitScale）', () => {
-+  // ★★ 背景（2026-10-11）：引擎的 `windowWidth`（= `Config.WindowX`）是**排版坐标系宽度（逻辑宽）**，
++  // ★★ 背景（2026-10-10）：引擎的 `windowWidth`（= `Config.WindowX`）是**排版坐标系宽度（逻辑宽）**，
 +  //   由宿主固定成游戏设计画布宽，不再跟随设备像素 —— 否则同一份内容在每台设备上排出的
 +  //   换行与列数都不同，而原版（GEmuera：Godot 固定逻辑画布 + 整幅等比放大）是「处处一致」。
 +  //   适配屏幕的职责因此落到视图层：按「容器可用宽 ÷ 逻辑宽」把整幅画面等比缩放。
@@ -14360,7 +14843,7 @@ index 00000000..4bde2ccc
 +  });
 +});
 diff --git a/EraCore.Web/src/stores/game.ts b/EraCore.Web/src/stores/game.ts
-index 05e6ff08..850cf831 100644
+index 05e6ff08..1c617806 100644
 --- a/EraCore.Web/src/stores/game.ts
 +++ b/EraCore.Web/src/stores/game.ts
 @@ -433,6 +433,37 @@ export const useGameStore = defineStore('game', () => {
@@ -14401,17 +14884,21 @@ index 05e6ff08..850cf831 100644
    /**
     * 置输入乐观锁 + 30s 安全超时。
     * 幂等：多次调用重置超时（双击时第二击刷新 30s 窗口）。
-@@ -589,9 +620,84 @@ export const useGameStore = defineStore('game', () => {
+@@ -589,9 +620,88 @@ export const useGameStore = defineStore('game', () => {
      writeScaleToStorage(clamped);
    }
  
 -  const effectiveScale = computed(() => scale.value ?? 1.0);
 -  const isMinScale = computed(() => effectiveScale.value <= 0.5);
 -  const isMaxScale = computed(() => effectiveScale.value >= 2.0);
-+  // ---------- 自动适配缩放（2026-10-11）----------
++  // ---------- 自动适配缩放（2026-10-10）----------
 +  //
 +  // ★★ 为什么需要：`windowWidth`（= 引擎的 `Config.WindowX`）是**排版坐标系宽度（逻辑宽）**，
-+  //    由宿主固定成游戏的设计画布宽（见引擎侧 `MainPage.DesignCanvasWidth`）。
++  //    由宿主固定成游戏的设计画布宽 —— 引擎侧的常量是 `DesignCanvas.Width`
++  //    （`EraCore.Core/Shared/Runtime/Config/DesignCanvas.cs`，= 1152）。
++  //    ★ 本行此前写的是 `MainPage.DesignCanvasWidth`，**该成员不存在**（2026-10-10 订正）：
++  //      `MainPage` 上只有**方法** `ApplyDesignCanvasWidth` / `WriteDesignCanvasWidth`，
++  //      它们的作用是把 `DesignCanvas.Width` 写进 `ConfigData`，常量本体不在 `MainPage` 上。
 +  //    而设备屏幕的 CSS 宽度千差万别 ⇒ 必须**把整幅画面等比缩放到可用宽度**，
 +  //    而不是让引擎按设备宽度重排 —— 后者会让每台设备排出不同的换行与列数，
 +  //    与原版行为**正好相反**（原版在任何 16:9 设备上看起来一模一样）。
@@ -14489,7 +14976,7 @@ index 05e6ff08..850cf831 100644
  
    // ---------- ADR-0016：TINPUT timer 状态（本地钟表）----------
    //
-@@ -1482,6 +1588,80 @@ export const useGameStore = defineStore('game', () => {
+@@ -1482,6 +1592,80 @@ export const useGameStore = defineStore('game', () => {
      }
    }
  
@@ -14570,7 +15057,7 @@ index 05e6ff08..850cf831 100644
    return {
      lastTurnJson,
      turnHistory,
-@@ -1494,6 +1674,7 @@ export const useGameStore = defineStore('game', () => {
+@@ -1494,6 +1678,7 @@ export const useGameStore = defineStore('game', () => {
      currentTurnGeneration,
      inputInFlight,
      hasActiveButtons,
@@ -14578,7 +15065,7 @@ index 05e6ff08..850cf831 100644
      setInputInFlight,
      clearInputInFlight,
      // ADR-0016：暴露 TINPUT timer 状态供 UI / 测试访问
-@@ -1571,11 +1752,22 @@ export const useGameStore = defineStore('game', () => {
+@@ -1571,11 +1756,22 @@ export const useGameStore = defineStore('game', () => {
      agentLogContent,
      agentLogTruncated,
      fetchConfig,
