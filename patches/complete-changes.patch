@@ -6951,7 +6951,7 @@ index 2da2a7d6..6ca1eb07 100644
      }
  }
 diff --git a/EraCore.Maui/EraCore.Maui.csproj b/EraCore.Maui/EraCore.Maui.csproj
-index 3f3b8255..5c09f75a 100644
+index 3f3b8255..a449267b 100644
 --- a/EraCore.Maui/EraCore.Maui.csproj
 +++ b/EraCore.Maui/EraCore.Maui.csproj
 @@ -28,10 +28,13 @@
@@ -6966,8 +6966,8 @@ index 3f3b8255..5c09f75a 100644
  		<ApplicationId>com.eracore.maui</ApplicationId>
 -		<ApplicationDisplayVersion>0.1</ApplicationDisplayVersion>
 -		<ApplicationVersion>1</ApplicationVersion>
-+		<ApplicationDisplayVersion>0.5.2</ApplicationDisplayVersion>
-+		<ApplicationVersion>502</ApplicationVersion>
++		<ApplicationDisplayVersion>0.5.3</ApplicationDisplayVersion>
++		<ApplicationVersion>503</ApplicationVersion>
  
  		<!-- Windows 桌面 unpackaged 模式（开发期直接 dotnet run 启动，不需要 MSIX 打包）。
  		     Phase 2 评估 MSIX 打包发布。-->
