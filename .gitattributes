@@ -6,7 +6,16 @@
 # Shell / Python 脚本：强制 LF
 *.sh    text eol=lf
 *.py    text eol=lf
-*.patch text eol=lf
+
+# ★ 补丁文件**不做任何换行符转换**（-text = 当二进制看待，原样保存字节）。
+#   理由：补丁内容里会出现「源文件自带的 CR」—— 实测上游的
+#   `EraCore.Core/Shared/Runtime/Config/ConfigData.cs` 本身就是 CRLF，
+#   补丁里那些行以 CR 结尾。若按文本归一成 LF，CR 会被当成行尾吃掉，
+#   应用补丁得到的源码就与本仓库的不一致（补丁会失真）。
+#   故：补丁一律按字节保存。
+#   ★ 必须同时写 `-text -eol`：只写 `-text` 不够 —— 顶部那行 `* text=auto eol=lf`
+#     仍会给它设上 `eol=lf`，而 `eol` 本身就会触发换行符转换（实测仍被吃掉 1350 字节）。
+*.patch -text -eol
 
 # Markdown / 文本
 *.md    text eol=lf
