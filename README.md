@@ -1,264 +1,77 @@
 # EraRelay
 
-> **当前版本：v0.5.5（2026-10-13）· 常规正式版 / 可靠性增强**
-> 会话生命周期、连接隔离、显示恢复水位与先订阅后启动；HTTP 专用退出反馈（MAUI 原生退出未改）。
-> 前端 713 例与类型检查通过；C# 仍有既有 SAF 2 失败。Android 正常游玩试用未发现问题，不外推专项验收。
-> F8 暂缓，R10 / WebView 尾段 / 前端来源识别残留保留；本版不是性能升级，也不是全部问题已修复。
-> 本次 APK 沿用验证包字节，39,914,303 字节，仅 arm64-v8a，未重建。
-> 详情及哈希：[v0.5.5 版本说明](docs/05-v0.5.5版本说明.md)。
-> 当前完整补丁还原**脱敏公开源码快照**，非原始构建 tree；差异仅 20 文件 / 88 行非运行注释。
-> 以下 v0.5.4/v0.5.3 补丁规模与 tree 数字为历史记录，不能作为当前补丁的判据；当前以版本说明及授权说明为准。
+**在手机或平板上玩 eraTW（蛇版）。**
 
+EraRelay 是一款基于 [era-core](https://github.com/LaoBro/era-core) 开发的 era 游戏运行工具。目前主要适配 Android 上的 eraTW 画蛇添足版，提供触屏操作、画面显示和游戏目录选择。
 
-> era 类游戏搬到多平台上直接玩 —— 基于上游
-> **[LaoBro/era-core](https://github.com/LaoBro/era-core)** 引擎，提供 Android / Windows 构建与发行包
-> （目前仅保证 **eraTW（画蛇添足版）** 的适配）。
+应用不附带游戏，请自行准备游戏文件。
 
-**名字的意思**：eraTW 从旧引擎（Emuera）接力到新引擎（EraCore）—— 我们只做接力的那一棒。
+**[下载安装包](https://github.com/xiangweilai258/eratw-on-eracore/releases/latest)** · [使用说明](https://github.com/xiangweilai258/eratw-on-eracore/blob/main/docs/02-使用说明.md) · [反馈问题](https://github.com/xiangweilai258/eratw-on-eracore/issues)
 
-> ★ **历史版本：v0.5.4**（2026-10-10）
->
-> 本版是**独立审查之后的修复版** —— 内容不多，但都属于「看起来没事、其实会出问题」的那一类：
->
-> - **超宽屏的适配方式改了** —— 现在按「**宽与高，哪边更紧就按哪边**」来缩放。
->   ★ **16:9 以及比 16:9 更窄（更高）的设备，显示结果与上一版逐值相同**；
->   只有**比 16:9 更宽**的手机横屏（例如 21:9 / 20:9）受这次改动影响：
->   以前那种「画面下缘被压掉、要滚动才看得全」的情况不会再出现。
-> - **修掉一条会随机误报的测试** —— 之前跑全量测试，失败条数会时多时少，
->   让人分不清是真出问题还是测试自己在抖。
->   ★ 根因不在测试写法，而在引擎里一个**进程内共享的开关**被**非原子地保存 / 恢复**：
->   并行跑测试时两边互相干扰。
->   ★ 另外说明一句：审查报告把这条的根因判成「`AsyncLocal` 污染」，**那个判断是错的**，已用反证纠正。
-> - **补齐「逻辑画布宽度」的判据测试** —— 上一版把排版宽度固定成了 1152，
->   但**这个约束当时没有任何测试守着**。现在补上了，并做了双向反证（故意改回旧值 ⇒ 测试变红）。
-> - **两处注释订正** —— 把失效的引用指向真实常量；三处写错的日期改回实际提交日。
->
-> ★★ **已在 Android 真机实测通过**（2026-10-10 晚）—— 测试机：**荣耀 ROD-W09**，Android **14** / **arm64-v8a** / **1600×2560**，
-> 整体运行**未发现问题**。
-> ★ 说明：本版的界面改动（超宽屏自动适配改为「宽高取更紧的一边」）在 **16:10 屏幕**上与上一版**显示结果完全一致** ——
-> **这是刻意的**（改动的约定就是：**宽高比不超过 16:9 的设备，逐项数值一律不变**），只为纠正**比 16:9 更宽**的手机横屏。
-> ★ 全部版本与下载见 [**Releases**](https://github.com/xiangweilai258/eratw-on-eracore/releases)
-> —— ★ 本应用**不做自动更新**，新版本请自行到这个页面取。
+## 开始游玩
 
-> ★ **上一版：v0.5.3**（2026-10-10）—— ★ **以下为历史内容，保留备查**
->
-> 本版解决的是**「看起来对不对」** —— 界面不再跟着每台设备的宽度各自变形，
-> 而是**排成同一个样子**，再由界面整体缩放去适配屏幕。
->
-> - **排版宽度固定** —— 折行、行内居中、分割线一律按固定的逻辑画布（1152 宽）计算
->   ⇒ **任何 16:9 设备上的换行位置与列数完全一致**；字号本身不变，适配屏幕交给整体缩放。
-> - **背景图铺满整屏** —— 按设备尺寸铺满，**缩放时一动不动**
->   （此前会跟着缩放漂移，而且屏幕右侧会留黑）。
-> - **缩放控件** —— 修掉「越点越小」。
-> - **许可说明补齐** —— 本仓库对上游的源码改动，此前只公开了一部分（42 / 139 个文件），
->   现在补全；`patches/complete-changes.patch` 可完整还原构建这个包时用的源码。
->   ★ **口径说明（2026-10-10 补，数字未改）**：42 / 139 **按「可 `git apply` 的补丁」计**；
->   若把 `patches/pluginsAware-soft-warning.md` 里的代码片段也算作披露，则为 **43 / 139（未披露 96）** —— 两个数都对，只是口径不同。
->   ★ **（2026-10-10 深夜补记，不改上句 —— 上句的 42 / 139 是 v0.5.3 发布当时的事实）**：
->   v0.5.3 之后经独立审查修复，**改动增至 141 个文件**（+11611 / −2196），`patches/complete-changes.patch` **已同步重出**。
->   ⚠️ ★ 该补丁**其后又随 v0.5.4 重出过一次**：现在它还原的是**更新的源码**（含 v0.5.4 版本号）。
->   ★ 本补丁重出时记下的 HEAD 是 `964fcc8f` —— 实测该提交的 tree 是 `b6e5fd23…`，**与判据 `cbcb35bd…` 对不上**；
->   现按最新实测以 **`2ce25e0a`**（产品版本号提交）为准，判据仍是 `cbcb35bd…`（= `2ce25e0a^{tree}`）。
->   ★★ **锚点是"发布提交"、不是"分支 HEAD"**：其后 `erarelay` 又前进了一个**纯文档**提交 `8e53e074` ⇒
->   `erarelay^{tree}` 现为 `f9a19ffb…`、**已 ≠ 判据 —— 这属正常，补丁不改**（详见 `LICENSE-NOTICE.md` 同节与 `docs/04`）。
->
-> ★ 全部版本与下载见 [**Releases**](https://github.com/xiangweilai258/eratw-on-eracore/releases)
-> —— ★ 本应用**不做自动更新**，新版本请自行到这个页面取。
+1. 下载并安装 Android 安装包，目前提供 arm64 版本。
+2. 将游戏完整解压到设备上，保留原有目录结构。可以按下面的方式摆放，`emuera` 只是示例名称：
 
-> **本仓库不包含任何游戏本体。** eraTW 是社区同人作品，请自行准备游戏目录。  
-> 本仓库只提供：移植补丁、辅助脚本、以及我们自己编译的 Android APK。
+   ```text
+   emuera/              ← 在应用中选择这一层
+   └─ 你的游戏/
+      ├─ ERB/
+      └─ CSV/
+   ```
 
----
+3. 打开 EraRelay，跟随应用内引导完成目录访问设置，选择装着游戏文件夹的父目录并扫描。
+4. 在游戏列表中点选游戏，开始游玩。
 
-## 这是什么
+**更新应用或尝试新游戏前，建议先备份重要存档。**
 
-`era-core` 是 [Emuera](https://ja.wikipedia.org/wiki/Emuera) 的现代化重构版 —— 剥离了 WinForms、内核完全无头、  
-可跨平台（Windows / Android / 浏览器）。但它**跑 eraTW 会崩**：eraTW 使用了「画蛇添足」这一支系魔改出的  
-EEv56 扩展指令集，而 `era-core` 的 `main` 分支只实现了基础指令。
+## 用起来有什么不同
 
-本仓库的 `port/eratw-EE56-compat.patch` 就是补上这块兼容层的补丁 —— **打完即可在 EraCore 上跑 eraTW**。
+- **直接在触屏上操作**：通过画面选项与输入栏推进游戏，无需连接实体键盘。
+- **适合横屏游玩**：支持方向锁定，方便在手机和平板上阅读游戏画面。
+- **不容易漏掉选项**：为部分深色背景上的暗色选项增加提示底衬，让触屏操作时更容易找到可点的位置。
+- **保留蛇版的画面内容**：已适配背景图片及部分扩展显示与输入指令，兼容效果以实际游戏版本为准。
 
----
+## 目前适合谁
 
-## 成果
+目前主要围绕 **eraTW 画蛇添足版（蛇版）** 进行适配与测试。想在 Android 手机上或平板上玩蛇版，可以先从这里开始尝试。
 
-| 项目     | 结果                                                                                                                            |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| 补丁规模   | `+999 / -10`，9 个文件，40.6 KB（★ 原写 `+946 / -10`，2026-10-10 更正：`946` 是 **v0.5.2 时代旧版补丁**的旧数，实测本版为 `999`；旧值留痕）                                                                                                    |
-| ERB 加载 | 3931 个 ERB 全通过（`labels=112727`）                                                                                               |
-| 启动     | `Process.Initialize OK` → `state=WaitInput`；热 IR 缓存后 **约 6 秒**                                                                |
-| 真机     | 荣耀平板 ROD-W09 / Android 14 / 8 GB —— **完整可玩**；★★ **v0.5.4 已在该机实测通过（2026-10-10 晚，历史记录）**<br />ALLDOCUBE 掌玩 mini / Android 13 —— **可玩**（★ 该机需先关掉多进程 WebView，见「快速开始」里的白屏说明） |
-| 内存     | 标题画面 **PSS 747 MB**，游玩 27+ 分钟未被系统回收                                                                                           |
-| APK | **39.9 MB（39,914,303 字节；约 38.1 MiB）**，仅 arm64-v8a，SHA-256 见当前版本说明。 |
+其他 era 游戏尚未充分验证，不能保证都能运行。项目仍在持续完善，遇到画面、输入或兼容问题，欢迎反馈。
 
-### 内存表现
+找不到游戏或无法启动时，请先查看应用内引导与疑难解答；如果界面未能加载，请按屏幕上的提示处理。仍有问题，可以通过下方渠道反馈。
 
-标题画面 **PSS 747 MB**，游玩 27+ 分钟未被系统回收。
+## 版本更新
 
-> ⚠️ 数据来自单台设备单次采样，环境差异（系统版本、后台负载、采样方式）都会影响结果，请自行复现。
+当前版本：**v0.5.6**。修复换游戏后 SQL 连接沿用旧数据库的问题；纠正应用内目录选择引导，使说明与实际目录层级一致。
 
-### ★ AI 参与游玩（本项目的独特之处）
+[查看当前版本与更新说明](https://github.com/xiangweilai258/eratw-on-eracore/releases/latest)
 
-EraCore 的引擎内核是**完全无头**的，游戏会话跑在一个本地 HTTP + WebSocket 服务上，  
-WebView 只是其中一个「客户端」。这意味着 —— **AI agent 可以像另一个玩家一样接进同一个会话**：
+## 后续方向
 
-- 读画面：agent 订阅 turn 流，拿到与玩家屏幕上一致的文本 diff
-- 下指令：agent 通过同一套输入协议发送操作，与真人操作等效
+除了继续改善游玩体验，我们也希望探索 **AI 辅助游玩**，让 AI 能够理解游戏画面，并协助玩家操作。
 
-这不是设想，是**已经跑通的架构**（`EraCore.Core/Agent/` 下的 JSONL 协议 + `EraCore.Maui/BridgeHost.cs` 编排）。
+目前仍处于底层能力探索阶段，**尚未提供开箱即用的 AI 陪玩功能**。
 
-> 本项目的界面与无头内核分离，界面可拆换；自动化客户端使用同一套会话协议接入。
+## 反馈问题
 
----
+请在 [Issues](https://github.com/xiangweilai258/eratw-on-eracore/issues) 中反馈（需要 GitHub 账号），说明：
 
-## 快速开始
+- 使用的应用版本、设备型号和 Android 版本；
+- 游戏名称与版本，以及遇到问题前做了什么；
+- 实际出现的情况，方便的话附一张截图。
 
-### 方式一：直接用 APK（推荐，最省事）
+提交前请遮盖截图或日志中的私人信息。不要公开上传存档、完整游戏文件、账户信息或密钥。
 
-1. 到 [Releases](../../releases) 下载最新的 `EraRelay-v*.apk`
-2. 安装到 Android arm64 设备（本次 APK 仅 arm64-v8a；x86_64 模拟器需自行构建）
-3. 把 eraTW 游戏目录放到设备上，例如 `/sdcard/emuera/eraTW/`（目录内应有 `ERB/`、`CSV/` 等）
-4. 打开应用，选择该目录
+## 来源与致谢
 
-> **本 APK 不内置任何游戏内容**，请自行获取 eraTW 本体。
+EraRelay 基于 [LaoBro/era-core](https://github.com/LaoBro/era-core) 开发，源自 Emuera 的开源传承。我们做的是移植、兼容适配与游玩体验改进，感谢上游作者及社区的工作。
 
-> ⚠️ **如果装上打开是一片白**：多半是**设备自带的 WebView 不完整**（Android 10 起 WebView 拆成  
-> 「外壳 + Trichrome 核心库」，有些白牌 ROM 只装了外壳），**与本应用无关** —— 这类机器上  
-> 任何 WebView 应用都会白屏。两个办法：① 把系统的 WebView 实现换成完整的 Chrome  
-> （设置 → 开发者选项 → WebView 实现）；② 在电脑上执行 `adb shell settings put global webview_multiprocess 0`，  
-> 退回单进程 WebView。★ 实测：一台白牌平板（Android 13）正是这种 ROM，用办法 ② 后白屏消失。
+本项目不包含、不分发游戏内容。游戏版权归各自作者所有。
 
-### 方式二：从源码构建
-
-```bash
-# 1. 取上游源码
-git clone https://github.com/LaoBro/era-core.git
-cd era-core && git checkout main
-
-# 2. 切到完整补丁基线并应用当前公开快照
-git checkout 5ebd38ad
-git apply /path/to/patches/complete-changes.patch
-
-# 3. 构建 Android APK（arm64）
-dotnet publish EraCore.Maui/EraCore.Maui.csproj -f net10.0-android -c Release -r android-arm64
-```
-
-> ★ **推荐改用本仓库的 `tools/build-android.sh Release arm64`** —— 它把上面的命令包起来，  
-> 并额外做四道自检 + **自动签名**。★ 注意：`dotnet build` 即便显示「0 错误 0 警告 生成成功」，  
-> 产出的 `com.eracore.maui-Signed.apk` **实际没有签名**（那个名字是误导），装机会报  
-> `INSTALL_PARSE_FAILED_NO_CERTIFICATES`。
-
-需要 .NET 10 SDK、Android SDK、JDK 17+。上游详细的构建说明见其 README。
-
-### 方式三：只在 PC 上跑（无头 / Web）
-
-见仓库 `tools/` 下的脚本：
-
-- `tools/eracore-probe.sh` —— 无头引擎加载探针（量化加载耗时、打印画面、发送输入）
-- `tools/start-web.sh` —— 拉起 HTTP server，浏览器直接玩
-
----
-
-## 仓库内容
-
-```
-port/
-  eratw-EE56-compat.patch    ★ 核心补丁（+999/-10，9 文件；★ 原写 946，2026-10-10 更正 —— 946 是 v0.5.2 时代旧版补丁的数）
-  make-patch.py                补丁生成脚本（可复现）
-  make-nf-patch.py             NF 指令族补丁生成脚本（可复现）
-  make-pluginaware-patch.py    pluginsAware 软警告改动的补丁生成脚本（可复现）
-patches/
-  cbg-graphics-layer.patch      ★ 图形画布层补丁（+827/-45，33 个文件，见下）—— 让 eraTW 的背景图片补丁可用
-  nf-input-family.patch         ★ NF 指令族补丁（+108/-4，5 文件，见下；★ 原写 89，2026-10-10 更正 —— 89 是 v0.5.2 时代旧版补丁的数）
-  als-VarKeyAreadyDefined-fix.patch   一个独立的小修（上游 main 分支可用）
-  pluginsAware-soft-warning.md        插件门禁改软警告的逐处改动说明（见下）
-docs/
-  01-移植技术报告.md       移植原理与改动说明
-  02-使用说明.md          安装与游玩
-  03-补丁验证记录.md       每个补丁的验证方法与结果
-  ★ 04-版本更新记录.md     ★ 全部版本的更新内容（最新在最上）
-tools/
-  build-android.sh        Android 打包（含 Debug 打包的 .so 压缩坑的修复）
-  deploy-android.sh       部署到真机 + 启动自检 + 内存采样
-  bench-app.sh            跨架构启动/内存基准
-  soak-memory.sh          长时内存采样（验稳定）
-  soak-v2.sh              真实游玩资源占用记录（含 WebView 渲染进程）
-  eracore-probe.sh        无头引擎探针
-  start-web.sh            浏览器方式启动
-  snapshot-dump.py        从 /snapshot 提取屏幕文本
-  playthrough.py          自动通关驱动（跑 EEv56 路径）
-  check-release.ps1       外发前自检（六类合规红线，FAIL / WARN / OK 分级）
-  measure-win-fill.ps1    量 Windows 版游戏窗口的「铺满度」（可回归）
-  web-layout-probe.ps1    前端布局探针：无头浏览器在指定分辨率下读真实 DOM 几何并出图
-  web-layout-probe.mjs    同上，CDP 驱动部分（用 Node 内置 WebSocket，无第三方依赖）
-```
-
-> **关于 `pluginsAware`**：`era-core` 的 `main` 分支还留着**旧版硬门禁**——游戏目录带了 DLL 插件  
-> 却没有 `pluginsAware.txt` 时，会**直接拒绝启动**。上游 Emuera 已于 2026-05-26 废弃该设计  
-> （改为软警告），本仓库已对齐该行为，逐处改动见  
-> [`patches/pluginsAware-soft-warning.md`](patches/pluginsAware-soft-warning.md)。  
-> 用本仓库编译的 APK 无需关心这个文件；如需 `pluginsAware.txt` 模板，见  
-> [`docs/pluginsAware.txt.template`](docs/pluginsAware.txt.template)。
-
----
-
-## 补丁做了什么
-
-改动集中在 `EraCore.Core`，可归纳为五类：
-
-1. **EEv56 兼容层** —— 新增 `Creator.Method.EE56.cs`，补齐 eraTW 依赖的扩展指令实现  
-   （`GRAPH_DISTANCE` / `SQL_IMPORT_MAP_XML` / `TEXT_BGC` / `HTML_PRINTC` / `UNCHECKED_*` 等）
-2. **指令注册** —— 在 `BuiltInFunctionCode.cs` / `FunctionIdentifier.cs` / `Instraction.Child.cs` 登记新指令
-3. **SQL 运行时** —— 新增 `EESqlRuntime.cs`，提供 eraTW 需要的 SQL 层
-4. **插件加载容错** —— `PluginManager.cs`：程序集重定向、`GetTypes` 容错、目录大小写
-5. **NF 指令族** —— `TINPUTNF` / `TINPUTSNF` / `TONEINPUTNF` / `TONEINPUTSNF`（见下）
-
-### ★ NF 指令族（`patches/nf-input-family.patch`）
-
-eraTW 的动态地图动画依赖一组「不夺窗口焦点」的输入指令 —— **NF（NoFocus）族**，  
-由 eraTW 汉化整合版自行 fork 的解释器 v9 私有扩展，上游 `era-core` 没有。
-
-本仓库已补齐（**+108 / -4，5 文件**；★ **原写 `+89 / -4`，2026-10-10 更正：`89` 是 v0.5.2 时代旧版补丁的数**，
-实测本版为 `+108 / -4`，判据 = 数补丁文本里 `+` 开头的行数（排除 `+++`）／`-` 开头的行数（排除 `---`））：
-
-| 文件                       | 改动                              |
-| ------------------------ | ------------------------------- |
-| `EraCore.Core.csproj`    | 显式定义引擎版本号 `1.0.1`（作废旧 IR 缓存，见下） |
-| `BuiltInFunctionCode.cs` | 新增 4 个枚举成员                      |
-| `InputRequest.cs`        | 新增 `NoFocus` 字段                 |
-| `Instraction.Child.cs`   | `TINPUT` / `TINPUTS` 两个构造加可选参   |
-| `FunctionIdentifier.cs`  | 登记 4 个新指令                       |
-
-> **为什么动版本号**：`EraCore.Core` 原本走 SDK 默认版本 `1.0.0.0`；新增指令后，  
-> 已缓存过的 `era_ir.dat`（IR 缓存）可能用旧指令集合，需判废重建。引擎用  
-> `Fnv1a64(AssemblyData.EmueraVersionText)` 作为 IR 缓存键 —— 版本号 +1 即可让老缓存自动失效，  
-> 用户无需手动删 `_IRCache`。**注意：版本号只能增不能减。**
-
-### 相对上游的行为调整
-
-- **插件门禁改为软警告** —— 上游 `main` 分支在游戏自带 DLL 插件但缺 `pluginsAware.txt` 时**拒绝启动**；  
-  本仓库对齐上游 Emuera 2026-05 的方案，改为**启动时提示一条，不拦截**。  
-  详见 [`patches/pluginsAware-soft-warning.md`](patches/pluginsAware-soft-warning.md)。
-
----
-
-## 授权与致谢
-
-本项目**基于 [LaoBro/era-core](https://github.com/LaoBro/era-core)** 开发，后者又源自 **EvilMask 的  
-[Emuera.EM](https://gitlab.com/EvilMask/emuera.em)**，并可追溯至 **MinorShift 的 Emuera**。
-
-**本仓库不声称对上游代码的任何原创性。** 我们做的是移植与适配，所有改动均以补丁形式明示。
-
-上游采用 MinorShift 的 Emuera 许可（允许自由使用、修改、再分发，含商用），要求：  
-① 不得虚报出处 ② **修改过源码必须明示** ③ 不得删除许可声明。  
-本仓库遵守上述三条，许可原文见 [`LICENSE-NOTICE.md`](LICENSE-NOTICE.md)。
-
-**关于游戏本体**：eraTW 是独立同人作品，版权归其作者群体所有，**本仓库不包含、不分发任何游戏内容**。
-
----
+[授权与致谢](https://github.com/xiangweilai258/eratw-on-eracore/blob/main/LICENSE-NOTICE.md) · [技术与构建文档](https://github.com/xiangweilai258/eratw-on-eracore/tree/main/docs)
 
 ## 特别致谢
 
 特别感谢我的姐姐 Crystal。她未必理解 ERA 游戏意味着什么，也从未问过 WebView 到底渲染了什么，但她始终相信我在做的这件事有意义。开源在上一代人眼中或许是“赚钱”的反面；而在她眼里，那不过是我需要支持时，她恰好站在我身边的理由。若你在某个深夜享受着新引擎驱动的 eraTW，请记得，这引擎背后，还有一位姐姐无私的信任。
 
-*Thanks to my sister, for always being there.*
+Thanks to my sister, for always being there.

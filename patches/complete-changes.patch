@@ -1,5 +1,5 @@
 diff --git a/CLAUDE.md b/CLAUDE.md
-index 34bb4cd875ad036fa64b814bc1f26541315b6dca..a1d42f820ba708df0acdb2f2bc486e510f077009 100644
+index 34bb4cd8..a1d42f82 100644
 --- a/CLAUDE.md
 +++ b/CLAUDE.md
 @@ -1,145 +1,148 @@
@@ -297,7 +297,7 @@ index 34bb4cd875ad036fa64b814bc1f26541315b6dca..a1d42f820ba708df0acdb2f2bc486e51
 +
 +Issues live under `.scratch/<feature>/`. 使用仓库中 `.agents/skills/` 提供的专业流程；需要规划、实现、测试、审查或文档维护时，先加载匹配的 skill。操控游戏走 [`eracore-playtesting`](.agents/skills/eracore-playtesting/SKILL.md)。
 diff --git a/EraCore.Cli/HeadlessEntry.cs b/EraCore.Cli/HeadlessEntry.cs
-index e549bb455b5b820bf44b11be402272ce4349b8b5..703d2279aa1e28cda84affc3917428dde7162c7a 100644
+index e549bb45..703d2279 100644
 --- a/EraCore.Cli/HeadlessEntry.cs
 +++ b/EraCore.Cli/HeadlessEntry.cs
 @@ -85,7 +85,7 @@ internal static class HeadlessEntry
@@ -336,7 +336,7 @@ index e549bb455b5b820bf44b11be402272ce4349b8b5..703d2279aa1e28cda84affc3917428dd
 +    }
  }
 diff --git a/EraCore.Cli/HeadlessOptions.cs b/EraCore.Cli/HeadlessOptions.cs
-index 0c5e5b85a4a63840afe9ea02197d4c4f4a27f4dc..418eb44203be9eb1a8e36640adb45429bda78908 100644
+index 0c5e5b85..418eb442 100644
 --- a/EraCore.Cli/HeadlessOptions.cs
 +++ b/EraCore.Cli/HeadlessOptions.cs
 @@ -1,5 +1,6 @@
@@ -414,7 +414,7 @@ index 0c5e5b85a4a63840afe9ea02197d4c4f4a27f4dc..418eb44203be9eb1a8e36640adb45429
  
      private static bool ArgsContainPort(string[] args)
 diff --git a/EraCore.Cli/ServerRunner.cs b/EraCore.Cli/ServerRunner.cs
-index 89486fa0fabff2b4394dbeb785976181e04ef2a4..c7ea5e86d855176e2c8e20ba7b6d5ebfc58bd09f 100644
+index 89486fa0..c7ea5e86 100644
 --- a/EraCore.Cli/ServerRunner.cs
 +++ b/EraCore.Cli/ServerRunner.cs
 @@ -19,7 +19,8 @@ internal static class ServerRunner
@@ -437,7 +437,7 @@ index 89486fa0fabff2b4394dbeb785976181e04ef2a4..c7ea5e86d855176e2c8e20ba7b6d5ebf
  
          if (openBrowser)
 diff --git a/EraCore.Core/Agent/AgentJsonlProtocol.cs b/EraCore.Core/Agent/AgentJsonlProtocol.cs
-index f861213cb54e61036ff240452848910d0eb89b85..8de18efcda4f48bff602d29341a2c0fcb99e7575 100644
+index f861213c..8de18efc 100644
 --- a/EraCore.Core/Agent/AgentJsonlProtocol.cs
 +++ b/EraCore.Core/Agent/AgentJsonlProtocol.cs
 @@ -42,6 +42,12 @@ namespace MinorShift.Emuera.GameView
@@ -890,7 +890,7 @@ index f861213cb54e61036ff240452848910d0eb89b85..8de18efcda4f48bff602d29341a2c0fc
          }
  
 diff --git a/EraCore.Core/Agent/DisplayState.cs b/EraCore.Core/Agent/DisplayState.cs
-index d9dff99cf36d75b0bde0400a2b49722224eaa4ae..79dc4d17788edafca93aaecee118f1c12a509ffd 100644
+index d9dff99c..79dc4d17 100644
 --- a/EraCore.Core/Agent/DisplayState.cs
 +++ b/EraCore.Core/Agent/DisplayState.cs
 @@ -29,7 +29,21 @@ internal record DisplaySnapshot(
@@ -1255,7 +1255,7 @@ index d9dff99cf36d75b0bde0400a2b49722224eaa4ae..79dc4d17788edafca93aaecee118f1c1
      }
  
 diff --git a/EraCore.Core/Agent/TurnRecord.cs b/EraCore.Core/Agent/TurnRecord.cs
-index a0c51838efdbe8000545c823c4460548e56fa9f0..b299c53940b0070fd82ef772dd34c3887d8241ab 100644
+index a0c51838..b299c539 100644
 --- a/EraCore.Core/Agent/TurnRecord.cs
 +++ b/EraCore.Core/Agent/TurnRecord.cs
 @@ -18,6 +18,30 @@ internal record TurnRecord(
@@ -1366,7 +1366,7 @@ index a0c51838efdbe8000545c823c4460548e56fa9f0..b299c53940b0070fd82ef772dd34c388
  
  internal record ButtonRef(object value, bool isInteger, long generation, int? col = null, int? width = null);
 diff --git a/EraCore.Core/Assets/AssetChannel.cs b/EraCore.Core/Assets/AssetChannel.cs
-index 4813616e0b38b336031e91a34c73dac7e0ee4bce..27ea340758e0a6bd0888da442fc7fbc5574d9c7f 100644
+index 4813616e..27ea3407 100644
 --- a/EraCore.Core/Assets/AssetChannel.cs
 +++ b/EraCore.Core/Assets/AssetChannel.cs
 @@ -52,6 +52,15 @@ internal static class AssetChannel
@@ -1386,7 +1386,7 @@ index 4813616e0b38b336031e91a34c73dac7e0ee4bce..27ea340758e0a6bd0888da442fc7fbc5
      }
  
 diff --git a/EraCore.Core/EraCore.Core.csproj b/EraCore.Core/EraCore.Core.csproj
-index 225d2be847144f08fb41e80ccbce9f9a94d7468b..e367f3d189672c427a4fa2582641c61cad16e0c7 100644
+index 225d2be8..e367f3d1 100644
 --- a/EraCore.Core/EraCore.Core.csproj
 +++ b/EraCore.Core/EraCore.Core.csproj
 @@ -6,6 +6,18 @@
@@ -1420,7 +1420,7 @@ index 225d2be847144f08fb41e80ccbce9f9a94d7468b..e367f3d189672c427a4fa2582641c61c
 +
  </Project>
 diff --git a/EraCore.Core/GamePaths.cs b/EraCore.Core/GamePaths.cs
-index af6beb8c2014490f37798f256f1a61a8c034987b..47ef849ffa1ce49f53d3e2c0fd7b0f6888cda1bc 100644
+index af6beb8c..47ef849f 100644
 --- a/EraCore.Core/GamePaths.cs
 +++ b/EraCore.Core/GamePaths.cs
 @@ -20,6 +20,7 @@ internal sealed class GamePaths
@@ -1463,8 +1463,39 @@ index af6beb8c2014490f37798f256f1a61a8c034987b..47ef849ffa1ce49f53d3e2c0fd7b0f68
      internal static void SetCurrent(GamePaths paths)
      {
          Current = paths;
+diff --git a/EraCore.Core/GlobalStatic.cs b/EraCore.Core/GlobalStatic.cs
+index 23742090..3a7163be 100644
+--- a/EraCore.Core/GlobalStatic.cs
++++ b/EraCore.Core/GlobalStatic.cs
+@@ -1,3 +1,4 @@
++using MinorShift.Emuera.GameData.Function;
+ using MinorShift.Emuera.GameData.Variable;
+ using MinorShift.Emuera.GameProc;
+ using MinorShift.Emuera.GameView;
+@@ -182,6 +183,21 @@ internal sealed class GlobalStatic
+             // 确保 Current 一定归 null，即使 Pfc.Dispose 抛异常也不残留 scope
+             try
+             {
++                // SQL 换局串库修复：EESqlRuntime 的命名连接池 / reader 表是**进程级静态**
++                // （EraCore.Core/Shared/Runtime/Utils/EESqlRuntime.cs），此前不随会话生灭 ⇒
++                // 旧会话结束后连接仍留在池里，新会话用同名连接（eraTW 的 QOL_DISH_DB / TR_DB /
++                // GRAPH_DB 等固定名）时直接拿到旧会话的连接，**读写落在旧游戏目录的库上**。
++                //
++                // 放在本作用域 Dispose 清理链内，且**置于链首**：
++                // - 时机已由既有生命周期保证——GameLoopComposer 的 using 退出时本会话游戏循环已结束，
++                //   而 Session.Dispose / DestroySession 会 join 游戏循环，故此处旧循环必已停止；
++                // - 新会话此时尚未创建（更未执行 SQL）⇒ 清池不会误关新会话的连接；
++                // - 每条会话各有自己的 scope，正常退出（不再开新局）同样会走到这里；
++                // - 置于链首：后续任一清理项抛异常都不会漏掉 SQL 释放——残留的旧连接会在下一局
++                //   重新造成串库，代价比其它残留高，故不排在可能抛异常的清理之后；
++                // - Reset 逐项 try/catch 且幂等，重复 Dispose / 异常路径安全。
++                // 注：不清 SQLite 全局连接池、不强制 GC——仅释放本运行时自己持有的连接与 reader。
++                EESqlRuntime.Reset();
+                 instance._pfc.Dispose();
+                 // mem-leak-fix：静态根清理。ParserMediator.console 静态字段持 EmueraConsole→Process
+                 // 整张游戏对象图（CSV 数据 / 变量表 / ERB 编译产物），不清则退出游戏后 GC 无法回收。
 diff --git a/EraCore.Core/Server/Controller.cs b/EraCore.Core/Server/Controller.cs
-index 96f38c6f85b30db0fc9ba685ee306a2a73aa831a..c2b2c3c5f47445da54704a723f6e907e94e057a1 100644
+index 96f38c6f..c2b2c3c5 100644
 --- a/EraCore.Core/Server/Controller.cs
 +++ b/EraCore.Core/Server/Controller.cs
 @@ -48,6 +48,7 @@ internal enum ControlAcquireStatus
@@ -1504,7 +1535,7 @@ index 96f38c6f85b30db0fc9ba685ee306a2a73aa831a..c2b2c3c5f47445da54704a723f6e907e
      private ControlGateResult CheckGateLocked(ControlIdentity identity, bool sessionEnded)
      {
 diff --git a/EraCore.Core/Server/GameConfigService.cs b/EraCore.Core/Server/GameConfigService.cs
-index afe73c114c516e3a9ecb74edc1a21550b4263be2..28caea17af4f1399394a2366f4c2ea22a736dbd0 100644
+index afe73c11..28caea17 100644
 --- a/EraCore.Core/Server/GameConfigService.cs
 +++ b/EraCore.Core/Server/GameConfigService.cs
 @@ -10,12 +10,17 @@ namespace MinorShift.Emuera.Server;
@@ -1583,7 +1614,7 @@ index afe73c114c516e3a9ecb74edc1a21550b4263be2..28caea17af4f1399394a2366f4c2ea22
  
  /// <summary>窗口布局元信息（issue 12），供 GET /state 返回。visibleRows = WindowY / LineHeight（agent 紧凑视图的页高）。</summary>
 diff --git a/EraCore.Core/Server/GameServerProtocol.cs b/EraCore.Core/Server/GameServerProtocol.cs
-index 6642a6f2ba48b9e3089608683c824744eebf591d..3e9a3cbe8b3f342f18d25532da921f2cd89fa58b 100644
+index 6642a6f2..3e9a3cbe 100644
 --- a/EraCore.Core/Server/GameServerProtocol.cs
 +++ b/EraCore.Core/Server/GameServerProtocol.cs
 @@ -70,6 +70,8 @@ internal sealed class GameServerProtocol
@@ -1676,7 +1707,7 @@ index 6642a6f2ba48b9e3089608683c824744eebf591d..3e9a3cbe8b3f342f18d25532da921f2c
      /// GET /snapshot —— 全量显示状态快照（迁移自原 HandleGetSnapshotAsync，见其注释）。
      /// </summary>
 diff --git a/EraCore.Core/Server/HttpListenerHost.cs b/EraCore.Core/Server/HttpListenerHost.cs
-index 3ea1c405a1eb26e584daa0083312f73a1e2397c3..e9df915396912cb61358f950db495954accbcad0 100644
+index 3ea1c405..e9df9153 100644
 --- a/EraCore.Core/Server/HttpListenerHost.cs
 +++ b/EraCore.Core/Server/HttpListenerHost.cs
 @@ -31,13 +31,17 @@ namespace MinorShift.Emuera.Server;
@@ -1845,7 +1876,7 @@ index 3ea1c405a1eb26e584daa0083312f73a1e2397c3..e9df915396912cb61358f950db495954
      }
  }
 diff --git a/EraCore.Core/Server/HttpRouteDispatcher.cs b/EraCore.Core/Server/HttpRouteDispatcher.cs
-index 691e94b1da25c905deacc73362399568903d6e18..b5f6c30dee5b1bd594ecd6dced26f2dbed86b46f 100644
+index 691e94b1..b5f6c30d 100644
 --- a/EraCore.Core/Server/HttpRouteDispatcher.cs
 +++ b/EraCore.Core/Server/HttpRouteDispatcher.cs
 @@ -127,6 +127,15 @@ internal sealed class HttpRouteDispatcher
@@ -1866,7 +1897,7 @@ index 691e94b1da25c905deacc73362399568903d6e18..b5f6c30dee5b1bd594ecd6dced26f2db
          }
 diff --git a/EraCore.Core/Server/MauiLoadCoordinator.cs b/EraCore.Core/Server/MauiLoadCoordinator.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..bb101fcc391d7cef60f12433dac767e456359f9d
+index 00000000..bb101fcc
 --- /dev/null
 +++ b/EraCore.Core/Server/MauiLoadCoordinator.cs
 @@ -0,0 +1,86 @@
@@ -1957,7 +1988,7 @@ index 0000000000000000000000000000000000000000..bb101fcc391d7cef60f12433dac767e4
 +    internal void Cancel() => _cancellation.Cancel();
 +}
 diff --git a/EraCore.Core/Server/Session.cs b/EraCore.Core/Server/Session.cs
-index 15cdfc83d14511f51bb6e5fd1c8d33648c47aa9a..8917208d2eee98a675e272a7f45dd7be9fc076e4 100644
+index 15cdfc83..8917208d 100644
 --- a/EraCore.Core/Server/Session.cs
 +++ b/EraCore.Core/Server/Session.cs
 @@ -57,7 +57,10 @@ internal sealed class Session : IDisposable
@@ -1996,7 +2027,7 @@ index 15cdfc83d14511f51bb6e5fd1c8d33648c47aa9a..8917208d2eee98a675e272a7f45dd7be
                  },
                  async p =>
 diff --git a/EraCore.Core/Server/SessionRegistry.cs b/EraCore.Core/Server/SessionRegistry.cs
-index 40701c99c9608f16fec3ccfd33d4115dde775eb8..72a75ca12d09dd5a002efb38bad7a9213118fec1 100644
+index 40701c99..72a75ca1 100644
 --- a/EraCore.Core/Server/SessionRegistry.cs
 +++ b/EraCore.Core/Server/SessionRegistry.cs
 @@ -24,7 +24,9 @@ internal sealed class SessionRegistry
@@ -2437,7 +2468,7 @@ index 40701c99c9608f16fec3ccfd33d4115dde775eb8..72a75ca12d09dd5a002efb38bad7a921
  internal enum SessionDeleteStatus
 diff --git a/EraCore.Core/Server/SessionStartupOwnership.cs b/EraCore.Core/Server/SessionStartupOwnership.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..d005652216f40157696f0267f381d1efff20f203
+index 00000000..d0056522
 --- /dev/null
 +++ b/EraCore.Core/Server/SessionStartupOwnership.cs
 @@ -0,0 +1,46 @@
@@ -2488,7 +2519,7 @@ index 0000000000000000000000000000000000000000..d005652216f40157696f0267f381d1ef
 +    private async Task ReclaimAsync(T resource) => await _reclaim(resource);
 +}
 diff --git a/EraCore.Core/Server/WsRelay.cs b/EraCore.Core/Server/WsRelay.cs
-index e8fbd84f7b55ce0cbbef998402ed8862ca9960d6..dba56faa0143b08f0dae59a81c9acdf2fc90dad5 100644
+index e8fbd84f..dba56faa 100644
 --- a/EraCore.Core/Server/WsRelay.cs
 +++ b/EraCore.Core/Server/WsRelay.cs
 @@ -131,3 +131,79 @@ internal static class WsRelay
@@ -2573,7 +2604,7 @@ index e8fbd84f7b55ce0cbbef998402ed8862ca9960d6..dba56faa0143b08f0dae59a81c9acdf2
 +}
 diff --git a/EraCore.Core/Shared/Runtime/Config/AppSettings.cs b/EraCore.Core/Shared/Runtime/Config/AppSettings.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..b1a918faf305765ffa7e8684f58ff3ebd4b770c8
+index 00000000..b1a918fa
 --- /dev/null
 +++ b/EraCore.Core/Shared/Runtime/Config/AppSettings.cs
 @@ -0,0 +1,287 @@
@@ -2865,7 +2896,7 @@ index 0000000000000000000000000000000000000000..b1a918faf305765ffa7e8684f58ff3eb
 +    private static void Log(string message) => EmueraLog.Info("config", message);
 +}
 diff --git a/EraCore.Core/Shared/Runtime/Config/Config.cs b/EraCore.Core/Shared/Runtime/Config/Config.cs
-index a30e99269f5775f0f9c64a14750d15da52a81ed5..8c471b3a70630fac3fa92e981ccca32c69c1d11d 100644
+index a30e9926..8c471b3a 100644
 --- a/EraCore.Core/Shared/Runtime/Config/Config.cs
 +++ b/EraCore.Core/Shared/Runtime/Config/Config.cs
 @@ -9,7 +9,6 @@ using System.Threading;
@@ -2922,7 +2953,7 @@ index a30e99269f5775f0f9c64a14750d15da52a81ed5..8c471b3a70630fac3fa92e981ccca32c
  
  	/// <summary>KeyValuePair&lt;相对路径, 完全路径&gt; 列表。</summary>
 diff --git a/EraCore.Core/Shared/Runtime/Config/ConfigCode.cs b/EraCore.Core/Shared/Runtime/Config/ConfigCode.cs
-index 67ff78160447d5df81d319b23f9ff16fa172a245..0cfc0114109f121c411055a0349242716ce9add2 100644
+index 67ff7816..0cfc0114 100644
 --- a/EraCore.Core/Shared/Runtime/Config/ConfigCode.cs
 +++ b/EraCore.Core/Shared/Runtime/Config/ConfigCode.cs
 @@ -89,7 +89,8 @@ internal enum ConfigCode
@@ -2944,7 +2975,7 @@ index 67ff78160447d5df81d319b23f9ff16fa172a245..0cfc0114109f121c411055a034924271
 +	#endregion
  }
 diff --git a/EraCore.Core/Shared/Runtime/Config/ConfigData.cs b/EraCore.Core/Shared/Runtime/Config/ConfigData.cs
-index 72b601d1c5a7a3bf8827488ef287d54373378f26..fdf0881afde98c933b01c8b171f48a9e59817ece 100644
+index 72b601d1..fdf0881a 100644
 --- a/EraCore.Core/Shared/Runtime/Config/ConfigData.cs
 +++ b/EraCore.Core/Shared/Runtime/Config/ConfigData.cs
 @@ -1,1296 +1,1350 @@
@@ -5596,7 +5627,7 @@ index 72b601d1c5a7a3bf8827488ef287d54373378f26..fdf0881afde98c933b01c8b171f48a9e
 +public readonly record struct ConfigUnknownKey(string File, string Key, int Line);
 diff --git a/EraCore.Core/Shared/Runtime/Config/ConfigKeyAliases.cs b/EraCore.Core/Shared/Runtime/Config/ConfigKeyAliases.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..0723590ad4b0c727d1bfb288dbc3aa43984fe5f8
+index 00000000..0723590a
 --- /dev/null
 +++ b/EraCore.Core/Shared/Runtime/Config/ConfigKeyAliases.cs
 @@ -0,0 +1,46 @@
@@ -5649,7 +5680,7 @@ index 0000000000000000000000000000000000000000..0723590ad4b0c727d1bfb288dbc3aa43
 \ No newline at end of file
 diff --git a/EraCore.Core/Shared/Runtime/Config/DesignCanvas.cs b/EraCore.Core/Shared/Runtime/Config/DesignCanvas.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..be381c6889dde61dea2b39c79da6d598bfabf743
+index 00000000..be381c68
 --- /dev/null
 +++ b/EraCore.Core/Shared/Runtime/Config/DesignCanvas.cs
 @@ -0,0 +1,37 @@
@@ -5692,7 +5723,7 @@ index 0000000000000000000000000000000000000000..be381c6889dde61dea2b39c79da6d598
 +}
 diff --git a/EraCore.Core/Shared/Runtime/Config/InMemoryAppSettingsStore.cs b/EraCore.Core/Shared/Runtime/Config/InMemoryAppSettingsStore.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..d64a6c83d98642961a44d7bb5c7827e8def6f8c1
+index 00000000..d64a6c83
 --- /dev/null
 +++ b/EraCore.Core/Shared/Runtime/Config/InMemoryAppSettingsStore.cs
 @@ -0,0 +1,44 @@
@@ -5741,7 +5772,7 @@ index 0000000000000000000000000000000000000000..d64a6c83d98642961a44d7bb5c7827e8
 +    }
 +}
 diff --git a/EraCore.Core/Shared/Runtime/InputRequest.cs b/EraCore.Core/Shared/Runtime/InputRequest.cs
-index 4cd81152518043e2ffddffc25007089a990eba92..9263df16b63468910c8e89973c085b1f5a571d10 100644
+index 4cd81152..9263df16 100644
 --- a/EraCore.Core/Shared/Runtime/InputRequest.cs
 +++ b/EraCore.Core/Shared/Runtime/InputRequest.cs
 @@ -47,6 +47,16 @@ internal sealed class InputRequest
@@ -5762,7 +5793,7 @@ index 4cd81152518043e2ffddffc25007089a990eba92..9263df16b63468910c8e89973c085b1f
  	public bool StopMesskip;
  	public bool IsSystemInput;
 diff --git a/EraCore.Core/Shared/Runtime/Script/Data/ConstantData.cs b/EraCore.Core/Shared/Runtime/Script/Data/ConstantData.cs
-index b7fe99456cd24f582472da99b83ad0b05b570d5f..48a3ef1968b154ea45cd3615b0b122f77b176cd4 100644
+index b7fe9945..48a3ef19 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Data/ConstantData.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Data/ConstantData.cs
 @@ -1770,7 +1770,7 @@ internal sealed class ConstantData
@@ -5784,7 +5815,7 @@ index b7fe99456cd24f582472da99b83ad0b05b570d5f..48a3ef1968b154ea45cd3615b0b122f7
  			}
  		}
 diff --git a/EraCore.Core/Shared/Runtime/Script/Loader/ErbIrCache.cs b/EraCore.Core/Shared/Runtime/Script/Loader/ErbIrCache.cs
-index ab091a26a25ab0ebf848a77e1646b93c51b84fe7..0bd5634d3899721110935bb9fd140f865747822b 100644
+index ab091a26..0bd5634d 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Loader/ErbIrCache.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Loader/ErbIrCache.cs
 @@ -9,15 +9,22 @@ using System.Text;
@@ -5872,7 +5903,7 @@ index ab091a26a25ab0ebf848a77e1646b93c51b84fe7..0bd5634d3899721110935bb9fd140f86
  		}
  		catch
 diff --git a/EraCore.Core/Shared/Runtime/Script/Loader/ErbLoader.cs b/EraCore.Core/Shared/Runtime/Script/Loader/ErbLoader.cs
-index 1fef1ab650a3c89cf88db71d0dc155fa56d0200a..8f8db41fcf8b919e10ad0ba59e622857b3333bef 100644
+index 1fef1ab6..8f8db41f 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Loader/ErbLoader.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Loader/ErbLoader.cs
 @@ -107,8 +107,11 @@ internal sealed class ErbLoader
@@ -5988,7 +6019,7 @@ index 1fef1ab650a3c89cf88db71d0dc155fa56d0200a..8f8db41fcf8b919e10ad0ba59e622857
  			FunctionLabelLine? viaIr = null;
  			try
 diff --git a/EraCore.Core/Shared/Runtime/Script/Process.cs b/EraCore.Core/Shared/Runtime/Script/Process.cs
-index 9dbecea0ec3a3360e2e13c3b28677ed27d8e5ded..bbdd06e02db8d72a6d8409a5d09876d4254c02b3 100644
+index 9dbecea0..bbdd06e0 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Process.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Process.cs
 @@ -634,6 +634,13 @@ internal sealed partial class Process(EmueraConsole view)
@@ -6006,7 +6037,7 @@ index 9dbecea0ec3a3360e2e13c3b28677ed27d8e5ded..bbdd06e02db8d72a6d8409a5d09876d4
  			// Process/ExpressionMediator/VariableData wrapper 缓存进 PluginManager 单例与
  			// PluginAPICharContext 静态字段（跨会话泄漏源）；LoadPlugins 后若未加载到任何
 diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/BuiltInFunctionCode.cs b/EraCore.Core/Shared/Runtime/Script/Statements/BuiltInFunctionCode.cs
-index 0b81d6f35c510f17c845b9bfe14b4c77d5330cf0..7e346bfc969a5468ba55214b01f37385ab92042c 100644
+index 0b81d6f3..7e346bfc 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Statements/BuiltInFunctionCode.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Statements/BuiltInFunctionCode.cs
 @@ -51,6 +51,15 @@ enum FunctionCode
@@ -6036,7 +6067,7 @@ index 0b81d6f35c510f17c845b9bfe14b4c77d5330cf0..7e346bfc969a5468ba55214b01f37385
 +
  }
 diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs
-index b82ca7403ea86c086ef714fefacd53efd3e7831d..efd0f087472e905f96d0744087a08cd20b223cda 100644
+index b82ca740..efd0f087 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Cbg.cs
 @@ -30,7 +30,11 @@ internal static partial class FunctionMethodCreator
@@ -6085,7 +6116,7 @@ index b82ca7403ea86c086ef714fefacd53efd3e7831d..efd0f087472e905f96d0744087a08cd2
  			return 1;
 diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.EE56.cs b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.EE56.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..be823dcae08c90dfa076857cfe8891227fd376d3
+index 00000000..be823dca
 --- /dev/null
 +++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.EE56.cs
 @@ -0,0 +1,428 @@
@@ -6518,7 +6549,7 @@ index 0000000000000000000000000000000000000000..be823dcae08c90dfa076857cfe889122
 +	}
 +}
 diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.General.cs b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.General.cs
-index c290e56c1f204e7583681e0879c3279f241a76a4..aba9bc46aa8d7cee8bc97c911676c913c03cbd87 100644
+index c290e56c..aba9bc46 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.General.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.General.cs
 @@ -84,7 +84,11 @@ internal static partial class FunctionMethodCreator
@@ -6545,7 +6576,7 @@ index c290e56c1f204e7583681e0879c3279f241a76a4..aba9bc46aa8d7cee8bc97c911676c913
  			}
  			return 0;
 diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Io.cs b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Io.cs
-index 620e9f619ae03e925a98f302221898b98174a1d2..f6746e364f61b558033097f185dd28748b908926 100644
+index 620e9f61..f6746e36 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Io.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Io.cs
 @@ -57,8 +57,25 @@ internal static partial class FunctionMethodCreator
@@ -6610,7 +6641,7 @@ index 620e9f619ae03e925a98f302221898b98174a1d2..f6746e364f61b558033097f185dd2874
  			catch (Exception e)
  			{
 diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs
-index 4b35239e62fd92bc955b6ab183e1d5f7295fd7fd..e9112075fdd1a489d5ce20a5dd438f1f5d2a675a 100644
+index 4b35239e..e9112075 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.Method.Sprite.cs
 @@ -210,25 +210,28 @@ internal static partial class FunctionMethodCreator
@@ -6647,7 +6678,7 @@ index 4b35239e62fd92bc955b6ab183e1d5f7295fd7fd..e9112075fdd1a489d5ce20a5dd438f1f
  		}
  
 diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.cs b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.cs
-index 539f332b96f2896ae6ba3ae5f67c5710feb30a8f..a04301ef0f157b31228db821d027a422e7f7766f 100644
+index 539f332b..a04301ef 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Statements/Function/Creator.cs
 @@ -198,6 +198,48 @@ internal static partial class FunctionMethodCreator
@@ -6700,7 +6731,7 @@ index 539f332b96f2896ae6ba3ae5f67c5710feb30a8f..a04301ef0f157b31228db821d027a422
  			["GLOAD"] = new GraphicsLoadMethod(),
  
 diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/FunctionIdentifier.cs b/EraCore.Core/Shared/Runtime/Script/Statements/FunctionIdentifier.cs
-index 873f7eb7b92f25dd556aeca7170dba1f615fc1e3..38854845ca771b8ad3a3537f6f42f252d12cae77 100644
+index 873f7eb7..38854845 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Statements/FunctionIdentifier.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Statements/FunctionIdentifier.cs
 @@ -197,6 +197,13 @@ internal sealed partial class FunctionIdentifier
@@ -6728,7 +6759,7 @@ index 873f7eb7b92f25dd556aeca7170dba1f615fc1e3..38854845ca771b8ad3a3537f6f42f252
  		addFunction(FunctionCode.PRINT_RECT, new PRINT_RECT_Instruction());
  		addFunction(FunctionCode.PRINT_SPACE, new PRINT_SPACE_Instruction());
 diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/Instraction.Child.cs b/EraCore.Core/Shared/Runtime/Script/Statements/Instraction.Child.cs
-index 3b5b9aef39fb998625dc9f5a97156c8bba58f1f8..a8ce8beb27fd3b53dd24e312da138bc8add0a767 100644
+index 3b5b9aef..a8ce8beb 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Statements/Instraction.Child.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Statements/Instraction.Child.cs
 @@ -339,6 +339,140 @@ internal sealed partial class FunctionIdentifier
@@ -6929,7 +6960,7 @@ index 3b5b9aef39fb998625dc9f5a97156c8bba58f1f8..a8ce8beb27fd3b53dd24e312da138bc8
  			long x = tinputarg.Time.GetIntValue(exm);
  			string strs = tinputarg.Def.GetStrValue(exm);
 diff --git a/EraCore.Core/Shared/Runtime/Script/Statements/LogicalLine.cs b/EraCore.Core/Shared/Runtime/Script/Statements/LogicalLine.cs
-index 1f0ac58a689809f1f33f1e91ce37f271e153295a..dea5dd3e060e9935fa87a186ff9ad2a150e31389 100644
+index 1f0ac58a..dea5dd3e 100644
 --- a/EraCore.Core/Shared/Runtime/Script/Statements/LogicalLine.cs
 +++ b/EraCore.Core/Shared/Runtime/Script/Statements/LogicalLine.cs
 @@ -262,6 +262,12 @@ internal class FunctionLabelLine : LogicalLine, IComparable<FunctionLabelLine>
@@ -6963,7 +6994,7 @@ index 1f0ac58a689809f1f33f1e91ce37f271e153295a..dea5dd3e060e9935fa87a186ff9ad2a1
  	/// </summary>
 diff --git a/EraCore.Core/Shared/Runtime/Utils/EESqlRuntime.cs b/EraCore.Core/Shared/Runtime/Utils/EESqlRuntime.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..94a6144d734ce30cb7f07004382233650d2857da
+index 00000000..94a6144d
 --- /dev/null
 +++ b/EraCore.Core/Shared/Runtime/Utils/EESqlRuntime.cs
 @@ -0,0 +1,351 @@
@@ -7319,7 +7350,7 @@ index 0000000000000000000000000000000000000000..94a6144d734ce30cb7f0700438223365
 +    }
 +}
 diff --git a/EraCore.Core/Shared/Runtime/Utils/EvilMask/Lang.cs b/EraCore.Core/Shared/Runtime/Utils/EvilMask/Lang.cs
-index 12cfcc4439e7b819c72cc7c92992b58801dc2757..7f6fdb8208c7297783c55de3d5295e56a9f00768 100644
+index 12cfcc44..7f6fdb82 100644
 --- a/EraCore.Core/Shared/Runtime/Utils/EvilMask/Lang.cs
 +++ b/EraCore.Core/Shared/Runtime/Utils/EvilMask/Lang.cs
 @@ -1293,6 +1293,10 @@ internal sealed partial class Lang
@@ -7358,7 +7389,7 @@ index 12cfcc4439e7b819c72cc7c92992b58801dc2757..7f6fdb8208c7297783c55de3d5295e56
  	static void loadLangXML(XmlDocument xml)
  	{
 diff --git a/EraCore.Core/Shared/Runtime/Utils/PluginSystem/PluginManager.cs b/EraCore.Core/Shared/Runtime/Utils/PluginSystem/PluginManager.cs
-index 05eeb52b0f92ade276443521f5d676423f32644b..a6353d1a2f14941bce6fec25b693ca52a9571a2d 100644
+index 05eeb52b..a6353d1a 100644
 --- a/EraCore.Core/Shared/Runtime/Utils/PluginSystem/PluginManager.cs
 +++ b/EraCore.Core/Shared/Runtime/Utils/PluginSystem/PluginManager.cs
 @@ -1,5 +1,6 @@
@@ -7598,7 +7629,7 @@ index 05eeb52b0f92ade276443521f5d676423f32644b..a6353d1a2f14941bce6fec25b693ca52
  		/// mem-leak-fix：重置单例。释放单例对游戏运行时（Process / ProcessState /
  		/// ExpressionMediator / VariableData wrapper）的静态持有，让游戏对象图可被 GC 回收。
 diff --git a/EraCore.Core/Shared/Runtime/Utils/SafCompat.cs b/EraCore.Core/Shared/Runtime/Utils/SafCompat.cs
-index 113ce14c61ca63f621cb535ddfa121a05b5dc4fd..38dc4598e84253dfd127c84ef224e622df64ae87 100644
+index 113ce14c..38dc4598 100644
 --- a/EraCore.Core/Shared/Runtime/Utils/SafCompat.cs
 +++ b/EraCore.Core/Shared/Runtime/Utils/SafCompat.cs
 @@ -150,11 +150,16 @@ internal static class SafCompat
@@ -7622,7 +7653,7 @@ index 113ce14c61ca63f621cb535ddfa121a05b5dc4fd..38dc4598e84253dfd127c84ef224e622
      /// <summary>
      /// Resolves a relative path beneath the game root for engine-owned files such as logs.
 diff --git a/EraCore.Core/Shared/UI/Game/Image/AppContents.cs b/EraCore.Core/Shared/UI/Game/Image/AppContents.cs
-index c484eeb58ecf0a4fd9ea85335ad4872036f53510..3d0f4bc844f5ce54699adaeee283f1504369235e 100644
+index c484eeb5..3d0f4bc8 100644
 --- a/EraCore.Core/Shared/UI/Game/Image/AppContents.cs
 +++ b/EraCore.Core/Shared/UI/Game/Image/AppContents.cs
 @@ -19,6 +19,24 @@ static class AppContents
@@ -7759,7 +7790,7 @@ index c484eeb58ecf0a4fd9ea85335ad4872036f53510..3d0f4bc844f5ce54699adaeee283f150
  	public static void UnloadTempLoadedConstImageNames() { }
  	public static void UnloadTempLoadedGraphicsImageNames() { }
 diff --git a/EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs b/EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs
-index c2a7aab035cbbf204d86a94244462815dad37ba6..87d2307e409190bd5696add7f4d2660c2fb63e40 100644
+index c2a7aab0..87d2307e 100644
 --- a/EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs
 +++ b/EraCore.Core/Shared/UI/Game/Image/GraphicsImage.cs
 @@ -22,8 +22,71 @@ internal sealed class GraphicsImage : AbstractImage
@@ -7922,7 +7953,7 @@ index c2a7aab035cbbf204d86a94244462815dad37ba6..87d2307e409190bd5696add7f4d2660c
  using MinorShift.Emuera.Runtime.Config;
  using System;
 diff --git a/EraCore.Core/UI/Game/Console/ConsoleInputHandler.cs b/EraCore.Core/UI/Game/Console/ConsoleInputHandler.cs
-index 8f936bb8054cae25fe435dfdc9633f49df509f94..7aa3fa413523ddba9f422e0743922fcd6d16d6a7 100644
+index 8f936bb8..7aa3fa41 100644
 --- a/EraCore.Core/UI/Game/Console/ConsoleInputHandler.cs
 +++ b/EraCore.Core/UI/Game/Console/ConsoleInputHandler.cs
 @@ -200,7 +200,10 @@ internal sealed class ConsoleInputHandler
@@ -7960,7 +7991,7 @@ index 8f936bb8054cae25fe435dfdc9633f49df509f94..7aa3fa413523ddba9f422e0743922fcd
                      if (str == null)
                          str = "";
 diff --git a/EraCore.Core/UI/Game/Console/ConsolePrintManager.cs b/EraCore.Core/UI/Game/Console/ConsolePrintManager.cs
-index d54fc1e5fe11913f7ee6281ec3baeaa94be9ca03..dd1e80b15bcc5369d0161dc600c3bfcec8c65f92 100644
+index d54fc1e5..dd1e80b1 100644
 --- a/EraCore.Core/UI/Game/Console/ConsolePrintManager.cs
 +++ b/EraCore.Core/UI/Game/Console/ConsolePrintManager.cs
 @@ -12,6 +12,7 @@ using MinorShift.Emuera.Runtime.Utils;
@@ -8075,7 +8106,7 @@ index d54fc1e5fe11913f7ee6281ec3baeaa94be9ca03..dd1e80b15bcc5369d0161dc600c3bfce
              ButtonRef? button = null;
              if (btn.IsButton)
 diff --git a/EraCore.Core/UI/Game/EmueraConsole.cs b/EraCore.Core/UI/Game/EmueraConsole.cs
-index 997c98454e89b420c4578701e93fe572a712bed9..9414bede6bf4a0995a08b3d097893d054ad6ad11 100644
+index 997c9845..9414bede 100644
 --- a/EraCore.Core/UI/Game/EmueraConsole.cs
 +++ b/EraCore.Core/UI/Game/EmueraConsole.cs
 @@ -231,6 +231,8 @@ internal sealed class EmueraConsole : IDisposable, IConsoleStateView, IButtonDis
@@ -8088,7 +8119,7 @@ index 997c98454e89b420c4578701e93fe572a712bed9..9414bede6bf4a0995a08b3d097893d05
      internal ConsoleDisplayLine[]? PopDisplayingLines() => _printManager.PopDisplayingLines();
      internal ConsoleDisplayLine? PrintPlainwithSingleLine(string str) => _printManager.PrintPlainwithSingleLine(str);
 diff --git a/EraCore.Maui/BridgeHost.cs b/EraCore.Maui/BridgeHost.cs
-index 2da2a7d6bf147d767f7b0010d6540e076225326a..a14a314cd2ce8bb5baa3a116ec2d2159a3953d34 100644
+index 2da2a7d6..a14a314c 100644
 --- a/EraCore.Maui/BridgeHost.cs
 +++ b/EraCore.Maui/BridgeHost.cs
 @@ -178,232 +178,6 @@ internal sealed class BridgeHost : IDisposable
@@ -9389,7 +9420,7 @@ index 2da2a7d6bf147d767f7b0010d6540e076225326a..a14a314cd2ce8bb5baa3a116ec2d2159
      }
  }
 diff --git a/EraCore.Maui/EraCore.Maui.csproj b/EraCore.Maui/EraCore.Maui.csproj
-index 3f3b8255e3c06834bc55b2076bc4a895888c4a41..993f7dd1fe73dc286e8cca07a0719ccd685c2851 100644
+index 3f3b8255..bbb1e074 100644
 --- a/EraCore.Maui/EraCore.Maui.csproj
 +++ b/EraCore.Maui/EraCore.Maui.csproj
 @@ -28,10 +28,13 @@
@@ -9404,8 +9435,8 @@ index 3f3b8255e3c06834bc55b2076bc4a895888c4a41..993f7dd1fe73dc286e8cca07a0719ccd
  		<ApplicationId>com.eracore.maui</ApplicationId>
 -		<ApplicationDisplayVersion>0.1</ApplicationDisplayVersion>
 -		<ApplicationVersion>1</ApplicationVersion>
-+		<ApplicationDisplayVersion>0.5.5</ApplicationDisplayVersion>
-+		<ApplicationVersion>505</ApplicationVersion>
++		<ApplicationDisplayVersion>0.5.6</ApplicationDisplayVersion>
++		<ApplicationVersion>506</ApplicationVersion>
  
  		<!-- Windows 桌面 unpackaged 模式（开发期直接 dotnet run 启动，不需要 MSIX 打包）。
  		     Phase 2 评估 MSIX 打包发布。-->
@@ -9491,7 +9522,7 @@ index 3f3b8255e3c06834bc55b2076bc4a895888c4a41..993f7dd1fe73dc286e8cca07a0719ccd
 +
  </Project>
 diff --git a/EraCore.Maui/Json/MauiJsonContext.cs b/EraCore.Maui/Json/MauiJsonContext.cs
-index 9b9a3c4c5b40aa26c5520fae6249049e2d29e534..374a0577e8c24b50510684d872204cf6050ab5aa 100644
+index 9b9a3c4c..374a0577 100644
 --- a/EraCore.Maui/Json/MauiJsonContext.cs
 +++ b/EraCore.Maui/Json/MauiJsonContext.cs
 @@ -103,6 +103,33 @@ internal sealed record GameThreadStatusMessage(string Type, bool Alive);
@@ -9546,7 +9577,7 @@ index 9b9a3c4c5b40aa26c5520fae6249049e2d29e534..374a0577e8c24b50510684d872204cf6
  [JsonSerializable(typeof(ConfigMessage))]
  [JsonSerializable(typeof(BackButtonPressedMessage))]
 diff --git a/EraCore.Maui/MainPage.xaml b/EraCore.Maui/MainPage.xaml
-index 96b32d446710d323cf6d9098081a11ebfb18570e..1aeb95916c83524884aa0ab7ce8d0ea5ee1a8414 100644
+index 96b32d44..1aeb9591 100644
 --- a/EraCore.Maui/MainPage.xaml
 +++ b/EraCore.Maui/MainPage.xaml
 @@ -3,14 +3,136 @@
@@ -9696,7 +9727,7 @@ index 96b32d446710d323cf6d9098081a11ebfb18570e..1aeb95916c83524884aa0ab7ce8d0ea5
  
  </ContentPage>
 diff --git a/EraCore.Maui/MainPage.xaml.cs b/EraCore.Maui/MainPage.xaml.cs
-index cf4affa3ec1f4e809a14bcb4e82066bf1c50b362..0a51371d9b8d5a57bc8388f0076b5a8e6d970014 100644
+index cf4affa3..0a51371d 100644
 --- a/EraCore.Maui/MainPage.xaml.cs
 +++ b/EraCore.Maui/MainPage.xaml.cs
 @@ -1,6 +1,7 @@
@@ -10317,7 +10348,7 @@ index cf4affa3ec1f4e809a14bcb4e82066bf1c50b362..0a51371d9b8d5a57bc8388f0076b5a8e
          // 被 app 级 MauiControlServer 钉住（每次页面重建泄漏一个）。
          var controlServer = MauiControlServer.Instance;
 diff --git a/EraCore.Maui/MauiProgram.cs b/EraCore.Maui/MauiProgram.cs
-index a3a6c41eda9370f353794c129f56da1487b6d036..a1bb52992124fcddd5afc0145bfce60fe6963d19 100644
+index a3a6c41e..a1bb5299 100644
 --- a/EraCore.Maui/MauiProgram.cs
 +++ b/EraCore.Maui/MauiProgram.cs
 @@ -47,22 +47,46 @@ public static class MauiProgram
@@ -10371,7 +10402,7 @@ index a3a6c41eda9370f353794c129f56da1487b6d036..a1bb52992124fcddd5afc0145bfce60f
  			// 慢于桌面假设」这一事实的落地，桌面（Windows/CLI/Server）恒保持默认 false。
  			// S0 落点：IR 缓存不放游戏目录的 _IRCache/（污染可见目录 + 只读挂载下每轮重建）。
 diff --git a/EraCore.Maui/Platforms/Android/AndroidManifest.xml b/EraCore.Maui/Platforms/Android/AndroidManifest.xml
-index 8518e070f233ff89add91ec3071fb8ad8c4d195e..7eb960195da3f5f6ae57a4b4d403a49a5a743975 100644
+index 8518e070..7eb96019 100644
 --- a/EraCore.Maui/Platforms/Android/AndroidManifest.xml
 +++ b/EraCore.Maui/Platforms/Android/AndroidManifest.xml
 @@ -1,7 +1,23 @@
@@ -10418,7 +10449,7 @@ index 8518e070f233ff89add91ec3071fb8ad8c4d195e..7eb960195da3f5f6ae57a4b4d403a49a
  	     声明本身不获权，授权走系统设置页 / appops（adb shell appops set ... allow）。
 diff --git a/EraCore.Maui/Platforms/Android/CrashLog.cs b/EraCore.Maui/Platforms/Android/CrashLog.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..47e5c7e867d813592af892c06aace4a743b3a086
+index 00000000..47e5c7e8
 --- /dev/null
 +++ b/EraCore.Maui/Platforms/Android/CrashLog.cs
 @@ -0,0 +1,184 @@
@@ -10607,7 +10638,7 @@ index 0000000000000000000000000000000000000000..47e5c7e867d813592af892c06aace4a7
 +    }
 +}
 diff --git a/EraCore.Maui/Platforms/Android/MainActivity.cs b/EraCore.Maui/Platforms/Android/MainActivity.cs
-index ddcd553b722b6c664b5e57f08dd6580abfbc3f04..132a852c5d19bad0e5b1b668e23bcd4741b82d4d 100644
+index ddcd553b..132a852c 100644
 --- a/EraCore.Maui/Platforms/Android/MainActivity.cs
 +++ b/EraCore.Maui/Platforms/Android/MainActivity.cs
 @@ -5,6 +5,7 @@ using Android.Views;
@@ -10707,7 +10738,7 @@ index ddcd553b722b6c664b5e57f08dd6580abfbc3f04..132a852c5d19bad0e5b1b668e23bcd47
 +    }
  }
 diff --git a/EraCore.Maui/Platforms/Android/MainApplication.cs b/EraCore.Maui/Platforms/Android/MainApplication.cs
-index f5cf0f534af005e74aac7d3cd59939edf4fe4210..2a9d83157ec821644370153d58f72562e34d2341 100644
+index f5cf0f53..2a9d8315 100644
 --- a/EraCore.Maui/Platforms/Android/MainApplication.cs
 +++ b/EraCore.Maui/Platforms/Android/MainApplication.cs
 @@ -6,10 +6,51 @@ namespace EraCore.Maui;
@@ -10764,7 +10795,7 @@ index f5cf0f534af005e74aac7d3cd59939edf4fe4210..2a9d83157ec821644370153d58f72562
 +	}
  }
 diff --git a/EraCore.Maui/Platforms/Windows/App.xaml.cs b/EraCore.Maui/Platforms/Windows/App.xaml.cs
-index 163f25506a727bf29904f38c3c78d92e0a9ea0a3..ae35ea21805386abefcb0dd4d34aa01c9126edce 100644
+index 163f2550..ae35ea21 100644
 --- a/EraCore.Maui/Platforms/Windows/App.xaml.cs
 +++ b/EraCore.Maui/Platforms/Windows/App.xaml.cs
 @@ -4,13 +4,26 @@ namespace EraCore.Maui.WinUI;
@@ -10797,7 +10828,7 @@ index 163f25506a727bf29904f38c3c78d92e0a9ea0a3..ae35ea21805386abefcb0dd4d34aa01c
  }
 diff --git a/EraCore.Maui/Platforms/Windows/CrashLog.cs b/EraCore.Maui/Platforms/Windows/CrashLog.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..29071ec1ac7d3b363655a227aa9e8b4858f350cf
+index 00000000..29071ec1
 --- /dev/null
 +++ b/EraCore.Maui/Platforms/Windows/CrashLog.cs
 @@ -0,0 +1,306 @@
@@ -11109,7 +11140,7 @@ index 0000000000000000000000000000000000000000..29071ec1ac7d3b363655a227aa9e8b48
 +}
 diff --git a/EraCore.Maui/Services/ExternalStoragePermission.cs b/EraCore.Maui/Services/ExternalStoragePermission.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..dad743bf69511bd02a0b8fe02643c0fa5e7d47d6
+index 00000000..dad743bf
 --- /dev/null
 +++ b/EraCore.Maui/Services/ExternalStoragePermission.cs
 @@ -0,0 +1,70 @@
@@ -11185,7 +11216,7 @@ index 0000000000000000000000000000000000000000..dad743bf69511bd02a0b8fe02643c0fa
 +#endif
 \ No newline at end of file
 diff --git a/EraCore.Maui/Services/MauiControlServer.cs b/EraCore.Maui/Services/MauiControlServer.cs
-index 1497e22246ce640e72bd689da42ce23c8481eda4..0752a2a0f449cf254d6fe09663303b1bd704979e 100644
+index 1497e222..0752a2a0 100644
 --- a/EraCore.Maui/Services/MauiControlServer.cs
 +++ b/EraCore.Maui/Services/MauiControlServer.cs
 @@ -40,19 +40,63 @@ internal sealed class MauiControlServer
@@ -11308,7 +11339,7 @@ index 1497e22246ce640e72bd689da42ce23c8481eda4..0752a2a0f449cf254d6fe09663303b1b
              _instance = current;
 diff --git a/EraCore.Maui/Services/MauiServerHost.cs b/EraCore.Maui/Services/MauiServerHost.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..153095fc5ccde5cc86cbb985c86ee94622f8c4c7
+index 00000000..153095fc
 --- /dev/null
 +++ b/EraCore.Maui/Services/MauiServerHost.cs
 @@ -0,0 +1,44 @@
@@ -11358,7 +11389,7 @@ index 0000000000000000000000000000000000000000..153095fc5ccde5cc86cbb985c86ee946
 +}
 diff --git a/EraCore.Maui/Services/OrientationLock.cs b/EraCore.Maui/Services/OrientationLock.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..5da8e1fad4262b1d227686a1a983354a06d4ebf3
+index 00000000..5da8e1fa
 --- /dev/null
 +++ b/EraCore.Maui/Services/OrientationLock.cs
 @@ -0,0 +1,90 @@
@@ -11454,7 +11485,7 @@ index 0000000000000000000000000000000000000000..5da8e1fad4262b1d227686a1a983354a
 +}
 diff --git a/EraCore.Maui/Services/PreferencesAppSettingsStore.cs b/EraCore.Maui/Services/PreferencesAppSettingsStore.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..d95ce5033d7dcf2807cc2c21491fb341bc39e95a
+index 00000000..d95ce503
 --- /dev/null
 +++ b/EraCore.Maui/Services/PreferencesAppSettingsStore.cs
 @@ -0,0 +1,102 @@
@@ -11561,7 +11592,7 @@ index 0000000000000000000000000000000000000000..d95ce5033d7dcf2807cc2c21491fb341
 +    }
 +}
 diff --git a/EraCore.Server/EraCore.Server.csproj b/EraCore.Server/EraCore.Server.csproj
-index d0b9bc7830ead25f911bcd0f77cb56f4e972f10d..9f198754748d6902aeef139655bf5c26d2b6ec00 100644
+index d0b9bc78..9f198754 100644
 --- a/EraCore.Server/EraCore.Server.csproj
 +++ b/EraCore.Server/EraCore.Server.csproj
 @@ -40,6 +40,10 @@
@@ -11576,7 +11607,7 @@ index d0b9bc7830ead25f911bcd0f77cb56f4e972f10d..9f198754748d6902aeef139655bf5c26
  
    <ItemGroup>
 diff --git a/EraCore.Server/KestrelGameServer.cs b/EraCore.Server/KestrelGameServer.cs
-index 8dbcd94b0c72299b9d26a06a930c6463aeca96a7..03298a4a6aaead02903e48a35f513668e6babc63 100644
+index 8dbcd94b..03298a4a 100644
 --- a/EraCore.Server/KestrelGameServer.cs
 +++ b/EraCore.Server/KestrelGameServer.cs
 @@ -40,12 +40,42 @@ internal sealed class KestrelGameServer : IDisposable
@@ -11672,7 +11703,7 @@ index 8dbcd94b0c72299b9d26a06a930c6463aeca96a7..03298a4a6aaead02903e48a35f513668
 +    }
  }
 diff --git a/EraCore.Tests/AdapterV8Tests.cs b/EraCore.Tests/AdapterV8Tests.cs
-index e33e6dc8005cbd51e47baa9ccb07c236732b5f4a..f4c01a01b15853e2d69bcaaaa87e09cd77e9a19b 100644
+index e33e6dc8..f4c01a01 100644
 --- a/EraCore.Tests/AdapterV8Tests.cs
 +++ b/EraCore.Tests/AdapterV8Tests.cs
 @@ -242,7 +242,7 @@ public class AdapterV8Tests : IDisposable
@@ -11693,7 +11724,7 @@ index e33e6dc8005cbd51e47baa9ccb07c236732b5f4a..f4c01a01b15853e2d69bcaaaa87e09cd
      }
  }
 diff --git a/EraCore.Tests/AgentJsonlProtocolTests.cs b/EraCore.Tests/AgentJsonlProtocolTests.cs
-index dc52ffcddee86de203dccd0f58cf79bbf3d15761..3e25742e2564a1d6e85a72a7e28fec3439e37eba 100644
+index dc52ffcd..3e25742e 100644
 --- a/EraCore.Tests/AgentJsonlProtocolTests.cs
 +++ b/EraCore.Tests/AgentJsonlProtocolTests.cs
 @@ -31,11 +31,13 @@ public class AgentJsonlProtocolTests : IDisposable
@@ -11853,7 +11884,7 @@ index dc52ffcddee86de203dccd0f58cf79bbf3d15761..3e25742e2564a1d6e85a72a7e28fec34
      [Fact]
 diff --git a/EraCore.Tests/AppSettingsTests.cs b/EraCore.Tests/AppSettingsTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..a2604f32fb105b1e78021fdb082e8ffa632ab149
+index 00000000..a2604f32
 --- /dev/null
 +++ b/EraCore.Tests/AppSettingsTests.cs
 @@ -0,0 +1,267 @@
@@ -12126,7 +12157,7 @@ index 0000000000000000000000000000000000000000..a2604f32fb105b1e78021fdb082e8ffa
 +}
 diff --git a/EraCore.Tests/ButtonWrapPixelBudgetTests.cs b/EraCore.Tests/ButtonWrapPixelBudgetTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..7747aff8c9d94f8eed3e93221c43238f463f2e8a
+index 00000000..7747aff8
 --- /dev/null
 +++ b/EraCore.Tests/ButtonWrapPixelBudgetTests.cs
 @@ -0,0 +1,111 @@
@@ -12243,7 +12274,7 @@ index 0000000000000000000000000000000000000000..7747aff8c9d94f8eed3e93221c43238f
 +}
 diff --git a/EraCore.Tests/CbgColorMatrixTests.cs b/EraCore.Tests/CbgColorMatrixTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..fe9cb349b5d2cd28a298440c082802490cbfe1f2
+index 00000000..fe9cb349
 --- /dev/null
 +++ b/EraCore.Tests/CbgColorMatrixTests.cs
 @@ -0,0 +1,106 @@
@@ -12355,7 +12386,7 @@ index 0000000000000000000000000000000000000000..fe9cb349b5d2cd28a298440c08280249
 +}
 diff --git a/EraCore.Tests/ConfigKeyAliasesTests.cs b/EraCore.Tests/ConfigKeyAliasesTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..b2f40aac64b8720da17b10c5eb746a22929eb6e0
+index 00000000..b2f40aac
 --- /dev/null
 +++ b/EraCore.Tests/ConfigKeyAliasesTests.cs
 @@ -0,0 +1,59 @@
@@ -12421,7 +12452,7 @@ index 0000000000000000000000000000000000000000..b2f40aac64b8720da17b10c5eb746a22
 \ No newline at end of file
 diff --git a/EraCore.Tests/ConfigNotWrittenOnLoadTests.cs b/EraCore.Tests/ConfigNotWrittenOnLoadTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..c6b98f31aaff213572f1e0faa9f214923bced6b2
+index 00000000..c6b98f31
 --- /dev/null
 +++ b/EraCore.Tests/ConfigNotWrittenOnLoadTests.cs
 @@ -0,0 +1,176 @@
@@ -12603,7 +12634,7 @@ index 0000000000000000000000000000000000000000..c6b98f31aaff213572f1e0faa9f21492
 +}
 diff --git a/EraCore.Tests/ConfigUpdateKeyTests.cs b/EraCore.Tests/ConfigUpdateKeyTests.cs
 deleted file mode 100644
-index 92fa698066cdedd94d1009b0c4d20499ece126e7..0000000000000000000000000000000000000000
+index 92fa6980..00000000
 --- a/EraCore.Tests/ConfigUpdateKeyTests.cs
 +++ /dev/null
 @@ -1,146 +0,0 @@
@@ -12755,7 +12786,7 @@ index 92fa698066cdedd94d1009b0c4d20499ece126e7..00000000000000000000000000000000
 -}
 diff --git a/EraCore.Tests/ConfigWritePolicyTests.cs b/EraCore.Tests/ConfigWritePolicyTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..372dde5cc31ff0abe6d1ad99ba8b0d8261eebf4b
+index 00000000..372dde5c
 --- /dev/null
 +++ b/EraCore.Tests/ConfigWritePolicyTests.cs
 @@ -0,0 +1,165 @@
@@ -12927,7 +12958,7 @@ index 0000000000000000000000000000000000000000..372dde5cc31ff0abe6d1ad99ba8b0d82
 \ No newline at end of file
 diff --git a/EraCore.Tests/DesignCanvasWidthTests.cs b/EraCore.Tests/DesignCanvasWidthTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..1581aa3d98a8ea71c929d3bc300ce33dcbc29da5
+index 00000000..1581aa3d
 --- /dev/null
 +++ b/EraCore.Tests/DesignCanvasWidthTests.cs
 @@ -0,0 +1,195 @@
@@ -13127,7 +13158,7 @@ index 0000000000000000000000000000000000000000..1581aa3d98a8ea71c929d3bc300ce33d
 +	}
 +}
 diff --git a/EraCore.Tests/DimLockPolicyTests.cs b/EraCore.Tests/DimLockPolicyTests.cs
-index 0f04327a78b82ee8e983c3ed091c97cf722a83eb..a0df7151c831015cdd3db1c8d62e10be2a2c94cd 100644
+index 0f04327a..a0df7151 100644
 --- a/EraCore.Tests/DimLockPolicyTests.cs
 +++ b/EraCore.Tests/DimLockPolicyTests.cs
 @@ -76,7 +76,7 @@ public class DimLockPolicyTests
@@ -13140,7 +13171,7 @@ index 0f04327a78b82ee8e983c3ed091c97cf722a83eb..a0df7151c831015cdd3db1c8d62e10be
  		}
  		finally
 diff --git a/EraCore.Tests/DisplayStateSnapshotGoldenTests.cs b/EraCore.Tests/DisplayStateSnapshotGoldenTests.cs
-index 487af234215f4232eceffda73712c5cc07408bdb..52129ab566f74e1ccfe28bb69ad90f41d098d5ad 100644
+index 487af234..52129ab5 100644
 --- a/EraCore.Tests/DisplayStateSnapshotGoldenTests.cs
 +++ b/EraCore.Tests/DisplayStateSnapshotGoldenTests.cs
 @@ -24,7 +24,7 @@ namespace Emuera.Headless.Tests;
@@ -13153,7 +13184,7 @@ index 487af234215f4232eceffda73712c5cc07408bdb..52129ab566f74e1ccfe28bb69ad90f41
      /// <summary>
      /// golden 序列化选项：与生产 DisplayState.JsonOpts 一致使用 WhenWritingNull，
 diff --git a/EraCore.Tests/DisplayStateTests.cs b/EraCore.Tests/DisplayStateTests.cs
-index 8dba7394cc27daff024181c6568367231fc7bcac..7d85c4f125dbb1b78d573310c5b5a3447da266fc 100644
+index 8dba7394..7d85c4f1 100644
 --- a/EraCore.Tests/DisplayStateTests.cs
 +++ b/EraCore.Tests/DisplayStateTests.cs
 @@ -24,7 +24,7 @@ namespace Emuera.Headless.Tests;
@@ -13184,7 +13215,7 @@ index 8dba7394cc27daff024181c6568367231fc7bcac..7d85c4f125dbb1b78d573310c5b5a344
      // ---------- ADR-0016：TINPUT timer 元数据填充 ----------
 diff --git a/EraCore.Tests/DisplayWatermarkTests.cs b/EraCore.Tests/DisplayWatermarkTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..d6c2a24f5c72c6e02be6a626b51a86b3c12740ca
+index 00000000..d6c2a24f
 --- /dev/null
 +++ b/EraCore.Tests/DisplayWatermarkTests.cs
 @@ -0,0 +1,535 @@
@@ -13724,7 +13755,7 @@ index 0000000000000000000000000000000000000000..d6c2a24f5c72c6e02be6a626b51a86b3
 +
 +}
 diff --git a/EraCore.Tests/ErbIrCacheTests.cs b/EraCore.Tests/ErbIrCacheTests.cs
-index e3e73b033e9c5521ead1e4b2f9fdbc3a4dc05abd..8cdd69200eeac876221383abaa2a48ed5d664c4c 100644
+index e3e73b03..8cdd6920 100644
 --- a/EraCore.Tests/ErbIrCacheTests.cs
 +++ b/EraCore.Tests/ErbIrCacheTests.cs
 @@ -68,6 +68,28 @@ public class ErbIrCacheTests
@@ -13758,7 +13789,7 @@ index e3e73b033e9c5521ead1e4b2f9fdbc3a4dc05abd..8cdd69200eeac876221383abaa2a48ed
  	[InlineData(false, false, true, false)]
 diff --git a/EraCore.Tests/GraphicsCreateFromFileTests.cs b/EraCore.Tests/GraphicsCreateFromFileTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..5781b8cf14d41343d80c5798edef25375e6efb87
+index 00000000..5781b8cf
 --- /dev/null
 +++ b/EraCore.Tests/GraphicsCreateFromFileTests.cs
 @@ -0,0 +1,117 @@
@@ -13881,7 +13912,7 @@ index 0000000000000000000000000000000000000000..5781b8cf14d41343d80c5798edef2537
 +}
 diff --git a/EraCore.Tests/HtmlLayoutTestCollection.cs b/EraCore.Tests/HtmlLayoutTestCollection.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..d533e931a94adaa798920fae82c8a77c90c62ed2
+index 00000000..d533e931
 --- /dev/null
 +++ b/EraCore.Tests/HtmlLayoutTestCollection.cs
 @@ -0,0 +1,44 @@
@@ -13931,7 +13962,7 @@ index 0000000000000000000000000000000000000000..d533e931a94adaa798920fae82c8a77c
 +public class HtmlLayoutTestCollection { }
 diff --git a/EraCore.Tests/HtmlPrintLineBreakTests.cs b/EraCore.Tests/HtmlPrintLineBreakTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..915682e3aad79a2de53ae835c4ab953061535012
+index 00000000..915682e3
 --- /dev/null
 +++ b/EraCore.Tests/HtmlPrintLineBreakTests.cs
 @@ -0,0 +1,157 @@
@@ -14093,7 +14124,7 @@ index 0000000000000000000000000000000000000000..915682e3aad79a2de53ae835c4ab9530
 +    }
 +}
 diff --git a/EraCore.Tests/HttpRouteDispatcherTests.cs b/EraCore.Tests/HttpRouteDispatcherTests.cs
-index 3509231bc1426b0822db09783a2df2bb6e145310..034ca42fdb463b9fe8339cba565e43fdfa5bf6ad 100644
+index 3509231b..034ca42f 100644
 --- a/EraCore.Tests/HttpRouteDispatcherTests.cs
 +++ b/EraCore.Tests/HttpRouteDispatcherTests.cs
 @@ -23,6 +23,9 @@ public class HttpRouteDispatcherTests
@@ -14228,7 +14259,7 @@ index 3509231bc1426b0822db09783a2df2bb6e145310..034ca42fdb463b9fe8339cba565e43fd
          public string Root { get; }
 diff --git a/EraCore.Tests/MauiLoadCoordinatorTests.cs b/EraCore.Tests/MauiLoadCoordinatorTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..10130be488f6cdfb0fcac09f244ae866d86f3b17
+index 00000000..10130be4
 --- /dev/null
 +++ b/EraCore.Tests/MauiLoadCoordinatorTests.cs
 @@ -0,0 +1,61 @@
@@ -14294,7 +14325,7 @@ index 0000000000000000000000000000000000000000..10130be488f6cdfb0fcac09f244ae866
 +    }
 +}
 diff --git a/EraCore.Tests/OpGeometryTests.cs b/EraCore.Tests/OpGeometryTests.cs
-index 3b22f6c9f3153ed49e7100a7929c9fd93c8cca7b..320b87f895ced7be3671c58dd11cee1eb5cafbd2 100644
+index 3b22f6c9..320b87f8 100644
 --- a/EraCore.Tests/OpGeometryTests.cs
 +++ b/EraCore.Tests/OpGeometryTests.cs
 @@ -149,6 +149,50 @@ public class OpGeometryTests
@@ -14349,7 +14380,7 @@ index 3b22f6c9f3153ed49e7100a7929c9fd93c8cca7b..320b87f895ced7be3671c58dd11cee1e
      public void Mixed_button_and_non_button_accumulate_column_through_non_button()
      {
 diff --git a/EraCore.Tests/SafStage2StorageTests.cs b/EraCore.Tests/SafStage2StorageTests.cs
-index 6d0c87de184c86a2500dd38ccc317dbe5cd993b0..84cff88986a36a245e53f8b7980ccdda77583c4e 100644
+index 6d0c87de..84cff889 100644
 --- a/EraCore.Tests/SafStage2StorageTests.cs
 +++ b/EraCore.Tests/SafStage2StorageTests.cs
 @@ -42,19 +42,27 @@ public class SafStage2StorageTests
@@ -14384,7 +14415,7 @@ index 6d0c87de184c86a2500dd38ccc317dbe5cd993b0..84cff88986a36a245e53f8b7980ccdda
  
      [Fact]
 diff --git a/EraCore.Tests/SafStage3CompatibilityTests.cs b/EraCore.Tests/SafStage3CompatibilityTests.cs
-index c9a9dc005fc309cc3b00ff1060c002379b0388da..d9fa8386298c5f4ab0367240d6b42ef87d889c4b 100644
+index c9a9dc00..d9fa8386 100644
 --- a/EraCore.Tests/SafStage3CompatibilityTests.cs
 +++ b/EraCore.Tests/SafStage3CompatibilityTests.cs
 @@ -1,6 +1,5 @@
@@ -14463,7 +14494,7 @@ index c9a9dc005fc309cc3b00ff1060c002379b0388da..d9fa8386298c5f4ab0367240d6b42ef8
  	public void Saf_language_generation_writes_through_the_game_accessor()
 diff --git a/EraCore.Tests/SessionLifecycleSafetyTests.cs b/EraCore.Tests/SessionLifecycleSafetyTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..612073eac21a6e6a1912820dab2d68a2b121a9a6
+index 00000000..612073ea
 --- /dev/null
 +++ b/EraCore.Tests/SessionLifecycleSafetyTests.cs
 @@ -0,0 +1,571 @@
@@ -15040,7 +15071,7 @@ index 0000000000000000000000000000000000000000..612073eac21a6e6a1912820dab2d68a2
 +}
 diff --git a/EraCore.Tests/SessionStartupOwnershipTests.cs b/EraCore.Tests/SessionStartupOwnershipTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..49eb2d56c73a8e6d1a112be62b74de72f30db7c5
+index 00000000..49eb2d56
 --- /dev/null
 +++ b/EraCore.Tests/SessionStartupOwnershipTests.cs
 @@ -0,0 +1,106 @@
@@ -15152,7 +15183,7 @@ index 0000000000000000000000000000000000000000..49eb2d56c73a8e6d1a112be62b74de72
 +}
 diff --git a/EraCore.Tests/SessionSubscriptionOrderTests.cs b/EraCore.Tests/SessionSubscriptionOrderTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..d622eb17816a050f9ae89c74e1e6c93122d8c739
+index 00000000..d622eb17
 --- /dev/null
 +++ b/EraCore.Tests/SessionSubscriptionOrderTests.cs
 @@ -0,0 +1,516 @@
@@ -15674,7 +15705,7 @@ index 0000000000000000000000000000000000000000..d622eb17816a050f9ae89c74e1e6c931
 +}
 diff --git a/EraCore.Tests/SpriteCreateGRegistryTests.cs b/EraCore.Tests/SpriteCreateGRegistryTests.cs
 new file mode 100644
-index 0000000000000000000000000000000000000000..03a96256c30a48f404681236e74e7858ad8cc045
+index 00000000..03a96256
 --- /dev/null
 +++ b/EraCore.Tests/SpriteCreateGRegistryTests.cs
 @@ -0,0 +1,129 @@
@@ -15807,8 +15838,666 @@ index 0000000000000000000000000000000000000000..03a96256c30a48f404681236e74e7858
 +        Assert.Equal(60, sprite.DestBaseSize.Height);
 +    }
 +}
+diff --git a/EraCore.Tests/SqlSessionIsolationTests.cs b/EraCore.Tests/SqlSessionIsolationTests.cs
+new file mode 100644
+index 00000000..2f36bf4b
+--- /dev/null
++++ b/EraCore.Tests/SqlSessionIsolationTests.cs
+@@ -0,0 +1,652 @@
++using System;
++using System.Collections;
++using System.IO;
++using System.Reflection;
++using System.Threading;
++using System.Threading.Tasks;
++using Microsoft.Data.Sqlite;
++using MinorShift.Emuera.GameData.Function;
++using MinorShift.Emuera.Runtime.Config;
++using MinorShift.Emuera.Server;
++using Xunit;
++
++namespace MinorShift.Emuera.Tests;
++
++/// <summary>
++/// SQL 运行时（<see cref="EESqlRuntime"/>）会话隔离回归。
++///
++/// <para><b>缺陷</b>：<c>_conns</c> / <c>_readers</c> 是进程级静态，而既有的 <c>Reset()</c>
++/// 全仓零调用方（死代码）⇒ 旧会话结束后连接仍留在池里，新会话用同名连接时直接拿到旧会话的连接
++/// ⇒ 跨游戏目录读到并写坏旧库。</para>
++///
++/// <para><b>本文件的定位</b>：把“真实会话链已复现的换局串库”转成调用真实生产代码的正式回归。
++/// 两条腿：</para>
++/// <list type="bullet">
++/// <item><b>作用域级</b>——真实 <see cref="GlobalStatic.OpenScope"/> 会话作用域 + 真实
++/// <see cref="EESqlRuntime"/> 指令入口（等价 ERB 的 <c>SQL_*</c> 路径）；</item>
++/// <item><b>会话级</b>——真实 <c>SessionRegistry.ReplaceForLoadGameAsync</c> 换局事务 +
++/// 真实 ERB 游戏夹具（ERB 内直接写 <c>SQL_CONNECT</c> / <c>SQL_EXECUTE_NONQUERY</c>）。</item>
++/// </list>
++///
++/// <para><b>★ 数据归属判据（本轮修正）</b>：库内容一律用
++/// <see cref="ReadIndependent"/>——一条**独立的只读 SQL 连接**查询真实记录，
++/// <b>不经</b>被测 <see cref="EESqlRuntime"/>。★ 不再用“扫描库文件字节”作判据：
++/// SQLite 文件可能保留已删除 / 被替换记录的旧字节，字节命中**不能**证明当前记录归属
++/// （它只能作非决定性诊断，本文件已移除该手段）。</para>
++///
++/// <para><b>预置方式</b>：两侧标记由 <see cref="GameDir.SeedDatabase"/> 用独立连接写入并**立即关闭**
++/// （<c>Pooling=false</c>）——既不进入被测命名连接池，也不经过被测运行时代码；
++/// 因此“B 读到 B 自己预置的标记”这一判据与“会话自身写入”完全解耦。</para>
++///
++/// <para><b>测试隔离</b>：静态池跨用例存活，故每个用例起始显式调用生产 API
++/// <c>EESqlRuntime.Reset()</c> 做隔离。它不构成生产修复的依赖——生产路径的释放由
++/// 会话作用域结束触发（见 <see cref="Scope_end_releases_connections_readers_and_reader_ids"/>）。</para>
++///
++/// <para><b>不做什么</b>：不调用 Reset / 清池 / 强制 GC 去“帮助”被测路径通过；
++/// 观测连接只读、不创建、不迁移、不改库。</para>
++/// </summary>
++[Collection("ServerState")]
++public sealed class SqlSessionIsolationTests
++{
++    // ------------------------------------------------------------------
++    // 观测：只读反射读取生产静态池（不做任何生产流程没有做的清理）
++    // ------------------------------------------------------------------
++
++    private static IDictionary SqlPool(string field)
++        => (IDictionary)typeof(EESqlRuntime)
++            .GetField(field, BindingFlags.NonPublic | BindingFlags.Static)!
++            .GetValue(null)!;
++
++    private static int ConnCount() => SqlPool("_conns").Count;
++
++    private static int ReaderCount() => SqlPool("_readers").Count;
++
++    /// <summary>观测池内某连接名当前指向哪个数据源（判断“缓存里指向谁”）。</summary>
++    private static string? ConnDataSource(string name)
++    {
++        var conn = SqlPool("_conns")[name];
++        return conn?.GetType().GetProperty("DataSource")?.GetValue(conn) as string;
++    }
++
++    /// <summary>观测连接对象自身的状态（Open / Closed）——对象级释放证据。</summary>
++    private static string? ConnState(object? conn)
++        => conn?.GetType().GetProperty("State")?.GetValue(conn)?.ToString();
++
++    private static FieldInfo Field(Type type, string name)
++        => type.GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!;
++
++    private static SessionRegistry CreateRegistry()
++        => new(new SessionRegistryTests.NullTerminalSetup(), new GameConfigService(new ConfigData()));
++
++    /// <summary>反射装入一个未启动的会话（与既有 SessionLifecycleSafetyTests 同款可控夹具手段）。</summary>
++    private static Session InstallSession(SessionRegistry registry)
++    {
++        var hub = new OutputHub();
++        var session = new Session(new HttpSessionIO(hub), new SessionRegistryTests.NullTerminalSetup(), new ConfigData());
++        Field(typeof(SessionRegistry), "_session").SetValue(registry, session);
++        Field(typeof(SessionRegistry), "_sessionHub").SetValue(registry, hub);
++        return session;
++    }
++
++    // ------------------------------------------------------------------
++    // ★ 独立只读查询：数据归属的唯一判据
++    // ------------------------------------------------------------------
++
++    /// <summary>表中某 key 的当前值；表中确实没有该 key 时返回 null。</summary>
++    /// <remarks>
++    /// 独立连接、只读打开、禁用连接池、当场 Dispose。不经被测 <c>EESqlRuntime</c>。
++    /// ★ 文件不存在直接失败——避免“查询动作自动建库”把缺席误读成空结果。
++    /// </remarks>
++    private static string? ReadIndependentOrNull(string dbPath, string key)
++    {
++        Assert.True(File.Exists(dbPath), "独立查询前库文件必须已存在：" + dbPath);
++        var cs = new SqliteConnectionStringBuilder
++        {
++            DataSource = dbPath,
++            Mode = SqliteOpenMode.ReadOnly,   // 只读：不创建、不迁移、不改库
++            Pooling = false,                  // 不留在 SQLite 连接池里
++        }.ToString();
++        using var conn = new SqliteConnection(cs);
++        conn.Open();
++        using var cmd = conn.CreateCommand();
++        cmd.CommandText = "SELECT v FROM t WHERE k = $k";
++        cmd.Parameters.AddWithValue("$k", key);
++        var value = cmd.ExecuteScalar();
++        return value is null or DBNull ? null : Convert.ToString(value);
++    }
++
++    /// <summary>独立查询并要求记录存在（缺失即失败，且诊断信息带库路径与 key）。</summary>
++    private static string ReadIndependent(string dbPath, string key)
++        => ReadIndependentOrNull(dbPath, key)
++           ?? throw new InvalidOperationException(
++               $"独立只读查询未取得记录：db={dbPath} key={key}（记录缺失，不是空值）");
++
++    // ------------------------------------------------------------------
++    // 夹具
++    // ------------------------------------------------------------------
++
++    /// <summary>运行时生成的隔离游戏目录（不硬编码本机路径、不触碰真实游戏材料）。</summary>
++    private sealed class GameDir : IDisposable
++    {
++        public string Root { get; }
++        public string DbPath => Path.Combine(Root, "plugins", "data.db");
++
++        public GameDir(string tag)
++        {
++            Root = Path.Combine(Path.GetTempPath(), "erarelay-sql-" + tag + "-" + Guid.NewGuid().ToString("N"));
++            Directory.CreateDirectory(Path.Combine(Root, "csv"));
++            Directory.CreateDirectory(Path.Combine(Root, "erb"));
++            Directory.CreateDirectory(Path.Combine(Root, "plugins"));
++        }
++
++        /// <summary>
++        /// ★ 用**独立连接**预置库与记录（不经被测运行时代码、不进它的事件命名连接池）。
++        /// 连接写完立即关闭（<c>Pooling=false</c>）⇒ 会话启动前该库已是“已存在且有数据”的状态，
++        /// 于是“新会话读到什么”完全由被测路径决定。
++        /// 无记录时仅建表（用于需要空表的用例）。
++        /// </summary>
++        public void SeedDatabase(params (string Key, string Value)[] rows)
++        {
++            Directory.CreateDirectory(Path.GetDirectoryName(DbPath)!);
++            var cs = new SqliteConnectionStringBuilder
++            {
++                DataSource = DbPath,
++                Mode = SqliteOpenMode.ReadWriteCreate,
++                Pooling = false,
++            }.ToString();
++            using (var conn = new SqliteConnection(cs))
++            {
++                conn.Open();
++                using (var create = conn.CreateCommand())
++                {
++                    create.CommandText = "CREATE TABLE IF NOT EXISTS t (k TEXT PRIMARY KEY, v TEXT)";
++                    create.ExecuteNonQuery();
++                }
++                foreach (var (key, value) in rows)
++                {
++                    using var insert = conn.CreateCommand();
++                    insert.CommandText = "INSERT OR REPLACE INTO t (k, v) VALUES ($k, $v)";
++                    insert.Parameters.AddWithValue("$k", key);
++                    insert.Parameters.AddWithValue("$v", value);
++                    insert.ExecuteNonQuery();
++                }
++            }
++        }
++
++        /// <summary>
++        /// 复制仓库既有 test_game 的静态素材（csv / img / resources）作最小可用游戏，
++        /// 但<b>不</b>复制它的 erb（避免与本夹具的入口标签重名），随后写入本夹具自己的 ERB。
++        /// ERB 只**写**一个独立 key（<paramref name="wroteKey"/>）——库里的初始标记由
++        /// <see cref="SeedDatabase"/> 预置，故“读到的标记”与“会话自己写的值”互不掩盖。
++        /// </summary>
++        public void WriteGameFixture(string wroteKey, string wroteValue)
++        {
++            var source = SessionRegistryTests.FindTestGameDir();
++            foreach (var name in new[] { "csv", "img", "resources" })
++            {
++                var src = Path.Combine(source, name);
++                if (Directory.Exists(src))
++                    CopyTree(src, Path.Combine(Root, name));
++            }
++            Directory.CreateDirectory(Path.Combine(Root, "erb"));
++            Directory.CreateDirectory(Path.Combine(Root, "plugins"));
++            File.WriteAllText(Path.Combine(Root, "erb", "SQL_PROBE.ERB"),
++                "@SYSTEM_TITLE\n" +
++                "SQL_CONNECT \"DB\", \"plugins/data.db\"\n" +
++                "SQL_EXECUTE_NONQUERY \"DB\", \"CREATE TABLE IF NOT EXISTS t (k TEXT PRIMARY KEY, v TEXT)\"\n" +
++                "SQL_EXECUTE_NONQUERY \"DB\", \"INSERT OR REPLACE INTO t (k,v) VALUES ('" + wroteKey + "','" + wroteValue + "')\"\n" +
++                "QUIT\n");
++        }
++
++        private static void CopyTree(string source, string destination)
++        {
++            Directory.CreateDirectory(destination);
++            foreach (var file in Directory.GetFiles(source))
++                File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), overwrite: true);
++            foreach (var dir in Directory.GetDirectories(source))
++                CopyTree(dir, Path.Combine(destination, Path.GetFileName(dir)));
++        }
++
++        /// <summary>
++        /// 尽力清理：SQLite 连接池可能仍持有文件句柄（这不是本缺陷的判据），
++        /// 删除失败时保留临时目录，不让清理动作污染测试结论。
++        /// </summary>
++        public void Dispose()
++        {
++            try { Directory.Delete(Root, recursive: true); } catch { }
++        }
++    }
++
++    // 生产指令入口都是 (db, sql, object[]? ps) 形态；ERB 的 SQL_* 无参调用即 ps=null。
++    private static void NonQuery(string db, string sql) => EESqlRuntime.ExecNonQuery(db, sql, null);
++    private static string Scalar(string db, string sql) => EESqlRuntime.ExecScalarString(db, sql, null);
++    private static long Reader(string db, string sql) => EESqlRuntime.OpenReader(db, sql, null);
++
++    private const string CreateTable = "CREATE TABLE IF NOT EXISTS t (k TEXT PRIMARY KEY, v TEXT)";
++
++    // ------------------------------------------------------------------
++    // 作用域级：真实会话作用域 + 真实 SQL 运行时
++    // ------------------------------------------------------------------
++
++    [Fact]
++    public void Next_scope_with_same_connection_name_reads_its_own_relative_database()
++    {
++        EESqlRuntime.Reset();                       // 用例隔离（见类注释）
++        using var a = new GameDir("rel-a");
++        using var b = new GameDir("rel-b");
++        a.SeedDatabase(("marker", "A_VALUE"));
++        b.SeedDatabase(("marker", "B_VALUE"));
++        var previous = GamePaths.Current;
++        try
++        {
++            // 断言 1：两侧初始记录正确（先证实预置本身无误，避免把预置失败误读成串库）
++            Assert.Equal("A_VALUE", ReadIndependent(a.DbPath, "marker"));
++            Assert.Equal("B_VALUE", ReadIndependent(b.DbPath, "marker"));
++
++            using (GlobalStatic.OpenScope(new ConfigData()))
++            {
++                GamePaths.SetCurrent(GamePaths.Resolve(a.Root, new FileSystemGameDirAccessor()));
++                EESqlRuntime.Connect("DB", "plugins/data.db");
++                // 会话 A 经同名连接读到自己目录的预置标记
++                Assert.Equal("A_VALUE", Scalar("DB", "SELECT v FROM t WHERE k='marker'"));
++                NonQuery("DB", CreateTable);
++                NonQuery("DB", "INSERT OR REPLACE INTO t (k,v) VALUES ('wrote','A_WROTE')");
++            }
++            Assert.Equal("A_WROTE", ReadIndependent(a.DbPath, "wrote"));
++            Assert.Equal(0, ConnCount());           // ★ 旧会话结束后不得留下失效引用
++
++            using (GlobalStatic.OpenScope(new ConfigData()))
++            {
++                GamePaths.SetCurrent(GamePaths.Resolve(b.Root, new FileSystemGameDirAccessor()));
++                EESqlRuntime.Connect("DB", "plugins/data.db");
++                // ★ 断言 2：同名连接、另一目录 ⇒ 必须读到 B 自己的预置标记
++                Assert.Equal("B_VALUE", Scalar("DB", "SELECT v FROM t WHERE k='marker'"));
++                NonQuery("DB", CreateTable);
++                NonQuery("DB", "INSERT OR REPLACE INTO t (k,v) VALUES ('wrote','B_WROTE')");
++            }
++
++            // ★ 断言 3/4：独立查询两侧真实记录
++            Assert.Equal("B_VALUE", ReadIndependent(b.DbPath, "marker"));
++            Assert.Equal("B_WROTE", ReadIndependent(b.DbPath, "wrote"));
++            Assert.Equal("A_VALUE", ReadIndependent(a.DbPath, "marker"));
++            Assert.Equal("A_WROTE", ReadIndependent(a.DbPath, "wrote"));   // ★ A 不得被 B 覆盖
++        }
++        finally
++        {
++            EESqlRuntime.Reset();
++            GamePaths.SetCurrent(previous);
++        }
++    }
++
++    [Fact]
++    public void Next_scope_with_same_connection_name_reads_its_own_absolute_database()
++    {
++        EESqlRuntime.Reset();
++        using var a = new GameDir("abs-a");
++        using var b = new GameDir("abs-b");
++        a.SeedDatabase(("marker", "A_VALUE"));
++        b.SeedDatabase(("marker", "B_VALUE"));
++        try
++        {
++            Assert.Equal("A_VALUE", ReadIndependent(a.DbPath, "marker"));
++            Assert.Equal("B_VALUE", ReadIndependent(b.DbPath, "marker"));
++
++            using (GlobalStatic.OpenScope(new ConfigData()))
++            {
++                EESqlRuntime.Connect("DB", "Data Source=" + a.DbPath);
++                Assert.Equal("A_VALUE", Scalar("DB", "SELECT v FROM t WHERE k='marker'"));
++                NonQuery("DB", "INSERT OR REPLACE INTO t (k,v) VALUES ('wrote','A_WROTE')");
++            }
++
++            using (GlobalStatic.OpenScope(new ConfigData()))
++            {
++                EESqlRuntime.Connect("DB", "Data Source=" + b.DbPath);
++                Assert.Equal("B_VALUE", Scalar("DB", "SELECT v FROM t WHERE k='marker'"));
++                NonQuery("DB", "INSERT OR REPLACE INTO t (k,v) VALUES ('wrote','B_WROTE')");
++            }
++
++            Assert.Equal("B_VALUE", ReadIndependent(b.DbPath, "marker"));
++            Assert.Equal("B_WROTE", ReadIndependent(b.DbPath, "wrote"));
++            Assert.Equal("A_VALUE", ReadIndependent(a.DbPath, "marker"));
++            Assert.Equal("A_WROTE", ReadIndependent(a.DbPath, "wrote"));
++        }
++        finally { EESqlRuntime.Reset(); }
++    }
++
++    [Fact]
++    public void Scope_end_releases_connections_readers_and_reader_ids()
++    {
++        EESqlRuntime.Reset();
++        using var a = new GameDir("release-a");
++        a.SeedDatabase();                            // 独立连接预置空表
++        long leakedReaderId;
++        object? leakedConn;
++        using (GlobalStatic.OpenScope(new ConfigData()))
++        {
++            EESqlRuntime.Connect("DB", "Data Source=" + a.DbPath);
++            leakedReaderId = Reader("DB", "SELECT k FROM t");
++            Assert.True(leakedReaderId > 0);
++            Assert.Equal(1, ConnCount());
++            Assert.Equal(1, ReaderCount());
++            leakedConn = SqlPool("_conns")["DB"];
++            Assert.Equal("Open", ConnState(leakedConn));
++        }
++
++        // ★ 会话作用域结束 = 生产唯一的会话级清理边界：连接与未关闭 reader 都必须被释放
++        Assert.Equal(0, ConnCount());
++        Assert.Equal(0, ReaderCount());
++        // ★ 对象级证据：不是"从字典里删掉"，而是连接本身已关闭
++        // （文件句柄可能仍被 SQLite 连接池保留 —— 那不是本缺陷的判据，见类注释）
++        Assert.Equal("Closed", ConnState(leakedConn));
++        // ★ 措辞边界：此处只证明“该编号在池中不复可用”，不证明编号永不复用
++        Assert.False(EESqlRuntime.ReaderRead(leakedReaderId), "该 reader 编号在清空后不得仍可读");
++
++        // 重复清理安全（幂等，不抛）
++        EESqlRuntime.Reset();
++        EESqlRuntime.Reset();
++        Assert.Equal(0, ConnCount());
++        Assert.Equal(0, ReaderCount());
++    }
++
++    /// <summary>
++    /// ★ Reset 的健壮性：多个 reader 同时打开（<c>OpenReader</c> 走**主连接** ⇒ 多条 reader 项
++    /// 持有同一个连接对象）。清理时同一连接会被重复 Dispose，且第二次读 <c>Conn.DataSource</c>
++    /// 时该连接已 Dispose —— 必须不抛、且不能因为这一项而漏清后面的连接。
++    /// </summary>
++    [Fact]
++    public void Reset_tolerates_multiple_readers_sharing_one_connection_and_clears_all()
++    {
++        EESqlRuntime.Reset();
++        using var a = new GameDir("multi-reader-a");
++        using var b = new GameDir("multi-reader-b");
++        a.SeedDatabase();
++        b.SeedDatabase();
++        long r1, r2;
++        using (GlobalStatic.OpenScope(new ConfigData()))
++        {
++            EESqlRuntime.Connect("DB", "Data Source=" + a.DbPath);
++            r1 = Reader("DB", "SELECT k FROM t");
++            r2 = Reader("DB", "SELECT k FROM t");
++            Assert.True(r1 > 0 && r2 > 0);
++            Assert.Equal(1, ConnCount());     // 同一连接名
++            Assert.Equal(2, ReaderCount());   // 两条 reader 项共享它
++
++            // 再挂一个独立连接，用来验证“前面的项出问题不会漏清后面的”
++            EESqlRuntime.Connect("OTHER", "Data Source=" + b.DbPath);
++            Assert.Equal(2, ConnCount());
++        }
++
++        Assert.Equal(0, ConnCount());
++        Assert.Equal(0, ReaderCount());
++        Assert.False(EESqlRuntime.ReaderRead(r1));
++        Assert.False(EESqlRuntime.ReaderRead(r2));
++    }
++
++    [Fact]
++    public void Restarting_same_directory_reconnects_and_sees_its_own_data()
++    {
++        EESqlRuntime.Reset();
++        using var a = new GameDir("restart-a");
++        a.SeedDatabase(("marker", "A_VALUE"));
++        var previous = GamePaths.Current;
++        try
++        {
++            using (GlobalStatic.OpenScope(new ConfigData()))
++            {
++                GamePaths.SetCurrent(GamePaths.Resolve(a.Root, new FileSystemGameDirAccessor()));
++                EESqlRuntime.Connect("DB", "plugins/data.db");
++                Assert.Equal("A_VALUE", Scalar("DB", "SELECT v FROM t WHERE k='marker'"));
++                NonQuery("DB", "INSERT OR REPLACE INTO t (k,v) VALUES ('wrote','A_WROTE')");
++            }
++            Assert.Equal(0, ConnCount());
++            Assert.Equal("A_WROTE", ReadIndependent(a.DbPath, "wrote"));
++
++            // 同一目录重新开始：数据仍在（落盘），连接是新的且指向同一数据源
++            using (GlobalStatic.OpenScope(new ConfigData()))
++            {
++                GamePaths.SetCurrent(GamePaths.Resolve(a.Root, new FileSystemGameDirAccessor()));
++                EESqlRuntime.Connect("DB", "plugins/data.db");
++                Assert.Equal(1, ConnCount());
++                Assert.Equal(
++                    Path.GetFullPath(a.DbPath).Replace('\\', '/'),
++                    ConnDataSource("DB")!.Replace('\\', '/'));
++                Assert.Equal("A_VALUE", Scalar("DB", "SELECT v FROM t WHERE k='marker'"));
++                Assert.Equal("A_WROTE", Scalar("DB", "SELECT v FROM t WHERE k='wrote'"));
++            }
++            // 独立复核：同路径重开不改变数据归属
++            Assert.Equal("A_VALUE", ReadIndependent(a.DbPath, "marker"));
++            Assert.Equal("A_WROTE", ReadIndependent(a.DbPath, "wrote"));
++        }
++        finally
++        {
++            EESqlRuntime.Reset();
++            GamePaths.SetCurrent(previous);
++        }
++    }
++
++    // ------------------------------------------------------------------
++    // 会话级：真实换局事务 + 真实 ERB（含 SQL_* 指令）
++    // ------------------------------------------------------------------
++
++    [Fact]
++    public async Task Replacing_game_session_does_not_cross_sql_databases()
++    {
++        EESqlRuntime.Reset();
++        using var a = new GameDir("chain-a");
++        using var b = new GameDir("chain-b");
++        // 两侧预置**不同**标记；会话只另写独立 key，避免覆盖同一 marker 掩盖归属
++        a.SeedDatabase(("marker", "A_VALUE"));
++        b.SeedDatabase(("marker", "B_VALUE"));
++        a.WriteGameFixture("wrote", "A_WROTE");
++        b.WriteGameFixture("wrote", "B_WROTE");
++        var previous = GamePaths.Current;
++        var registry = CreateRegistry();
++        try
++        {
++            Assert.Equal("A_VALUE", ReadIndependent(a.DbPath, "marker"));
++            Assert.Equal("B_VALUE", ReadIndependent(b.DbPath, "marker"));
++
++            var first = await registry.ReplaceForLoadGameAsync(a.Root);
++            Assert.Equal(LoadGameStatus.Success, first.Status);
++            await WaitEndedAsync(registry.CurrentSession);
++            Assert.Equal("A_WROTE", ReadIndependent(a.DbPath, "wrote"));
++
++            var second = await registry.ReplaceForLoadGameAsync(b.Root);
++            Assert.Equal(LoadGameStatus.Success, second.Status);
++            await WaitEndedAsync(registry.CurrentSession);
++
++            // ★ 换局后：B 库有自己的标记与自己的写入；A 库两条记录都保持原样
++            Assert.Equal("B_VALUE", ReadIndependent(b.DbPath, "marker"));
++            Assert.Equal("B_WROTE", ReadIndependent(b.DbPath, "wrote"));
++            Assert.Equal("A_VALUE", ReadIndependent(a.DbPath, "marker"));
++            Assert.Equal("A_WROTE", ReadIndependent(a.DbPath, "wrote"));
++        }
++        finally
++        {
++            registry.DisposeAll();
++            EESqlRuntime.Reset();
++            GamePaths.SetCurrent(previous);
++        }
++    }
++
++    // ------------------------------------------------------------------
++    // 生命周期边界：不得提前清理 / 失败与迟到路径
++    // ------------------------------------------------------------------
++
++    /// <summary>
++    /// ★ 正常退出、**不再开新局**时，旧会话的资源同样要释放。
++    /// 走真实 DELETE /session（<c>DeleteSessionAsync</c>）——此时既没有换局、也没有后继会话，
++    /// 若清理被"只在换局时做"的实现漏掉，本用例会失败。
++    /// </summary>
++    [Fact]
++    public async Task Normal_exit_without_new_session_releases_sql_resources()
++    {
++        EESqlRuntime.Reset();
++        using var a = new GameDir("exit-a");
++        a.SeedDatabase(("marker", "A_VALUE"));
++        a.WriteGameFixture("wrote", "A_WROTE");
++        var previous = GamePaths.Current;
++        var registry = CreateRegistry();
++        try
++        {
++            var result = await registry.ReplaceForLoadGameAsync(a.Root);
++            Assert.Equal(LoadGameStatus.Success, result.Status);
++            await WaitEndedAsync(registry.CurrentSession);
++            Assert.Equal("A_WROTE", ReadIndependent(a.DbPath, "wrote"));
++
++            var deleted = await registry.DeleteSessionAsync();
++
++            Assert.Equal(SessionDeleteStatus.Removed, deleted.Status);
++            Assert.Null(registry.CurrentSession);
++            Assert.Equal(0, ConnCount());      // ★ 不再开新局也必须释放
++            Assert.Equal(0, ReaderCount());
++            // 独立复核：释放动作不得改动库内容
++            Assert.Equal("A_VALUE", ReadIndependent(a.DbPath, "marker"));
++            Assert.Equal("A_WROTE", ReadIndependent(a.DbPath, "wrote"));
++        }
++        finally
++        {
++            registry.DisposeAll();
++            EESqlRuntime.Reset();
++            GamePaths.SetCurrent(previous);
++        }
++    }
++
++    [Fact]
++    public async Task Failed_or_cancelled_replacement_does_not_release_active_session_sql()
++    {
++        EESqlRuntime.Reset();
++        using var a = new GameDir("guard-a");
++        using var b = new GameDir("guard-b");
++        a.SeedDatabase(("marker", "A_VALUE"));
++        b.SeedDatabase(("marker", "B_VALUE"));
++        var registry = CreateRegistry();
++        var session = InstallSession(registry);
++        var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
++        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
++        // 受控旧循环：在真实会话作用域内执行真实 SQL，然后停住（会话保持活跃）
++        var loop = Task.Run(() =>
++        {
++            using (GlobalStatic.OpenScope(new ConfigData()))
++            {
++                EESqlRuntime.Connect("DB", "Data Source=" + a.DbPath);
++                NonQuery("DB", "INSERT OR REPLACE INTO t (k,v) VALUES ('wrote','A_WROTE')");
++                ready.TrySetResult();
++                release.Task.GetAwaiter().GetResult();
++            }
++        });
++        Field(typeof(Session), "_gameTask").SetValue(session, loop);
++        try
++        {
++            await ready.Task.WaitAsync(TimeSpan.FromSeconds(10));
++            Assert.Equal(1, ConnCount());
++
++            // ① 无效候选目录：在旧局停止前就失败 ⇒ 旧会话与它的 SQL 资源都不能被提前清理
++            var pathError = await registry.ReplaceForLoadGameAsync(
++                Path.Combine(a.Root, "missing"), ControlIdentity.User);
++            Assert.Equal(LoadGameStatus.PathError, pathError.Status);
++            Assert.Same(session, registry.CurrentSession);
++            Assert.Equal(1, ConnCount());
++            // 活跃会话的连接必须仍可用（经被测路径读取，这正是被观测行为）
++            Assert.Equal("A_VALUE", Scalar("DB", "SELECT v FROM t WHERE k='marker'"));
++            // 独立复核：库内容未被清理动作破坏
++            Assert.Equal("A_VALUE", ReadIndependent(a.DbPath, "marker"));
++            Assert.Equal("A_WROTE", ReadIndependent(a.DbPath, "wrote"));
++
++            // ② 取消：请求在提交前取消 ⇒ 不得误清有效会话的 SQL 资源
++            using var cancel = new CancellationTokenSource();
++            cancel.Cancel();
++            var cancelled = await registry.ExecuteMauiLoadAsync(
++                GamePaths.Prepare(b.Root, new FileSystemGameDirAccessor()), ControlIdentity.User, session,
++                () => throw new InvalidOperationException("must not initialize"), cancel.Token);
++            Assert.Equal(MauiLoadStatus.Cancelled, cancelled.Status);
++            Assert.Same(session, registry.CurrentSession);
++            Assert.Equal(1, ConnCount());
++            Assert.Equal("A_VALUE", Scalar("DB", "SELECT v FROM t WHERE k='marker'"));
++            // b 库不应被这次取消的换局触碰
++            Assert.Equal("B_VALUE", ReadIndependent(b.DbPath, "marker"));
++            Assert.Null(ReadIndependentOrNull(b.DbPath, "wrote"));
++        }
++        finally
++        {
++            release.TrySetResult();
++            await loop.WaitAsync(TimeSpan.FromSeconds(10));
++            registry.DisposeAll();
++            EESqlRuntime.Reset();
++        }
++    }
++
++    [Fact]
++    public async Task Stopped_session_then_failed_start_still_releases_and_next_connect_is_isolated()
++    {
++        EESqlRuntime.Reset();
++        using var a = new GameDir("fail-a");
++        using var b = new GameDir("fail-b");
++        a.SeedDatabase(("marker", "A_VALUE"));
++        b.SeedDatabase(("marker", "B_VALUE"));
++        var registry = CreateRegistry();
++        var session = InstallSession(registry);
++        var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
++        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
++        var loop = Task.Run(() =>
++        {
++            using (GlobalStatic.OpenScope(new ConfigData()))
++            {
++                EESqlRuntime.Connect("DB", "Data Source=" + a.DbPath);
++                NonQuery("DB", "INSERT OR REPLACE INTO t (k,v) VALUES ('wrote','A_WROTE')");
++                ready.TrySetResult();
++                release.Task.GetAwaiter().GetResult();
++            }
++        });
++        Field(typeof(Session), "_gameTask").SetValue(session, loop);
++        try
++        {
++            await ready.Task.WaitAsync(TimeSpan.FromSeconds(10));
++            release.TrySetResult();
++            await loop.WaitAsync(TimeSpan.FromSeconds(10));   // 旧局已停止（含作用域退出）
++
++            // 旧局已停止、新局启动失败：旧资源仍必须已被释放
++            var failed = await registry.ExecuteMauiLoadAsync(
++                GamePaths.Prepare(b.Root, new FileSystemGameDirAccessor()), ControlIdentity.User,
++                () => throw new InvalidOperationException("controlled-initializer-failure"));
++            Assert.Equal(MauiLoadStatus.LoadFailed, failed.Status);
++            Assert.Equal(0, ConnCount());                      // ★ 旧会话的连接不得残留
++            Assert.Equal(0, ReaderCount());
++
++            // 下一次启动不串库：同名连接指向新目录时读到的是**新目录自己的**标记
++            using (GlobalStatic.OpenScope(new ConfigData()))
++            {
++                EESqlRuntime.Connect("DB", "Data Source=" + b.DbPath);
++                Assert.Equal("B_VALUE", Scalar("DB", "SELECT v FROM t WHERE k='marker'"));
++            }
++            // 独立复核：旧库内容保持，新库未被旧会话写入
++            Assert.Equal("A_VALUE", ReadIndependent(a.DbPath, "marker"));
++            Assert.Equal("A_WROTE", ReadIndependent(a.DbPath, "wrote"));
++            Assert.Null(ReadIndependentOrNull(b.DbPath, "wrote"));
++        }
++        finally
++        {
++            release.TrySetResult();
++            registry.DisposeAll();
++            EESqlRuntime.Reset();
++        }
++    }
++
++    /// <summary>
++    /// 有界等待一个确定性终态（夹具 ERB 以 QUIT 收尾 ⇒ HasEnded 必然到达）。
++    /// 轮询的是终态、不是碰运气的时间窗。
++    /// 注意：HasEnded 只说明游戏循环已收尾，作用域释放由随后 <c>Dispose</c>/<c>join</c> 保证。
++    /// </summary>
++    private static async Task WaitEndedAsync(Session? session)
++    {
++        var deadline = DateTime.UtcNow.AddSeconds(20);
++        while (session is { HasEnded: false } && DateTime.UtcNow < deadline)
++            await Task.Delay(25);
++        Assert.True(
++            session?.HasEnded == true,
++            "夹具会话应在时限内自然结束（ERB 以 QUIT 收尾）；"
++            + "实际 State=" + (session?.StateString ?? "(null)")
++            + " HasEnded=" + (session?.HasEnded.ToString() ?? "(null)")
++            + " LastError=" + (session?.LastError ?? "(null)"));
++    }
++}
 diff --git a/EraCore.Tests/TestData/Phase0/clearline_state.json b/EraCore.Tests/TestData/Phase0/clearline_state.json
-index 405b1fce047deb3945acebc37332045deaf78c95..4973ffb94394b7ed5d33793fb9bf61da9cfcdefd 100644
+index 405b1fce..4973ffb9 100644
 --- a/EraCore.Tests/TestData/Phase0/clearline_state.json
 +++ b/EraCore.Tests/TestData/Phase0/clearline_state.json
 @@ -37,6 +37,6 @@
@@ -15821,7 +16510,7 @@ index 405b1fce047deb3945acebc37332045deaf78c95..4973ffb94394b7ed5d33793fb9bf61da
  }
 \ No newline at end of file
 diff --git a/EraCore.Tests/TestData/Phase0/empty_screen.json b/EraCore.Tests/TestData/Phase0/empty_screen.json
-index 7bd8e9298c4548e833ac70a29dccf8105e2d2e8f..3848a2eace01d77e54ee200c4fcdf2754f29ff3c 100644
+index 7bd8e929..3848a2ea 100644
 --- a/EraCore.Tests/TestData/Phase0/empty_screen.json
 +++ b/EraCore.Tests/TestData/Phase0/empty_screen.json
 @@ -3,6 +3,6 @@
@@ -15834,7 +16523,7 @@ index 7bd8e9298c4548e833ac70a29dccf8105e2d2e8f..3848a2eace01d77e54ee200c4fcdf275
  }
 \ No newline at end of file
 diff --git a/EraCore.Tests/TestData/Phase0/multi_line_buttons.json b/EraCore.Tests/TestData/Phase0/multi_line_buttons.json
-index 41496792288a5f49699496287b231bbefca7b8a1..286b901d118755d8ff8f712d88ca418a1d727d00 100644
+index 41496792..286b901d 100644
 --- a/EraCore.Tests/TestData/Phase0/multi_line_buttons.json
 +++ b/EraCore.Tests/TestData/Phase0/multi_line_buttons.json
 @@ -63,6 +63,6 @@
@@ -15847,7 +16536,7 @@ index 41496792288a5f49699496287b231bbefca7b8a1..286b901d118755d8ff8f712d88ca418a
  }
 \ No newline at end of file
 diff --git a/EraCore.Tests/TestData/Phase0/set_bg_state.json b/EraCore.Tests/TestData/Phase0/set_bg_state.json
-index 80c7c67a63f3de8d929e896a863954a32db24c8f..83dc0f563859dc2ec50cb7b026378e95abe82a7f 100644
+index 80c7c67a..83dc0f56 100644
 --- a/EraCore.Tests/TestData/Phase0/set_bg_state.json
 +++ b/EraCore.Tests/TestData/Phase0/set_bg_state.json
 @@ -18,6 +18,6 @@
@@ -15860,7 +16549,7 @@ index 80c7c67a63f3de8d929e896a863954a32db24c8f..83dc0f563859dc2ec50cb7b026378e95
  }
 \ No newline at end of file
 diff --git a/EraCore.Tests/TestData/Phase0/single_line.json b/EraCore.Tests/TestData/Phase0/single_line.json
-index d50ff74dfbff5377c5e26a8b426ae21275b13c54..080ca8a359da490871f9710caabe09b76d5d2e4f 100644
+index d50ff74d..080ca8a3 100644
 --- a/EraCore.Tests/TestData/Phase0/single_line.json
 +++ b/EraCore.Tests/TestData/Phase0/single_line.json
 @@ -24,6 +24,6 @@
@@ -15873,7 +16562,7 @@ index d50ff74dfbff5377c5e26a8b426ae21275b13c54..080ca8a359da490871f9710caabe09b7
  }
 \ No newline at end of file
 diff --git a/EraCore.Web/README.md b/EraCore.Web/README.md
-index 439446a2de221ea17b18189c2ac78be8c03fea80..e21ad15dbb53a0cef15dbbf2d79734a6b29ea87d 100644
+index 439446a2..e21ad15d 100644
 --- a/EraCore.Web/README.md
 +++ b/EraCore.Web/README.md
 @@ -94,6 +94,7 @@ npm run build
@@ -15885,7 +16574,7 @@ index 439446a2de221ea17b18189c2ac78be8c03fea80..e21ad15dbb53a0cef15dbbf2d79734a6
  | 修改页面导航、顶部按钮或模式分流 | `App.vue`、`components/DrawerMenu.vue` |
  | 修改 UI 主题、颜色、圆角、阴影、动效或字号 | `styles/theme.css`（唯一令牌源，组件一律 `var(--token)`） |
 diff --git a/EraCore.Web/index.html b/EraCore.Web/index.html
-index bc448483496464a440b0b1565dd3418bbb97b5f4..f63bba8c3a38384a35c95c23f5a57d7491ac3424 100644
+index bc448483..f63bba8c 100644
 --- a/EraCore.Web/index.html
 +++ b/EraCore.Web/index.html
 @@ -2,8 +2,11 @@
@@ -16008,7 +16697,7 @@ index bc448483496464a440b0b1565dd3418bbb97b5f4..f63bba8c3a38384a35c95c23f5a57d74
    <body>
      <div id="app"></div>
 diff --git a/EraCore.Web/package.json b/EraCore.Web/package.json
-index 72e67a51ff59e7b6f32f2a8ff16c412fcbddf9a1..74699ef594f706eeead564df4453aa2a8c818baa 100644
+index 72e67a51..74699ef5 100644
 --- a/EraCore.Web/package.json
 +++ b/EraCore.Web/package.json
 @@ -9,7 +9,10 @@
@@ -16025,7 +16714,7 @@ index 72e67a51ff59e7b6f32f2a8ff16c412fcbddf9a1..74699ef594f706eeead564df4453aa2a
      "pinia": "^2.2.6",
 diff --git a/EraCore.Web/scripts/check-css-floor.mjs b/EraCore.Web/scripts/check-css-floor.mjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..3efbfd813cf93c8f79e3cdc688155fe681040fac
+index 00000000..3efbfd81
 --- /dev/null
 +++ b/EraCore.Web/scripts/check-css-floor.mjs
 @@ -0,0 +1,67 @@
@@ -16099,7 +16788,7 @@ index 0000000000000000000000000000000000000000..3efbfd813cf93c8f79e3cdc688155fe6
 \ No newline at end of file
 diff --git a/EraCore.Web/scripts/check-legacy-syntax.mjs b/EraCore.Web/scripts/check-legacy-syntax.mjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..c75893c99afa36a33b2768208457bee2f9a7696f
+index 00000000..c75893c9
 --- /dev/null
 +++ b/EraCore.Web/scripts/check-legacy-syntax.mjs
 @@ -0,0 +1,79 @@
@@ -16185,7 +16874,7 @@ index 0000000000000000000000000000000000000000..c75893c99afa36a33b2768208457bee2
 \ No newline at end of file
 diff --git a/EraCore.Web/scripts/gen-legacy-gap.mjs b/EraCore.Web/scripts/gen-legacy-gap.mjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..129a2ee92d8634b1ac41362c6c18459fbed76d4d
+index 00000000..129a2ee9
 --- /dev/null
 +++ b/EraCore.Web/scripts/gen-legacy-gap.mjs
 @@ -0,0 +1,118 @@
@@ -16309,7 +16998,7 @@ index 0000000000000000000000000000000000000000..129a2ee92d8634b1ac41362c6c18459f
 +console.log(`[gen-legacy-gap] 已写入 ${generated.split('\n').filter((l) => l.trim().startsWith('html.legacy-webview')).length} 条 gap 兜底规则到 legacy-webview.css`);
 \ No newline at end of file
 diff --git a/EraCore.Web/src/App.vue b/EraCore.Web/src/App.vue
-index 9f54a571b07e2e8100a9e3b465b57a5044e80719..41d6fe631f615ba9e2a40046bcf41843ceb3d1ad 100644
+index 9f54a571..41d6fe63 100644
 --- a/EraCore.Web/src/App.vue
 +++ b/EraCore.Web/src/App.vue
 @@ -1,11 +1,14 @@
@@ -16841,7 +17530,7 @@ index 9f54a571b07e2e8100a9e3b465b57a5044e80719..41d6fe631f615ba9e2a40046bcf41843
  .game-view-wrapper {
    display: flex;
 diff --git a/EraCore.Web/src/components/DrawerMenu.vue b/EraCore.Web/src/components/DrawerMenu.vue
-index 34801ae01347220c3951ac7726b895855dbff185..aa329d8b14500a287bf982d8360a8e967d9908b0 100644
+index 34801ae0..aa329d8b 100644
 --- a/EraCore.Web/src/components/DrawerMenu.vue
 +++ b/EraCore.Web/src/components/DrawerMenu.vue
 @@ -180,6 +180,16 @@ onUnmounted(() => {
@@ -16871,7 +17560,7 @@ index 34801ae01347220c3951ac7726b895855dbff185..aa329d8b14500a287bf982d8360a8e96
    display: flex;
    flex-direction: column;
 diff --git a/EraCore.Web/src/components/GameLibraryView.vue b/EraCore.Web/src/components/GameLibraryView.vue
-index deef1d35e62bfbf6ff6aff48f082418268cdfd89..9bf0655f323a6c650478cb6e2394ed1425c49eed 100644
+index deef1d35..1de0f8bd 100644
 --- a/EraCore.Web/src/components/GameLibraryView.vue
 +++ b/EraCore.Web/src/components/GameLibraryView.vue
 @@ -8,6 +8,8 @@ import ConfirmDialog from './ConfirmDialog.vue';
@@ -16943,7 +17632,17 @@ index deef1d35e62bfbf6ff6aff48f082418268cdfd89..9bf0655f323a6c650478cb6e2394ed14
      <!-- hero 大标题（原型3）：功能标题，不显示产品名 -->
      <div
        class="hero-title"
-@@ -372,6 +416,30 @@ defineExpose({ openChangeDirDialog });
+@@ -288,7 +332,8 @@ defineExpose({ openChangeDirDialog });
+           <div class="empty-hint">请把游戏放到以下目录：</div>
+         </template>
+         <div class="empty-path" :title="mainDirDisplay">{{ mainDirDisplay }}</div>
+-        <div class="empty-hint">游戏目录需要包含 csv/ 和 erb/ 两个子目录</div>
++        <div class="empty-hint">请将游戏文件夹放在主目录下</div>
++        <div class="empty-hint">每个游戏文件夹中需包含 CSV 和 ERB 子目录</div>
+         <!-- issues/15 S3：平台可注入空态动作——MAUI 给「取权限用直读 / 直接用系统选择器」
+              双按钮（把两条轨的代价差异明说），Web 走兜底单按钮，行为不变 -->
+         <slot name="empty-actions">
+@@ -372,6 +417,30 @@ defineExpose({ openChangeDirDialog });
    align-items: center;
    gap: var(--space-1);
  }
@@ -16974,7 +17673,7 @@ index deef1d35e62bfbf6ff6aff48f082418268cdfd89..9bf0655f323a6c650478cb6e2394ed14
  .compact-title {
    position: absolute;
    left: 50%;
-@@ -450,12 +518,20 @@ defineExpose({ openChangeDirDialog });
+@@ -450,12 +519,20 @@ defineExpose({ openChangeDirDialog });
  }
  .mode-legacy {
    color: var(--color-success);
@@ -16995,7 +17694,7 @@ index deef1d35e62bfbf6ff6aff48f082418268cdfd89..9bf0655f323a6c650478cb6e2394ed14
    border-color: color-mix(in srgb, var(--color-warning) 40%, transparent);
  }
  
-@@ -465,6 +541,9 @@ defineExpose({ openChangeDirDialog });
+@@ -465,6 +542,9 @@ defineExpose({ openChangeDirDialog });
    display: flex;
    flex-direction: column;
    padding: 0 0 var(--space-5);
@@ -17006,7 +17705,7 @@ index deef1d35e62bfbf6ff6aff48f082418268cdfd89..9bf0655f323a6c650478cb6e2394ed14
  }
  .error-slot {
 diff --git a/EraCore.Web/src/components/InputBar.vue b/EraCore.Web/src/components/InputBar.vue
-index 82c63edc96432ba50f7746a1e16f3ecda6def4c7..520dc7cadfc9010bab5da8b500800299b9be43e3 100644
+index 82c63edc..520dc7ca 100644
 --- a/EraCore.Web/src/components/InputBar.vue
 +++ b/EraCore.Web/src/components/InputBar.vue
 @@ -262,8 +262,13 @@ const submitLabel = computed<string>(() => {
@@ -17077,7 +17776,7 @@ index 82c63edc96432ba50f7746a1e16f3ecda6def4c7..520dc7cadfc9010bab5da8b500800299
  .inputbar-enter-active {
    transition: opacity var(--motion-slow) var(--fx-ease-in), transform var(--motion-slow) var(--fx-ease-in);
 diff --git a/EraCore.Web/src/components/MauiGameList.vue b/EraCore.Web/src/components/MauiGameList.vue
-index 85e1efd708a314000bd2f536d20b3c5492ec1dfe..4dcd9e2ee16d51177deb27fba0e76925757a7c63 100644
+index 85e1efd7..4dcd9e2e 100644
 --- a/EraCore.Web/src/components/MauiGameList.vue
 +++ b/EraCore.Web/src/components/MauiGameList.vue
 @@ -153,6 +153,31 @@ const dirMenuItems = computed<PopupMenuItem[]>(() => [
@@ -17114,10 +17813,10 @@ index 85e1efd708a314000bd2f536d20b3c5492ec1dfe..4dcd9e2ee16d51177deb27fba0e76925
  /** 当前是否扫描中——菜单项禁用依据。 */
 diff --git a/EraCore.Web/src/components/OnboardingDialog.vue b/EraCore.Web/src/components/OnboardingDialog.vue
 new file mode 100644
-index 0000000000000000000000000000000000000000..eb88f4c12a662795e209243c6c171c93429b53cd
+index 00000000..2d3063d7
 --- /dev/null
 +++ b/EraCore.Web/src/components/OnboardingDialog.vue
-@@ -0,0 +1,215 @@
+@@ -0,0 +1,218 @@
 +<script setup lang="ts">
 +/**
 + * ★ 新手引导（2026-10-08）。
@@ -17171,12 +17870,15 @@ index 0000000000000000000000000000000000000000..eb88f4c12a662795e209243c6c171c93
 +        <!-- ② 放游戏（原「存储位置引导」） -->
 +        <section class="ob-sec">
 +          <h3 class="ob-h">② 把游戏放进设备</h3>
-+          <p>放到设备的 <code>emuera</code> 文件夹里，结构要长这样：</p>
-+          <pre class="ob-code">emuera/                  ← 应用默认从这里找
-+└── 你的游戏/             ← 选目录时选到【这一层】
-+    ├── 一堆 .erb 文件     ← 有它们才是游戏本体
-+    ├── csv/
-+    └── sav/</pre>
++          <p>放到设备上一个用来装游戏的文件夹里（下面以 <code>emuera</code> 为例，名字随意），结构要长这样：</p>
++          <pre class="ob-code">emuera/   ← 选目录时选到【这一层】
++└── 你的游戏/
++    ├── ERB/
++    └── CSV/</pre>
++          <p class="ob-dim">
++            应用会扫描【这一层】，把里面的每个游戏文件夹（内含 ERB、CSV）列出来
++            —— 所以选的是装着游戏的那层，不是游戏文件夹本身。
++          </p>
 +          <p class="ob-dim">
 +            用数据线连电脑时，它通常在 <code>/storage/emulated/0/emuera/</code>。
 +            ★ 放好之后回到这一页，应用会自己认出来。
@@ -17334,7 +18036,7 @@ index 0000000000000000000000000000000000000000..eb88f4c12a662795e209243c6c171c93
 +}
 +</style>
 diff --git a/EraCore.Web/src/components/PopupMenu.vue b/EraCore.Web/src/components/PopupMenu.vue
-index 8169b226b111e8a82f7f25953ab13072db41e4be..7fdc74737cf9709a7fc8bb354e7110d55c10c9d9 100644
+index 8169b226..7fdc7473 100644
 --- a/EraCore.Web/src/components/PopupMenu.vue
 +++ b/EraCore.Web/src/components/PopupMenu.vue
 @@ -128,6 +128,16 @@ onUnmounted(() => {
@@ -17355,7 +18057,7 @@ index 8169b226b111e8a82f7f25953ab13072db41e4be..7fdc74737cf9709a7fc8bb354e7110d5
                <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
                <path d="M12 2v10" />
 diff --git a/EraCore.Web/src/components/SpectatorBanner.vue b/EraCore.Web/src/components/SpectatorBanner.vue
-index 2b5207765444df184df6b625f4c8c46725d58ab7..ea0097e5e20bc9889469a1aede342e65892b13b3 100644
+index 2b520776..ea0097e5 100644
 --- a/EraCore.Web/src/components/SpectatorBanner.vue
 +++ b/EraCore.Web/src/components/SpectatorBanner.vue
 @@ -31,7 +31,11 @@ function onTakeOver(): void {
@@ -17371,7 +18073,7 @@ index 2b5207765444df184df6b625f4c8c46725d58ab7..ea0097e5e20bc9889469a1aede342e65
    color: var(--color-warning);
  }
 diff --git a/EraCore.Web/src/components/StatusBanner.vue b/EraCore.Web/src/components/StatusBanner.vue
-index 8444b1bebe6fd858e616e335c4080ab3cb49bf04..e71ea5b26538d2419cef8b1694409f8294890dd0 100644
+index 8444b1be..e71ea5b2 100644
 --- a/EraCore.Web/src/components/StatusBanner.vue
 +++ b/EraCore.Web/src/components/StatusBanner.vue
 @@ -52,17 +52,29 @@ const emit = defineEmits<{
@@ -17405,7 +18107,7 @@ index 8444b1bebe6fd858e616e335c4080ab3cb49bf04..e71ea5b26538d2419cef8b1694409f82
    color: var(--color-success);
  }
 diff --git a/EraCore.Web/src/components/TerminalDisplay.vue b/EraCore.Web/src/components/TerminalDisplay.vue
-index b491deebb2d90ea1c25972a3495b9d8ab85927af..fd80c82bbc3a6c5509209a6619ff245c07aefc36 100644
+index b491deeb..fd80c82b 100644
 --- a/EraCore.Web/src/components/TerminalDisplay.vue
 +++ b/EraCore.Web/src/components/TerminalDisplay.vue
 @@ -1,5 +1,5 @@
@@ -17884,7 +18586,7 @@ index b491deebb2d90ea1c25972a3495b9d8ab85927af..fd80c82bbc3a6c5509209a6619ff245c
  }
  .term-btn:disabled {
 diff --git a/EraCore.Web/src/components/TinputCountdown.vue b/EraCore.Web/src/components/TinputCountdown.vue
-index 44874ef8eb38caf9f62ffa37a1b0e27b5d4dfa51..d5367fc5aa2ba46d7827dd4fc8c43910353b905e 100644
+index 44874ef8..d5367fc5 100644
 --- a/EraCore.Web/src/components/TinputCountdown.vue
 +++ b/EraCore.Web/src/components/TinputCountdown.vue
 @@ -42,6 +42,8 @@ const tinputCountdownText = computed<string | null>(() => {
@@ -17897,7 +18599,7 @@ index 44874ef8eb38caf9f62ffa37a1b0e27b5d4dfa51..d5367fc5aa2ba46d7827dd4fc8c43910
    border-radius: var(--radius-control);
    border: none;
 diff --git a/EraCore.Web/src/components/WebGameList.vue b/EraCore.Web/src/components/WebGameList.vue
-index 9e3b2d659a90c4c9befda3c292208a97c7e52b61..c5f83e20f5bdc1bdaa199deb797caee89b26495d 100644
+index 9e3b2d65..c5f83e20 100644
 --- a/EraCore.Web/src/components/WebGameList.vue
 +++ b/EraCore.Web/src/components/WebGameList.vue
 @@ -52,6 +52,14 @@ const menuItems = computed<PopupMenuItem[]>(() => [
@@ -17917,7 +18619,7 @@ index 9e3b2d659a90c4c9befda3c292208a97c7e52b61..c5f83e20f5bdc1bdaa199deb797caee8
  /** 重新扫描——以当前主目录为起点重扫（未选目录时退化为更改目录对话框）。 */
 diff --git a/EraCore.Web/src/components/__tests__/AppExitFeedback.test.ts b/EraCore.Web/src/components/__tests__/AppExitFeedback.test.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..ab3d71f1525fea2e77de0293ad03dd4374ce9f7b
+index 00000000..ab3d71f1
 --- /dev/null
 +++ b/EraCore.Web/src/components/__tests__/AppExitFeedback.test.ts
 @@ -0,0 +1,200 @@
@@ -18121,9 +18823,169 @@ index 0000000000000000000000000000000000000000..ab3d71f1525fea2e77de0293ad03dd43
 +    wrapper.unmount();
 +  });
 +});
+diff --git a/EraCore.Web/src/components/__tests__/GuideAlignment.test.ts b/EraCore.Web/src/components/__tests__/GuideAlignment.test.ts
+new file mode 100644
+index 00000000..c608f420
+--- /dev/null
++++ b/EraCore.Web/src/components/__tests__/GuideAlignment.test.ts
+@@ -0,0 +1,154 @@
++// @vitest-environment happy-dom
++import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
++import { mount, type VueWrapper } from '@vue/test-utils';
++import { setActivePinia, createPinia } from 'pinia';
++import OnboardingDialog from '../OnboardingDialog.vue';
++import GameLibraryView from '../GameLibraryView.vue';
++import { useGameStore } from '../../stores/game';
++import type { GameLibrarySource } from '../../lib/gameLibrary';
++
++/**
++ * 2026-10-14 引导对齐（用户批准的最小修正）：
++ * 应用内引导必须表达真实扫描规则——玩家选的是「装着各个游戏文件夹的父目录」，
++ * 扫描器识别其中下一层包含 CSV/ERB 的游戏文件夹。
++ *
++ * 用真实组件渲染检查文案与结构，不做源码字符串搜索；
++ * 同时验证原有交互（关闭引导、空态按钮、扫描/列表切换）未改变。
++ */
++
++/** 挂载引导弹层并取出目录示意 <pre> 的逐行文本。 */
++function mountOnboarding(): VueWrapper<any> {
++  return mount(OnboardingDialog);
++}
++
++describe('OnboardingDialog · 目录示意与扫描规则对齐', () => {
++  it('「选择这一层」标记在父目录行（emuera），不在游戏文件夹行', () => {
++    const wrapper = mountOnboarding();
++    const lines = wrapper.find('pre.ob-code').text().split('\n');
++
++    const emueraLine = lines.find((l) => l.includes('emuera/'));
++    expect(emueraLine, 'emuera 行应存在').toBeTruthy();
++    expect(emueraLine!).toContain('选目录时选到【这一层】');
++
++    const gameLine = lines.find((l) => l.includes('你的游戏/'));
++    expect(gameLine, '游戏文件夹行应存在').toBeTruthy();
++    expect(gameLine!).not.toContain('【这一层】');
++  });
++
++  it('示意图展示「下一层含 ERB/、CSV/ 子目录」，散文行说明游戏文件夹要求', () => {
++    const wrapper = mountOnboarding();
++    const lines = wrapper.find('pre.ob-code').text().split('\n');
++    const erdIdx = lines.findIndex((l) => l.includes('ERB/'));
++    const csvIdx = lines.findIndex((l) => l.includes('CSV/'));
++    const gameIdx = lines.findIndex((l) => l.includes('你的游戏/'));
++    expect(erdIdx).toBeGreaterThan(gameIdx);
++    expect(csvIdx).toBeGreaterThan(erdIdx);
++    // ERB、CSV 是缩进的子目录行
++    expect(lines[erdIdx]!.startsWith('    ')).toBe(true);
++    expect(lines[csvIdx]!.startsWith('    ')).toBe(true);
++
++    // 「每个游戏文件夹（内含 ERB、CSV）」由图下散文行交代
++    const sec2 = wrapper.findAll('.ob-sec')[1]!;
++    expect(sec2.text()).toContain('每个游戏文件夹');
++    expect(sec2.text()).toContain('内含 ERB、CSV');
++    expect(sec2.text()).toContain('不是游戏文件夹本身');
++  });
++
++  it('emuera 表达为示例名而非强制目录名', () => {
++    const wrapper = mountOnboarding();
++    const sec2 = wrapper.findAll('.ob-sec')[1]!;
++    expect(sec2.text()).toContain('名字随意');
++  });
++
++  it('原有三段结构与关闭交互不变', async () => {
++    const wrapper = mountOnboarding();
++    const sections = wrapper.findAll('.ob-sec');
++    expect(sections.length).toBe(3);
++    expect(sections[0]!.text()).toContain('先找到一款游戏');
++    expect(sections[1]!.text()).toContain('把游戏放进设备');
++    expect(sections[2]!.text()).toContain('怎么玩');
++
++    const okBtn = wrapper.find('.ob-ok');
++    expect(okBtn.text()).toBe('知道了，开始吧');
++    await okBtn.trigger('click');
++    expect(wrapper.emitted('close')).toHaveLength(1);
++  });
++});
++
++describe('GameLibraryView · 主目录空态文案与扫描规则对齐', () => {
++  const source: GameLibrarySource = {
++    kind: 'http',
++    supportsNativePicker: false,
++    scan: vi.fn(async () => true),
++    listDirs: vi.fn(async () => null),
++    pickMainDir: vi.fn(async () => null),
++    pickGame: vi.fn(async () => {}),
++  };
++
++  beforeEach(() => {
++    setActivePinia(createPinia());
++    localStorage.setItem('app.onboardingSeen', 'true');
++  });
++
++  afterEach(() => {
++    vi.clearAllMocks();
++  });
++
++  async function mountLibrary(): Promise<{ wrapper: VueWrapper<any>; game: ReturnType<typeof useGameStore> }> {
++    const game = useGameStore();
++    const wrapper = mount(GameLibraryView, { props: { source } });
++    await wrapper.vm.$nextTick();
++    return { wrapper, game };
++  }
++
++  it('空态明确「游戏文件夹放在主目录下」且「每个游戏文件夹」含 CSV/ERB', async () => {
++    const { wrapper } = await mountLibrary();
++    const empty = wrapper.find('.empty-state');
++    expect(empty.exists()).toBe(true);
++
++    const hints = wrapper.findAll('.empty-hint').map((h) => h.text());
++    expect(hints).toContain('请将游戏文件夹放在主目录下');
++    expect(hints).toContain('每个游戏文件夹中需包含 CSV 和 ERB 子目录');
++    // 旧文案（易误读为主目录自身要含 csv/erb）不再出现
++    expect(wrapper.text()).not.toContain('游戏目录需要包含');
++  });
++
++  it('「主目录不存在」分支同样显示两句新文案', async () => {
++    const { wrapper, game } = await mountLibrary();
++    game.scanRootDirExists = false;
++    await wrapper.vm.$nextTick();
++    expect(wrapper.text()).toContain('主目录不存在');
++    expect(wrapper.text()).toContain('请将游戏文件夹放在主目录下');
++    expect(wrapper.text()).toContain('每个游戏文件夹中需包含 CSV 和 ERB 子目录');
++  });
++
++  it('原有交互不变：更改主目录按钮打开目录对话框', async () => {
++    const { wrapper } = await mountLibrary();
++    const btn = wrapper.find('.empty-primary-btn');
++    expect(btn.text()).toBe('更改主目录');
++    await btn.trigger('click');
++    await wrapper.vm.$nextTick();
++    expect(wrapper.find('.cd-dialog').exists()).toBe(true);
++    expect(wrapper.text()).toContain('更改目录');
++  });
++
++  it('扫描中与有游戏时不再显示空态（既有行为未变）', async () => {
++    const { wrapper, game } = await mountLibrary();
++
++    game.scanStatus = 'scanning';
++    await wrapper.vm.$nextTick();
++    expect(wrapper.find('.empty-state').exists()).toBe(false);
++    expect(wrapper.find('.scanning').exists()).toBe(true);
++    expect(wrapper.text()).toContain('正在扫描游戏列表…');
++
++    game.scanStatus = 'idle';
++    game.setScannedGames(
++      [{ name: 'g1', fullPath: '/x/g1', irCached: false, irCacheBytes: 0, irCacheBuiltUtc: null }],
++      '/x',
++      true,
++    );
++    await wrapper.vm.$nextTick();
++    expect(wrapper.find('.empty-state').exists()).toBe(false);
++    expect(wrapper.text()).toContain('g1');
++  });
++});
 diff --git a/EraCore.Web/src/components/__tests__/InputBar.test.ts b/EraCore.Web/src/components/__tests__/InputBar.test.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..59017c7393a27448fad6d9ff6f22c41c323d50cf
+index 00000000..59017c73
 --- /dev/null
 +++ b/EraCore.Web/src/components/__tests__/InputBar.test.ts
 @@ -0,0 +1,108 @@
@@ -18237,7 +19099,7 @@ index 0000000000000000000000000000000000000000..59017c7393a27448fad6d9ff6f22c41c
 +});
 diff --git a/EraCore.Web/src/components/__tests__/TerminalDisplay.grid.test.ts b/EraCore.Web/src/components/__tests__/TerminalDisplay.grid.test.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..1c279e5fcdd8a56022cfa2ec8198943e46eb7486
+index 00000000..1c279e5f
 --- /dev/null
 +++ b/EraCore.Web/src/components/__tests__/TerminalDisplay.grid.test.ts
 @@ -0,0 +1,287 @@
@@ -18529,7 +19391,7 @@ index 0000000000000000000000000000000000000000..1c279e5fcdd8a56022cfa2ec8198943e
 +  });
 +});
 diff --git a/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts b/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
-index e3e56af833e04ce02c6385e99a6ce5946f61b86e..5c5817a7af74941c162da99ef9a91c8788d15f46 100644
+index e3e56af8..5c5817a7 100644
 --- a/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
 +++ b/EraCore.Web/src/components/__tests__/TerminalDisplay.test.ts
 @@ -1,5 +1,6 @@
@@ -18774,7 +19636,7 @@ index e3e56af833e04ce02c6385e99a6ce5946f61b86e..5c5817a7af74941c162da99ef9a91c87
 +  });
  });
 diff --git a/EraCore.Web/src/components/menuTypes.ts b/EraCore.Web/src/components/menuTypes.ts
-index bef99dcb341eb0bad6b620da60db284899d1d364..386a402ba4c7f422482f885ab1a6d7d746794df5 100644
+index bef99dcb..386a402b 100644
 --- a/EraCore.Web/src/components/menuTypes.ts
 +++ b/EraCore.Web/src/components/menuTypes.ts
 @@ -10,6 +10,9 @@ export type IconName =
@@ -18788,7 +19650,7 @@ index bef99dcb341eb0bad6b620da60db284899d1d364..386a402ba4c7f422482f885ab1a6d7d7
  
  export type PopupMenuItem =
 diff --git a/EraCore.Web/src/composables/__tests__/useAppInit.test.ts b/EraCore.Web/src/composables/__tests__/useAppInit.test.ts
-index 741199ca6de3cd79de51d5f2097781778084d1e8..8fe9f396ad54a0c9c4fe14ae3547bbfa2b728f5f 100644
+index 741199ca..8fe9f396 100644
 --- a/EraCore.Web/src/composables/__tests__/useAppInit.test.ts
 +++ b/EraCore.Web/src/composables/__tests__/useAppInit.test.ts
 @@ -149,9 +149,9 @@ describe('initAppState (T-025 D9 rev)', () => {
@@ -18825,7 +19687,7 @@ index 741199ca6de3cd79de51d5f2097781778084d1e8..8fe9f396ad54a0c9c4fe14ae3547bbfa
      const postMessage = vi.fn();
      vi.stubGlobal('window', {
 diff --git a/EraCore.Web/src/composables/__tests__/useGameStatusMonitor.test.ts b/EraCore.Web/src/composables/__tests__/useGameStatusMonitor.test.ts
-index 35fee6090afaf6e357734cd045b8054f663e0830..fbc804ff5d5026c7def1839da1be808d3e803838 100644
+index 35fee609..fbc804ff 100644
 --- a/EraCore.Web/src/composables/__tests__/useGameStatusMonitor.test.ts
 +++ b/EraCore.Web/src/composables/__tests__/useGameStatusMonitor.test.ts
 @@ -166,4 +166,39 @@ describe('useGameStatusMonitor', () => {
@@ -18869,7 +19731,7 @@ index 35fee6090afaf6e357734cd045b8054f663e0830..fbc804ff5d5026c7def1839da1be808d
 +  });
  });
 diff --git a/EraCore.Web/src/composables/useAppInit.ts b/EraCore.Web/src/composables/useAppInit.ts
-index 4ae40d759e124cce94454914563c1b4da050fc18..7737e7aa114e2699ca8e7217780c14c4a834269f 100644
+index 4ae40d75..7737e7aa 100644
 --- a/EraCore.Web/src/composables/useAppInit.ts
 +++ b/EraCore.Web/src/composables/useAppInit.ts
 @@ -77,6 +77,9 @@ export async function initAppState(): Promise<void> {
@@ -18982,7 +19844,7 @@ index 4ae40d759e124cce94454914563c1b4da050fc18..7737e7aa114e2699ca8e7217780c14c4
    }
  
 diff --git a/EraCore.Web/src/composables/useGameStatusMonitor.ts b/EraCore.Web/src/composables/useGameStatusMonitor.ts
-index aae867882801b0f2646d626e020e9440d8908bb5..b405e963dd1f3a346df4153a02266e45a558330f 100644
+index aae86788..b405e963 100644
 --- a/EraCore.Web/src/composables/useGameStatusMonitor.ts
 +++ b/EraCore.Web/src/composables/useGameStatusMonitor.ts
 @@ -23,6 +23,9 @@ const TICK_MS = 2000;
@@ -19010,7 +19872,7 @@ index aae867882801b0f2646d626e020e9440d8908bb5..b405e963dd1f3a346df4153a02266e45
        return;
      }
 diff --git a/EraCore.Web/src/composables/usePinchZoom.ts b/EraCore.Web/src/composables/usePinchZoom.ts
-index 631a9f7baa16251455aa5a0654503970cc7c0e90..968118b95407b2d52e1c2d1a95dfb99cdf526945 100644
+index 631a9f7b..968118b9 100644
 --- a/EraCore.Web/src/composables/usePinchZoom.ts
 +++ b/EraCore.Web/src/composables/usePinchZoom.ts
 @@ -31,10 +31,20 @@ import { watch, type Ref } from 'vue';
@@ -19047,7 +19909,7 @@ index 631a9f7baa16251455aa5a0654503970cc7c0e90..968118b95407b2d52e1c2d1a95dfb99c
      if (pointers.size === 2 && !pinchAnchor) {
 diff --git a/EraCore.Web/src/lib/__tests__/colorContrast.test.ts b/EraCore.Web/src/lib/__tests__/colorContrast.test.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..76866406516118955fad5c91cabbaf6ea22fbb98
+index 00000000..76866406
 --- /dev/null
 +++ b/EraCore.Web/src/lib/__tests__/colorContrast.test.ts
 @@ -0,0 +1,111 @@
@@ -19164,7 +20026,7 @@ index 0000000000000000000000000000000000000000..76866406516118955fad5c91cabbaf6e
 +});
 diff --git a/EraCore.Web/src/lib/__tests__/lineLayout.test.ts b/EraCore.Web/src/lib/__tests__/lineLayout.test.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..56506d2b5fc2cf1e6dd1633a4cab908700d81e59
+index 00000000..56506d2b
 --- /dev/null
 +++ b/EraCore.Web/src/lib/__tests__/lineLayout.test.ts
 @@ -0,0 +1,166 @@
@@ -19335,7 +20197,7 @@ index 0000000000000000000000000000000000000000..56506d2b5fc2cf1e6dd1633a4cab9087
 +  });
 +});
 diff --git a/EraCore.Web/src/lib/__tests__/mauiBridge.test.ts b/EraCore.Web/src/lib/__tests__/mauiBridge.test.ts
-index 4635c76cf87a45f6d0adf57acf58f26e9bbbce6b..6e43b174525180c02bd1db4ae49581814acc6888 100644
+index 4635c76c..6e43b174 100644
 --- a/EraCore.Web/src/lib/__tests__/mauiBridge.test.ts
 +++ b/EraCore.Web/src/lib/__tests__/mauiBridge.test.ts
 @@ -298,6 +298,14 @@ describe('mauiBridge (issue 07 / spec ID7)', () => {
@@ -19354,7 +20216,7 @@ index 4635c76cf87a45f6d0adf57acf58f26e9bbbce6b..6e43b174525180c02bd1db4ae4958181
        const postMessage = vi.fn();
        mockWindow.chrome = { webview: { postMessage } };
 diff --git a/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts b/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts
-index aa50239619fe5e62a9a7145c3f70b9b962b33a81..2e34d7cda6469ef1000046aecea69a2a9ea915dd 100644
+index aa502396..2e34d7cd 100644
 --- a/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts
 +++ b/EraCore.Web/src/lib/__tests__/parseTurnRecord.test.ts
 @@ -576,6 +576,35 @@ describe('parseTurnRecord - v8 image/shape/bgImages', () => {
@@ -19395,7 +20257,7 @@ index aa50239619fe5e62a9a7145c3f70b9b962b33a81..2e34d7cda6469ef1000046aecea69a2a
        state: 'WaitInput',
 diff --git a/EraCore.Web/src/lib/colorContrast.ts b/EraCore.Web/src/lib/colorContrast.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..3b35124e71267504ca8be71572761d5e51f1cb85
+index 00000000..3b35124e
 --- /dev/null
 +++ b/EraCore.Web/src/lib/colorContrast.ts
 @@ -0,0 +1,63 @@
@@ -19464,7 +20326,7 @@ index 0000000000000000000000000000000000000000..3b35124e71267504ca8be71572761d5e
 +}
 diff --git a/EraCore.Web/src/lib/lineLayout.ts b/EraCore.Web/src/lib/lineLayout.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..98c0aa99e395779a3368f7e2db12ae1deb18d9e5
+index 00000000..98c0aa99
 --- /dev/null
 +++ b/EraCore.Web/src/lib/lineLayout.ts
 @@ -0,0 +1,95 @@
@@ -19564,7 +20426,7 @@ index 0000000000000000000000000000000000000000..98c0aa99e395779a3368f7e2db12ae1d
 +  return max;
 +}
 diff --git a/EraCore.Web/src/lib/mauiBridge.ts b/EraCore.Web/src/lib/mauiBridge.ts
-index 5f0b02848c1f5241e17c1ff9f5ebd091df433ed2..5d4290e7195127e767c796e66cc92165392616a9 100644
+index 5f0b0284..5d4290e7 100644
 --- a/EraCore.Web/src/lib/mauiBridge.ts
 +++ b/EraCore.Web/src/lib/mauiBridge.ts
 @@ -215,8 +215,8 @@ export function registerMessageHandler(handler: (msg: unknown) => void): void {
@@ -19612,7 +20474,7 @@ index 5f0b02848c1f5241e17c1ff9f5ebd091df433ed2..5d4290e7195127e767c796e66cc92165
   * A0 补充（真机无 adb）：请求 C# 读取 agent.log 内容推给 Vue（设置页日志查看器）。
   *
 diff --git a/EraCore.Web/src/lib/parseTurnRecord.ts b/EraCore.Web/src/lib/parseTurnRecord.ts
-index 89f19ff9aca4dc02b430024aed93d6d9318ea914..49d0275b98f38e961c6cc604221f5ae9715fe998 100644
+index 89f19ff9..49d0275b 100644
 --- a/EraCore.Web/src/lib/parseTurnRecord.ts
 +++ b/EraCore.Web/src/lib/parseTurnRecord.ts
 @@ -54,6 +54,14 @@ export function parseTurnRecord(rawJson: string): TurnRecord {
@@ -19685,7 +20547,7 @@ index 89f19ff9aca4dc02b430024aed93d6d9318ea914..49d0275b98f38e961c6cc604221f5ae9
  }
  
 diff --git a/EraCore.Web/src/main.ts b/EraCore.Web/src/main.ts
-index ddecdf826d6ede6f6d1caf6ddd508ca2bf05cf93..14eb43ac856e6e109705a7dc6319bb6bd3f05b82 100644
+index ddecdf82..14eb43ac 100644
 --- a/EraCore.Web/src/main.ts
 +++ b/EraCore.Web/src/main.ts
 @@ -3,6 +3,7 @@ import { createPinia } from 'pinia';
@@ -19698,7 +20560,7 @@ index ddecdf826d6ede6f6d1caf6ddd508ca2bf05cf93..14eb43ac856e6e109705a7dc6319bb6b
   * 焦点模态追踪（DESIGN.md：输入框与控件不做指针聚焦高亮，但保留键盘焦点可达性）。
 diff --git a/EraCore.Web/src/stores/__tests__/appSettings.test.ts b/EraCore.Web/src/stores/__tests__/appSettings.test.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..5fc39e7f21506daf4468d31793e584bb1a9e9b46
+index 00000000..5fc39e7f
 --- /dev/null
 +++ b/EraCore.Web/src/stores/__tests__/appSettings.test.ts
 @@ -0,0 +1,149 @@
@@ -19852,7 +20714,7 @@ index 0000000000000000000000000000000000000000..5fc39e7f21506daf4468d31793e584bb
 +  });
 +});
 diff --git a/EraCore.Web/src/stores/__tests__/connection.test.ts b/EraCore.Web/src/stores/__tests__/connection.test.ts
-index 22082b36f9bbace3c7020cbc5e1d2d0b93c1eaa0..76f60a6156ba2a7683f4e9d01df2ced71cfd722b 100644
+index 22082b36..76f60a61 100644
 --- a/EraCore.Web/src/stores/__tests__/connection.test.ts
 +++ b/EraCore.Web/src/stores/__tests__/connection.test.ts
 @@ -1028,3 +1028,161 @@ describe('useConnectionStore — issue 06 自动重连', () => {
@@ -20019,7 +20881,7 @@ index 22082b36f9bbace3c7020cbc5e1d2d0b93c1eaa0..76f60a6156ba2a7683f4e9d01df2ced7
 +});
 diff --git a/EraCore.Web/src/stores/__tests__/connectionEpoch.test.ts b/EraCore.Web/src/stores/__tests__/connectionEpoch.test.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..9aa26d9ffe89ecb9a178b847e40da754bf8287d2
+index 00000000..9aa26d9f
 --- /dev/null
 +++ b/EraCore.Web/src/stores/__tests__/connectionEpoch.test.ts
 @@ -0,0 +1,138 @@
@@ -20162,7 +21024,7 @@ index 0000000000000000000000000000000000000000..9aa26d9ffe89ecb9a178b847e40da754
 +  });
 +});
 diff --git a/EraCore.Web/src/stores/__tests__/game.test.ts b/EraCore.Web/src/stores/__tests__/game.test.ts
-index acbe3d6dbf7d8703a4fcb2bce1796f16226ea7a7..e4f2fc61c88401a71707b36cca6ae8c4b07928dc 100644
+index acbe3d6d..e4f2fc61 100644
 --- a/EraCore.Web/src/stores/__tests__/game.test.ts
 +++ b/EraCore.Web/src/stores/__tests__/game.test.ts
 @@ -1058,3 +1058,69 @@ describe('useGameStore - setScale（缩放 clamp + 持久化）', () => {
@@ -20236,7 +21098,7 @@ index acbe3d6dbf7d8703a4fcb2bce1796f16226ea7a7..e4f2fc61c88401a71707b36cca6ae8c4
 +  });
 +});
 diff --git a/EraCore.Web/src/stores/__tests__/gameExitHttp.test.ts b/EraCore.Web/src/stores/__tests__/gameExitHttp.test.ts
-index 57aadfadd1673744a5c817054540e2b04bb078e7..4e08798000b90ae6de24426200576b645b12d137 100644
+index 57aadfad..4e087980 100644
 --- a/EraCore.Web/src/stores/__tests__/gameExitHttp.test.ts
 +++ b/EraCore.Web/src/stores/__tests__/gameExitHttp.test.ts
 @@ -1,14 +1,18 @@
@@ -21105,7 +21967,7 @@ index 57aadfadd1673744a5c817054540e2b04bb078e7..4e08798000b90ae6de24426200576b64
  });
 diff --git a/EraCore.Web/src/stores/__tests__/gameNeedsTextInput.test.ts b/EraCore.Web/src/stores/__tests__/gameNeedsTextInput.test.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..4bde2ccc5e6a251e2751baa226db4212d9ec0a2d
+index 00000000..4bde2ccc
 --- /dev/null
 +++ b/EraCore.Web/src/stores/__tests__/gameNeedsTextInput.test.ts
 @@ -0,0 +1,178 @@
@@ -21289,7 +22151,7 @@ index 0000000000000000000000000000000000000000..4bde2ccc5e6a251e2751baa226db4212
 +});
 diff --git a/EraCore.Web/src/stores/__tests__/gameRecovery.test.ts b/EraCore.Web/src/stores/__tests__/gameRecovery.test.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..b4db07f45964f5d52e99fa4a5e146aa23797fbfa
+index 00000000..b4db07f4
 --- /dev/null
 +++ b/EraCore.Web/src/stores/__tests__/gameRecovery.test.ts
 @@ -0,0 +1,548 @@
@@ -21843,7 +22705,7 @@ index 0000000000000000000000000000000000000000..b4db07f45964f5d52e99fa4a5e146aa2
 +});
 diff --git a/EraCore.Web/src/stores/__tests__/gameStateSeq.test.ts b/EraCore.Web/src/stores/__tests__/gameStateSeq.test.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..0492378cce5facfdc409712eb46637ac3402cd9c
+index 00000000..0492378c
 --- /dev/null
 +++ b/EraCore.Web/src/stores/__tests__/gameStateSeq.test.ts
 @@ -0,0 +1,186 @@
@@ -22035,7 +22897,7 @@ index 0000000000000000000000000000000000000000..0492378cce5facfdc409712eb46637ac
 +});
 diff --git a/EraCore.Web/src/stores/__tests__/gameWatermark.test.ts b/EraCore.Web/src/stores/__tests__/gameWatermark.test.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..712b27a7ab7e1243c35a5569f3851e8255eee84d
+index 00000000..712b27a7
 --- /dev/null
 +++ b/EraCore.Web/src/stores/__tests__/gameWatermark.test.ts
 @@ -0,0 +1,331 @@
@@ -22372,7 +23234,7 @@ index 0000000000000000000000000000000000000000..712b27a7ab7e1243c35a5569f3851e82
 +});
 \ No newline at end of file
 diff --git a/EraCore.Web/src/stores/connection.ts b/EraCore.Web/src/stores/connection.ts
-index 8ec54b5067c685832fbe83d9f161ff48f0c93829..6514abc1934bbacc8cc383861ff3857d65d534fe 100644
+index 8ec54b50..6514abc1 100644
 --- a/EraCore.Web/src/stores/connection.ts
 +++ b/EraCore.Web/src/stores/connection.ts
 @@ -99,6 +99,31 @@ export const useConnectionStore = defineStore('connection', () => {
@@ -22777,7 +23639,7 @@ index 8ec54b5067c685832fbe83d9f161ff48f0c93829..6514abc1934bbacc8cc383861ff3857d
      acquireControl,
      applyControlStatus,
 diff --git a/EraCore.Web/src/stores/game.ts b/EraCore.Web/src/stores/game.ts
-index 05e6ff088be1c4713e25b24d26798d0a2d36702a..167737777b4c9736627380c373c4982e52d4ba95 100644
+index 05e6ff08..16773777 100644
 --- a/EraCore.Web/src/stores/game.ts
 +++ b/EraCore.Web/src/stores/game.ts
 @@ -315,6 +315,46 @@ export const useGameStore = defineStore('game', () => {
@@ -23852,7 +24714,7 @@ index 05e6ff088be1c4713e25b24d26798d0a2d36702a..167737777b4c9736627380c373c4982e
      setScale,
    };
 diff --git a/EraCore.Web/src/stores/ui.ts b/EraCore.Web/src/stores/ui.ts
-index 238d5cc2228422398cd3c1d771d1961c6a489777..503b9073bbc5c6cec3852e472a7b70a17346d4cc 100644
+index 238d5cc2..503b9073 100644
 --- a/EraCore.Web/src/stores/ui.ts
 +++ b/EraCore.Web/src/stores/ui.ts
 @@ -8,7 +8,7 @@ import { ref } from 'vue';
@@ -23866,7 +24728,7 @@ index 238d5cc2228422398cd3c1d771d1961c6a489777..503b9073bbc5c6cec3852e472a7b70a1
   * - 'web'：桌面浏览器，用路径文本输入框（浏览器安全限制不暴露真实 FS 路径）
 diff --git a/EraCore.Web/src/styles/legacy-webview.css b/EraCore.Web/src/styles/legacy-webview.css
 new file mode 100644
-index 0000000000000000000000000000000000000000..af4f18a194886a3eb00dec9df54a7fce6c57cbad
+index 00000000..af4f18a1
 --- /dev/null
 +++ b/EraCore.Web/src/styles/legacy-webview.css
 @@ -0,0 +1,120 @@
@@ -23992,7 +24854,7 @@ index 0000000000000000000000000000000000000000..af4f18a194886a3eb00dec9df54a7fce
 +html.legacy-webview.pointer-interaction :focus { outline: none; }
 \ No newline at end of file
 diff --git a/EraCore.Web/src/styles/theme.css b/EraCore.Web/src/styles/theme.css
-index b2e7b7a8fd57e09e3441d4bc838119c0b958b502..2bfb3e04dff41c9859d0566634669bb2e490aadb 100644
+index b2e7b7a8..2bfb3e04 100644
 --- a/EraCore.Web/src/styles/theme.css
 +++ b/EraCore.Web/src/styles/theme.css
 @@ -30,11 +30,23 @@
@@ -24059,7 +24921,7 @@ index b2e7b7a8fd57e09e3441d4bc838119c0b958b502..2bfb3e04dff41c9859d0566634669bb2
 +  }
 +}
 diff --git a/EraCore.Web/src/types/protocol.ts b/EraCore.Web/src/types/protocol.ts
-index ddfa6546ff12cbdfa436c8fde1158d5a781b5b02..e235de42c69839c64eba53e7d22af83a406b6e3e 100644
+index ddfa6546..e235de42 100644
 --- a/EraCore.Web/src/types/protocol.ts
 +++ b/EraCore.Web/src/types/protocol.ts
 @@ -104,11 +104,26 @@ export interface SegmentShape {
@@ -24168,7 +25030,7 @@ index ddfa6546ff12cbdfa436c8fde1158d5a781b5b02..e235de42c69839c64eba53e7d22af83a
  // ---------- DisplayState：前端内部可变状态 ----------
 diff --git a/EraCore.Web/src/views/AboutView.vue b/EraCore.Web/src/views/AboutView.vue
 new file mode 100644
-index 0000000000000000000000000000000000000000..0383d2c26735f83fbc4d54cc1cb3e877766dc39d
+index 00000000..0383d2c2
 --- /dev/null
 +++ b/EraCore.Web/src/views/AboutView.vue
 @@ -0,0 +1,203 @@
@@ -24376,7 +25238,7 @@ index 0000000000000000000000000000000000000000..0383d2c26735f83fbc4d54cc1cb3e877
 +.ab-hint { margin: var(--space-2) 0 0; font-size: 12px; color: var(--color-text-muted); }
 +</style>
 diff --git a/EraCore.Web/src/views/DebugView.vue b/EraCore.Web/src/views/DebugView.vue
-index a4fa867a34e1cecec45ab4c456fbb5707d5814ea..447ee8709b7c1b44441748fd81fdf65171d8f755 100644
+index a4fa867a..447ee870 100644
 --- a/EraCore.Web/src/views/DebugView.vue
 +++ b/EraCore.Web/src/views/DebugView.vue
 @@ -145,6 +145,8 @@ h3 {
@@ -24389,7 +25251,7 @@ index a4fa867a34e1cecec45ab4c456fbb5707d5814ea..447ee8709b7c1b44441748fd81fdf651
    border-top: none;
    font-size: var(--font-size-sm);
 diff --git a/EraCore.Web/src/views/SettingsView.vue b/EraCore.Web/src/views/SettingsView.vue
-index 53d7b34b7ac42be47ac5f5c897a14a1a60f56814..e6a0d3d46e0dad02736be5f58e75fc30b54dde72 100644
+index 53d7b34b..e6a0d3d4 100644
 --- a/EraCore.Web/src/views/SettingsView.vue
 +++ b/EraCore.Web/src/views/SettingsView.vue
 @@ -1,12 +1,34 @@
@@ -24768,7 +25630,7 @@ index 53d7b34b7ac42be47ac5f5c897a14a1a60f56814..e6a0d3d46e0dad02736be5f58e75fc30
    color: var(--color-error);
  }
 diff --git a/EraCore.Web/src/views/TerminalView.vue b/EraCore.Web/src/views/TerminalView.vue
-index b5041e95bad0cb3478cb07374c288c81a8a74268..8521bfb7a5072489347ccd010ba03c2961a9a71f 100644
+index b5041e95..8521bfb7 100644
 --- a/EraCore.Web/src/views/TerminalView.vue
 +++ b/EraCore.Web/src/views/TerminalView.vue
 @@ -36,17 +36,36 @@ watch(
@@ -24876,7 +25738,7 @@ index b5041e95bad0cb3478cb07374c288c81a8a74268..8521bfb7a5072489347ccd010ba03c29
  </style>
 diff --git a/EraCore.Web/src/views/TroubleshootView.vue b/EraCore.Web/src/views/TroubleshootView.vue
 new file mode 100644
-index 0000000000000000000000000000000000000000..98d8cfc621b759d847e241de7a5f8c26b88699af
+index 00000000..98d8cfc6
 --- /dev/null
 +++ b/EraCore.Web/src/views/TroubleshootView.vue
 @@ -0,0 +1,248 @@
@@ -25130,7 +25992,7 @@ index 0000000000000000000000000000000000000000..98d8cfc621b759d847e241de7a5f8c26
 +</style>
 diff --git a/EraCore.Web/src/views/__tests__/TerminalView.test.ts b/EraCore.Web/src/views/__tests__/TerminalView.test.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..fa04b762fc3038be715b1f83658ee980f186c13d
+index 00000000..fa04b762
 --- /dev/null
 +++ b/EraCore.Web/src/views/__tests__/TerminalView.test.ts
 @@ -0,0 +1,232 @@
@@ -25367,7 +26229,7 @@ index 0000000000000000000000000000000000000000..fa04b762fc3038be715b1f83658ee980
 +  });
 +});
 diff --git a/EraCore.Web/vite.config.ts b/EraCore.Web/vite.config.ts
-index a977d11152ca00fca4c6b488bd86991125ab335b..d9c5bd0278eb3bbee82e5ad572f78446671e601f 100644
+index a977d111..d9c5bd02 100644
 --- a/EraCore.Web/vite.config.ts
 +++ b/EraCore.Web/vite.config.ts
 @@ -2,6 +2,32 @@
@@ -25439,7 +26301,7 @@ index a977d11152ca00fca4c6b488bd86991125ab335b..d9c5bd0278eb3bbee82e5ad572f78446
    server: {
      port: 5173,
 diff --git a/build/VueBuild.targets b/build/VueBuild.targets
-index c83c87fc4cfdfa20db8fbdc8317dd228cebbc4d0..a213a6c538f9432b4376df283dafc5d6183f1e26 100644
+index c83c87fc..a213a6c5 100644
 --- a/build/VueBuild.targets
 +++ b/build/VueBuild.targets
 @@ -25,6 +25,7 @@
@@ -25466,7 +26328,7 @@ index c83c87fc4cfdfa20db8fbdc8317dd228cebbc4d0..a213a6c538f9432b4376df283dafc5d6
  
    <!-- CopyVueFrontendToWwwroot: $(VueOutDir)/ → $(VueDistDestination) （源树 + 输出目录）
 diff --git a/docs/LESSONS/README.md b/docs/LESSONS/README.md
-index 0e48c99431ca030b935fc03f533cc7fbfe45525e..b8c068a483f53f1b0c38dc2ef9c27bf70fc06255 100644
+index 0e48c994..b8c068a4 100644
 --- a/docs/LESSONS/README.md
 +++ b/docs/LESSONS/README.md
 @@ -1,28 +1,30 @@
@@ -25530,7 +26392,7 @@ index 0e48c99431ca030b935fc03f533cc7fbfe45525e..b8c068a483f53f1b0c38dc2ef9c27bf7
 +- 跨主题教训（如 SAF 性能与缓存）归主主题文件；方法论归 `diagnostics.md`。
 diff --git a/docs/LESSONS/concurrency-and-static-state.md b/docs/LESSONS/concurrency-and-static-state.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..8df7806ccc8b701fe509085901da556405a8ccbd
+index 00000000..8df7806c
 --- /dev/null
 +++ b/docs/LESSONS/concurrency-and-static-state.md
 @@ -0,0 +1,124 @@
@@ -25660,7 +26522,7 @@ index 0000000000000000000000000000000000000000..8df7806ccc8b701fe509085901da5564
 +- 主题近邻：[`csharp-pitfalls.md`](csharp-pitfalls.md) #1（静态字段初始化顺序）、#3（同一可变状态留多份引用）。
 diff --git a/docs/LESSONS/logical-canvas-and-autofit.md b/docs/LESSONS/logical-canvas-and-autofit.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..a7f8439fa3b0a85719bfaf70db655aa8cc547428
+index 00000000..a7f8439f
 --- /dev/null
 +++ b/docs/LESSONS/logical-canvas-and-autofit.md
 @@ -0,0 +1,115 @@
@@ -25780,7 +26642,7 @@ index 0000000000000000000000000000000000000000..a7f8439fa3b0a85719bfaf70db655aa8
 +- 引擎侧常量与「为什么需要逻辑画布」的完整论证在 `DesignCanvas.cs` 的类注释（本文件不复述）。
 +- 写「关系断言」时必须同时钉一个绝对期望值，见 [`testing-and-ci.md`](testing-and-ci.md) #13。
 diff --git a/docs/LESSONS/saf-file-access.md b/docs/LESSONS/saf-file-access.md
-index 5f76c5d3b729db1e09ce5a003baa98354e0634d9..77b86ea10046ed61e9a27f4fa96b43217c2c5200 100644
+index 5f76c5d3..77b86ea1 100644
 --- a/docs/LESSONS/saf-file-access.md
 +++ b/docs/LESSONS/saf-file-access.md
 @@ -407,6 +407,8 @@ string[] csvFiles = Directory.GetFiles(Program.CsvDir, "*.CSV", option); // ←
@@ -25793,7 +26655,7 @@ index 5f76c5d3b729db1e09ce5a003baa98354e0634d9..77b86ea10046ed61e9a27f4fa96b4321
  - **改抽象层实现后，必须 grep 该抽象对应原始 API 的直连调用点**（`Directory.GetFiles`/`File.Exists`/`Path.GetFileName`…），逐个确认是否真在抽象内——否则修的是「抽象的效果」，不是「行为」。`grep -rn --include=*.cs 'Directory\.GetFiles' EraCore.Core` 一行就能列全。
  - 违反契约的调用点常常**在两种模式下都「能工作」**（被平台的大小写不敏感掩盖），只在第三种组合下分叉 → 缺陷不报错、不崩、CI 绿，只能靠调用点审计发现，不能靠症状定位。
 diff --git a/docs/LESSONS/testing-and-ci.md b/docs/LESSONS/testing-and-ci.md
-index 84f271f7854d70590356e1fd00ca829e8d247a0d..de94d0add40b1ba84331e5b64084ddfbc6f551d3 100644
+index 84f271f7..de94d0ad 100644
 --- a/docs/LESSONS/testing-and-ci.md
 +++ b/docs/LESSONS/testing-and-ci.md
 @@ -1,168 +1,206 @@
@@ -26172,7 +27034,7 @@ index 84f271f7854d70590356e1fd00ca829e8d247a0d..de94d0add40b1ba84331e5b64084ddfb
 +
 +⚠️ 并行下的「偶发失败」不要直接当回归：先按 #8 判断是不是全局静态竞态（本轮实例约 **6 次全量跑挂 1 次**，受害者不固定），连跑多次再下结论。
 diff --git a/eracore_agent/__main__.py b/eracore_agent/__main__.py
-index b04a5addcdd67c6b9c5e2351747052a8bc0948b5..1530e4be5d73983cf48b6d6f0d85833cb25e9932 100644
+index b04a5add..1530e4be 100644
 --- a/eracore_agent/__main__.py
 +++ b/eracore_agent/__main__.py
 @@ -144,7 +144,7 @@ def _display_report_flags(value: str) -> list[str]:
@@ -26280,7 +27142,7 @@ index b04a5addcdd67c6b9c5e2351747052a8bc0948b5..1530e4be5d73983cf48b6d6f0d85833c
      maui = sub.add_parser("maui", help="驱动 MAUI app 的控制面（未加载游戏时也可用）")
      maui_sub = maui.add_subparsers(dest="maui_command", required=True)
 diff --git a/eracore_agent/emuera_client.py b/eracore_agent/emuera_client.py
-index fa0e7bb9857aa1376aecd4538f14d4663f52cc1c..cb1cae1b02b2e86196dad30b6118fc0b97ec76d6 100644
+index fa0e7bb9..cb1cae1b 100644
 --- a/eracore_agent/emuera_client.py
 +++ b/eracore_agent/emuera_client.py
 @@ -200,12 +200,38 @@ class EmueraClient:
@@ -26325,7 +27187,7 @@ index fa0e7bb9857aa1376aecd4538f14d4663f52cc1c..cb1cae1b02b2e86196dad30b6118fc0b
              data = json.dumps(payload).encode("utf-8")
              headers["Content-Type"] = "application/json"
 diff --git a/tests/emuera_server.py b/tests/emuera_server.py
-index aed82a740f90e254945938ac36982daaa4cabd93..bb22501fb683ddf418704cd7d29d0df75027c135 100644
+index aed82a74..bb22501f 100644
 --- a/tests/emuera_server.py
 +++ b/tests/emuera_server.py
 @@ -8,7 +8,9 @@ import json
@@ -26340,7 +27202,7 @@ index aed82a740f90e254945938ac36982daaa4cabd93..bb22501fb683ddf418704cd7d29d0df7
  import os
  import shutil
 diff --git a/tests/test_eracore_agent.py b/tests/test_eracore_agent.py
-index eb92e5ea5867c43ddec20fdd51114d7154b955d2..611169f175f8a5b2631fa2b73236bebdf85754f4 100644
+index eb92e5ea..611169f1 100644
 --- a/tests/test_eracore_agent.py
 +++ b/tests/test_eracore_agent.py
 @@ -164,6 +164,9 @@ def main():
