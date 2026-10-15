@@ -42,7 +42,7 @@ EraRelay 是一款基于 [era-core](https://github.com/LaoBro/era-core) 开发�
 
 ## 版本更新
 
-当前正式版：**v0.5.6**。修复换游戏后 SQL 连接沿用旧数据库的问题；纠正应用内目录选择引导，使说明与实际目录层级一致。Android 真机动态验证尚未完成，遇问题欢迎反馈。
+当前正式版：**v0.5.7**。修复连续「点任意处 / 按回车继续」等画面输入完成后仍可能额外等待约 30 秒的问题（0.5.5 / 0.5.6 受影响，建议更新）；改善部分资源文件名 Unicode 写法不一致导致的图片无法读取。遇问题欢迎反馈。
 
 [查看当前版本与更新说明](https://github.com/xiangweilai258/eratw-on-eracore/releases/latest)
 
