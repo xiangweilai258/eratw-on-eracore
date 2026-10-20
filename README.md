@@ -1,6 +1,6 @@
 # EraRelay
 
-**在手机或平板上玩 eraTW（蛇版）。**
+**在手机、平板或 Windows 上玩 eraTW（蛇版）。**
 
 EraRelay 是一款基于 [era-core](https://github.com/LaoBro/era-core) 开发的 era 游戏运行工具。目前主要适配 Android 上的 eraTW 画蛇添足版，提供触屏操作、画面显示和游戏目录选择。
 
@@ -10,7 +10,7 @@ EraRelay 是一款基于 [era-core](https://github.com/LaoBro/era-core) 开发�
 
 ## 开始游玩
 
-1. 下载并安装 Android 安装包，目前提供 arm64 版本。
+1. 下载并安装安装包。Android 提供 arm64 APK；Windows 提供 x64 绿色压缩包，完整解压后运行其中的 `EraCore.Maui.exe`。
 2. 将游戏完整解压到设备上，保留原有目录结构。可以按下面的方式摆放，`emuera` 只是示例名称：
 
    ```text
@@ -34,7 +34,7 @@ EraRelay 是一款基于 [era-core](https://github.com/LaoBro/era-core) 开发�
 
 ## 目前适合谁
 
-目前主要围绕 **eraTW 画蛇添足版（蛇版）** 进行适配与测试。想在 Android 手机上或平板上玩蛇版，可以先从这里开始尝试。
+目前主要围绕 **eraTW 画蛇添足版（蛇版）** 进行适配与测试。想在 Android 手机、平板或 Windows 上玩蛇版，可以先从这里开始尝试。
 
 其他 era 游戏尚未充分验证，不能保证都能运行。项目仍在持续完善，遇到画面、输入或兼容问题，欢迎反馈。
 
@@ -42,7 +42,7 @@ EraRelay 是一款基于 [era-core](https://github.com/LaoBro/era-core) 开发�
 
 ## 版本更新
 
-当前正式版：**v0.5.7**。修复连续「点任意处 / 按回车继续」等画面输入完成后仍可能额外等待约 30 秒的问题（0.5.5 / 0.5.6 受影响，建议更新）；改善部分资源文件名 Unicode 写法不一致导致的图片无法读取。遇问题欢迎反馈。
+当前正式版：**v0.5.8**。新增约三秒启动字符雨，优化手机短横屏首页与右上角菜单滚动，适配 Android 安全区，改善多层合成立绘显示与剧情页自动贴底，并首次同时提供 Windows x64 绿色包。遇问题欢迎反馈。
 
 [查看当前版本与更新说明](https://github.com/xiangweilai258/eratw-on-eracore/releases/latest)
 
